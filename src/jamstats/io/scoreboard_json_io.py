@@ -25,20 +25,6 @@ def read_game_data_json(filepath: str) -> Tuple[Dict[str, Any], pd.DataFrame]:
 
     return game_data_dict, pdf_jam_data
 
-def write_game_data_tsv(game_data_dict: Dict[str, Any],
-                        pdf_jam_data: pd.DataFrame,
-                        filepath: str) -> None:
-    """Write game data to a .tsv file. Put some data into comments in the header.
-
-    Args:
-        game_data_dict (Dict[str, Any]): basic game info dict
-        pdf_jam_data (pd.DataFrame): jam-level data
-        filepath (str): path to write
-    """
-    with open(filepath, "w") as f:
-        for key in game_data_dict:
-            f.write(f"# {key}={game_data_dict[key]}\n")
-        pdf_jam_data.to_csv(f, sep="\t", index=False)
 
 def jsonfile_to_pdf(filepath: str) -> pd.DataFrame:
     """Read in the json and turn it into a Pandas DataFrame.
