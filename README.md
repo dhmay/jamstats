@@ -7,7 +7,8 @@ Has some basic dependencies that I really need to document better:
 * Pandas
 
 Currently seems to work on v4.x scoreboard files, because that's all I've got to play with.
-Once I get my hands on some v5.x files, I'll make the necessary changes and dump 4.x support.
+Once I get my hands on some v5.x files, I'll make the necessary changes and either support both versions or, if
+they're too incompatible, dump 4.x support.
 
 Right now, this is purely a Python API -- there's no packaging or ability to do stuff from the commandline.
 The very simplest thing you can do to check it out is to add the `src` directory to your PYTHONPATH, fire up
