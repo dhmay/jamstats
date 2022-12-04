@@ -10,6 +10,14 @@ Currently seems to work on v4.x scoreboard files, because that's all I've got to
 Once I get my hands on some v5.x files, I'll make the necessary changes and either support both versions or, if
 they're too incompatible, dump 4.x support.
 
+## Here's a sample plot
+
+If you like this plot, you might like this set of tools:
+
+![points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.jpg)
+
+## Using jamstats
+
 Right now, this is purely a Python API -- there's no packaging or ability to do stuff from the commandline.
 The very simplest thing you can do to check it out is to add the `src` directory to your PYTHONPATH, fire up
 Python or Jupyter or whatever, and do something like:
