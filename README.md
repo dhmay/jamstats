@@ -1,5 +1,5 @@
 # jamstats
-Tools for doing statistics and making plots on data from roller derby scoreboard files.
+Tools for doing statistics and making plots on data from [CRG derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files.
 
 Has some basic dependencies that I really need to document better:
 
