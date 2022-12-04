@@ -209,7 +209,7 @@ def plot_cumulative_score_by_jam(pdf_jam_data_long: pd.DataFrame,
     ax.set_xlabel("Score")
     ax.set_ylabel("Period:Jam")
 
-    f.set_size_inches(8,11)
+    f.set_size_inches(8, 11)
 
     return f
 
