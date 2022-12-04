@@ -3,6 +3,22 @@ __author__ = "Damon May"
 import pandas as pd
 from typing import Dict, Any
 import csv
+from jamstats.data.game_data import DerbyGame, DerbyGameFactory
+
+class TsvDerbyGameFactory(DerbyGameFactory):
+    """Build DerbyGame objects from a .tsv file
+    """
+    def __init__(self, filepath):
+        self.game_data_dict = read_jams_tsv_header_dict(filepath)
+        self.pdf_jams_data = read_jams_tsv_to_pandas(filepath)
+        
+    def get_derby_game(self) -> DerbyGame:
+        """Build the derby game
+
+        Returns:
+            DerbyGame: derby game
+        """
+        return DerbyGame(self.pdf_jams_data, self.game_data_dict)
 
 def read_jams_tsv_header_dict(filepath: str) -> Dict[str, str]:
     """Read the key-value pairs from '# ' comments at the top of the jams .tsv
@@ -43,29 +59,7 @@ def read_jams_tsv_to_pandas(filepath: str) -> pd.DataFrame:
     return pdf_jam_data
 
 
-def get_team_number_name_map(jams_metadata_dict: Dict[str, str]) -> Dict[int, str]:
-    """Convenience method to extract a map from team number to team name
-    from the jams metadata dictionary.
-
-    Args:
-        jams_metadata_dict (Dict[str, str]): _description_
-
-    Returns:
-        Dict[int, str]: _description_
-    """
-    team_1 = jams_metadata_dict["team_1"]
-    team_2 = jams_metadata_dict["team_2"]
-
-    team_number_name_map = {
-        1: team_1,
-        2: team_2
-    }
-    return team_number_name_map
-
-
-def write_game_data_tsv(game_data_dict: Dict[str, Any],
-                        pdf_jam_data: pd.DataFrame,
-                        filepath: str) -> None:
+def write_game_data_tsv(derby_game: DerbyGame, filepath: str) -> None:
     """Write game data to a .tsv file. Put some data into comments in the header.
 
     Args:
@@ -74,6 +68,6 @@ def write_game_data_tsv(game_data_dict: Dict[str, Any],
         filepath (str): path to write
     """
     with open(filepath, "w") as f:
-        for key in game_data_dict:
-            f.write(f"# {key}={game_data_dict[key]}\n")
-        pdf_jam_data.to_csv(f, sep="\t", index=False)
+        for key in derby_game.game_data_dict:
+            f.write(f"# {key}={derby_game.game_data_dict[key]}\n")
+        derby_game.pdf_jams_data.to_csv(f, sep="\t", index=False)

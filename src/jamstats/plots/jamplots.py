@@ -5,50 +5,47 @@ from matplotlib.figure import Figure
 from typing import Dict, List
 import seaborn as sns
 from matplotlib import pyplot as plt
-from jamstats.transforms import jam_transforms
-from jamstats.io import tsv_io
 from matplotlib.backends.backend_pdf import PdfPages
+from jamstats.data.game_data import DerbyGame
+from jamstats.io.tsv_io import TsvDerbyGameFactory
 
-def jams_tsv_to_plots_pdf(in_filepath: str,
-                          out_filepath: str) -> None:
+
+def save_game_plots_to_pdf(derby_game: DerbyGame,
+                           out_filepath: str) -> None:
     """Read in a jams .tsv file, make all the plots, write to a .pdf
 
     Args:
         in_filepath (str): jams .tsv filepath
         out_filepath (str): output .pdf filepath
     """
-    pdf_jams_data = tsv_io.read_jams_tsv_to_pandas(in_filepath)
-    game_data_dict = tsv_io.read_jams_tsv_header_dict(in_filepath)
-    figures = make_all_plots(pdf_jams_data, game_data_dict)
+    figures = make_all_plots(derby_game)
     pdfout = PdfPages(out_filepath)
     for figure in figures:
         pdfout.savefig(figure)
     pdfout.close()
 
-def make_all_plots(pdf_jams_data: pd.DataFrame,
-                   game_data_dict: Dict[str, str]) -> List[Figure]:
+def make_all_plots(derby_game: DerbyGame) -> List[Figure]:
     """Build all plots, suitable for exporting to a .pdf
 
     Args:
-        pdf_jams_data (pd.DataFrame): jams data
-        game_data_dict (Dict[str, str]): game data dictionary
-
+        derby_game (DerbyGame): a derby game
     Returns:
         List[Figure]: figures
     """
-    pdf_game_summary = jam_transforms.extract_game_summary(pdf_jams_data)
-    pdf_game_teams_summary = jam_transforms.extract_game_teams_summary(pdf_jams_data)
-    pdf_jam_data_long = jam_transforms.build_teams_together_dataframe(
-        pdf_jams_data, game_data_dict)
+    pdf_game_summary = derby_game.extract_game_summary()
+    pdf_game_teams_summary = derby_game.extract_game_teams_summary()
+    pdf_jam_data_longpdf_jams_data = derby_game.build_jams_dataframe_long()
 
 
     figures = []
     figures.append(plot_game_summary_table(pdf_game_summary))
     figures.append(plot_game_teams_summary_table(pdf_game_teams_summary))
-    figures.append(plot_jam_lead_and_scores(pdf_jam_data_long, game_data_dict))
-    figures.append(plot_cumulative_score_by_jam(pdf_jam_data_long, game_data_dict))
-    figures.append(plot_jammers_by_team(pdf_jams_data, game_data_dict))
-    figures.append(histogram_jam_duration(pdf_jams_data))
+    figures.append(plot_jam_lead_and_scores(
+        pdf_jam_data_longpdf_jams_data, derby_game.game_data_dict))
+    figures.append(plot_cumulative_score_by_jam(
+        pdf_jam_data_longpdf_jams_data, derby_game.game_data_dict))
+    figures.append(plot_jammers_by_team(derby_game.pdf_jams_data, derby_game.game_data_dict))
+    figures.append(histogram_jam_duration(derby_game.pdf_jams_data))
 
     return figures
 

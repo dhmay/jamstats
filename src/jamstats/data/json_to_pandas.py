@@ -1,7 +1,10 @@
 __author__ = "Damon May"
+"""Methods for turning game JSON into Pandas dataframes
+"""
 
 import pandas as pd
-from typing import Dict, Any, Tuple
+from typing import Dict, Any
+from jamstats.data.game_data import DerbyGame, DerbyGameFactory
 
 # Columns to keep at the team+jam level
 TEAMJAM_SUMMARY_COLUMNS = [
@@ -9,23 +12,25 @@ TEAMJAM_SUMMARY_COLUMNS = [
     "Lost", "NoInitial", "StarPass", "TotalScore", "jammer_name", "jammer_number"]
 
 
-def read_game_data_json(game_json: Dict[Any, Any]) -> Tuple[Dict[str, Any], pd.DataFrame]:
-    """convert game JSON data into the data structures we're storing game data in.
-
-    Args:
-        game_json (Dict[Any, Any]): JSON representing a game
-
-    Returns:
-        Tuple[Dict[str, Any], pd.DataFrame]: Game data dict and jam-level data
+class JsonDerbyGameFactory(DerbyGameFactory):
+    """Build DerbyGame objects from JSON
     """
-    pdf_game_state = json_to_game_dataframe(game_json)
-    game_data_dict = extract_game_data_dict(pdf_game_state)
-    pdf_roster = extract_roster(pdf_game_state,
-                                game_data_dict["team_1"],
-                                game_data_dict["team_2"])
-    pdf_jam_data = extract_jam_data(pdf_game_state, pdf_roster)
+    def __init__(self, game_json: Dict[Any, Any]):
+        self.game_json = game_json
+        
+    def get_derby_game(self) -> DerbyGame:
+        """Build the derby game
 
-    return game_data_dict, pdf_jam_data
+        Returns:
+            DerbyGame: derby game
+        """
+        pdf_game_state = json_to_game_dataframe(self.game_json)
+        game_data_dict = extract_game_data_dict(pdf_game_state)
+        pdf_roster = extract_roster(pdf_game_state,
+                                    game_data_dict["team_1"],
+                                    game_data_dict["team_2"])
+        pdf_game_data = extract_jam_data(pdf_game_state, pdf_roster)
+        return DerbyGame(pdf_game_data, game_data_dict)
 
 
 def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
