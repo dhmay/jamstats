@@ -10,7 +10,8 @@ Currently seems to work on v4.x scoreboard files, because that's all I've got to
 Once I get my hands on some v5.x files, I'll make the necessary changes and dump 4.x support.
 
 Right now, this is purely a Python API -- there's no packaging or ability to do stuff from the commandline.
-The very simplest thing you can do to check it out is something like:
+The very simplest thing you can do to check it out is to add the `src` directory to your PYTHONPATH, fire up
+Python or Jupyter or whatever, and do something like:
 
 ```python
 from jamstats.io import scoreboard_json_io
