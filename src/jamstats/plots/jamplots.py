@@ -7,8 +7,9 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from jamstats.data.game_data import DerbyGame
-from jamstats.io.tsv_io import TsvDerbyGameFactory
+import logging
 
+logger = logging.Logger(__name__)
 
 def save_game_plots_to_pdf(derby_game: DerbyGame,
                            out_filepath: str) -> None:
@@ -20,9 +21,11 @@ def save_game_plots_to_pdf(derby_game: DerbyGame,
     """
     figures = make_all_plots(derby_game)
     pdfout = PdfPages(out_filepath)
+    logging.debug(f"Saving {len(figures)} figures to {out_filepath}")
     for figure in figures:
         pdfout.savefig(figure)
     pdfout.close()
+    logging.debug(f"Wrote {out_filepath}")
 
 def make_all_plots(derby_game: DerbyGame) -> List[Figure]:
     """Build all plots, suitable for exporting to a .pdf
