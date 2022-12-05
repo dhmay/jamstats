@@ -6,9 +6,7 @@ Has some basic dependencies that I really need to document better:
 * Seaborn
 * Pandas
 
-Currently seems to work on v4.x scoreboard files, because that's all I've got to play with.
-Once I get my hands on some v5.x files, I'll make the necessary changes and either support both versions or, if
-they're too incompatible, dump 4.x support.
+Supports both v4.x and v5.x JSON files.
 
 ## Here's a sample plot
 
