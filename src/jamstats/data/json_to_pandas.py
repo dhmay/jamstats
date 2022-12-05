@@ -47,6 +47,17 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
     """
     game_dict = game_json["state"]
 
+    json_major_version = get_json_major_version(game_dict)
+
+    if json_major_version == 5:
+        # v5.0 adds a "Game(<game_id>)" chunk to almost every key. Get rid of that.
+        game_dict_new = {
+            ".".join([chunk for chunk in key.split(".") if not chunk.startswith("Game(")]):
+            game_dict[key]
+            for key in game_dict
+        }
+        game_dict = game_dict_new
+
     pdf_game_state = pd.DataFrame({
         "key": game_dict.keys(),
         "value": game_dict.values()})
@@ -63,6 +74,37 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
 
     return pdf_game_state
 
+
+def get_json_major_version(game_dict: Dict[str, Any]) -> int:
+    """Get the major version of CRG used to generate the file
+
+    Args:
+        pdf_game_state (pd.DataFrame): pandas representation of the whole game json
+
+    Returns:
+        int: major version
+    """
+    version_str = game_dict["ScoreBoard.Version(release)"]
+    major_version = version_str.split(".")[0]
+    assert(major_version.startswith("v"))
+    return int(major_version[1:])
+
+
+def get_json_major_version_from_pdf(pdf_game_data: pd.DataFrame) -> int:
+    """Get the major version of CRG used to generate the file
+
+    Args:
+        pdf_game_state (pd.DataFrame): pandas representation of the whole game json
+
+    Returns:
+        int: major version
+    """
+    version_str = list(pdf_game_data[pdf_game_data.key == "ScoreBoard.Version(release)"].value)[0]
+    major_version = version_str.split(".")[0]
+    assert(major_version.startswith("v"))
+    return int(major_version[1:])
+
+
 def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
     """Extract some basic game-level data.
 
@@ -72,10 +114,13 @@ def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: key-value pairs of game-level info
     """
+    team1_key = "ScoreBoard.Team(1).Name"
+    team2_key = "ScoreBoard.Team(2).Name"
+
     team_name_1 = list(pdf_game_state[
-        pdf_game_state.key == "ScoreBoard.Team(1).Name"].value)[0]
+        pdf_game_state.key == team1_key].value)[0]
     team_name_2 = list(pdf_game_state[
-        pdf_game_state.key == "ScoreBoard.Team(2).Name"].value)[0]
+        pdf_game_state.key == team2_key].value)[0]
     return {
         "team_1": team_name_1,
         "team_2": team_name_2
@@ -177,27 +222,45 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     teams.
 
     Args:
-        pdf_game_state (pd.DataFrame): _description_
-        team_name_1 (str): _description_
-        team_name_2 (str): _description_
+        pdf_game_state (pd.DataFrame): game state dataframe
+        team_name_1 (str): Name of team 1
+        team_name_2 (str): Name of team 2
 
     Returns:
         pd.DataFrame: _description_
     """
+    json_major_version = get_json_major_version_from_pdf(pdf_game_state)
+    if json_major_version == 5:
+        team_string_1 = f"Team\(1\)"
+        team_string_2 = f"Team\(2\)"
+    elif json_major_version == 4:
+        team_string_1 = f"PreparedTeam\({team_name_1}\)"
+        team_string_2 = f"PreparedTeam\({team_name_2}\)"
     pdf_game_state_roster = pdf_game_state[
         pdf_game_state.key.str.contains(
-            f"ScoreBoard.PreparedTeam\({team_name_1}\).Skater") |
+            f"ScoreBoard.{team_string_1}.Skater") |
         pdf_game_state.key.str.contains(
-            f"ScoreBoard.PreparedTeam\({team_name_2}\).Skater")]
+            f"ScoreBoard.{team_string_2}.Skater")
+    ]
     pdf_game_state_roster["team"] = [
         chunks[1][chunks[1].index("(") + 1:chunks[1].index(")")]
         for chunks in pdf_game_state_roster.key_chunks]
+    if json_major_version == 5:
+        # Version 4 stored the team name. Version 5 stores the number,
+        # so translate.
+        pdf_game_state_roster["team"] = [team_name_1 if team == "1"
+                                         else team_name_2 if team == "2"
+                                         else "????"
+                                         for team in pdf_game_state_roster["team"]]
     pdf_game_state_roster["skater"] = [
         chunks[2][chunks[2].index("(") + 1:chunks[2].index(")")]
         for chunks in pdf_game_state_roster.key_chunks]
     pdf_game_state_roster["roster_key"] = [
         chunks[3] for chunks in pdf_game_state_roster.key_chunks]
-
+    # dump a bunch of extraneous columns
+    pdf_game_state_roster = pdf_game_state_roster[pdf_game_state_roster.roster_key.isin(
+        ["Id", "Name", "RosterNumber"]
+    )]
     pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
     return pdf_roster
 
@@ -243,7 +306,7 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary["jammer_id"] = list(pdf_ateamjams_data[
         pdf_ateamjams_data.key.str.endswith("Fielding(Jammer).Skater")].value)
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_roster.rename(
-        columns={"Id": "jammer_id", "Name": "jammer_name", "Number": "jammer_number"}),
+        columns={"Id": "jammer_id", "Name": "jammer_name", "RosterNumber": "jammer_number"}),
         on="jammer_id")
 
     pdf_scoringtrips = parse_scoringtrip_data(pdf_ateamjams_data)
