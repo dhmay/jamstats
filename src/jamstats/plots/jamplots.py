@@ -254,6 +254,7 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
         ["Team with Lead", "Lost", "prd_jam"]].groupby(
             ["Team with Lead", "Lost"]).agg("count").reset_index()
     sns.barplot(y="prd_jam", x="Team with Lead", hue="Lost", data=pdf_for_plot, ax=ax)
+    ax.set_ylabel("Jams")
     ax.set_title("Jams with Lead")
 
     ax = axes[1]
