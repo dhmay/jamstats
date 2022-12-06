@@ -195,10 +195,23 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
         .merge(pdf_teamjam_team2, on="prd_jam"))
 
     # add a column indicating whether anyone called it off
-    pdf_jams_summary_withteams["Calloff_any"] = [x or y
-                                                for x, y
-                                                in zip(*[pdf_jams_summary_withteams.Calloff_1,
-                                                         pdf_jams_summary_withteams.Calloff_2])]
+    pdf_jams_summary_withteams["Calloff_any"] = [
+        x or y
+        for x, y
+        in zip(*[pdf_jams_summary_withteams.Calloff_1,
+                 pdf_jams_summary_withteams.Calloff_2])]
+
+    # calculate time to lead (None if no lead). It's the duration of the
+    # first scoring pass for the team that got lead, if any.
+    pdf_jams_summary_withteams["time_to_lead"] = [
+        time_1 if lead_1
+        else time_2 if lead_2
+        else None
+        for time_1, time_2, lead_1, lead_2
+        in zip(*[pdf_jams_summary_withteams.first_scoring_pass_durations_1,
+                 pdf_jams_summary_withteams.first_scoring_pass_durations_2,
+                 pdf_jams_summary_withteams.Lead_1,
+                 pdf_jams_summary_withteams.Lead_2])]
 
     # transform times we're keeping from ms to s
     pdf_jams_summary_withteams["jam_duration_seconds"] = (
@@ -212,7 +225,8 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
     # Drop a bunch of useless columns
     pdf_jams_summary_withteams = pdf_jams_summary_withteams.drop(columns=[
     "Duration", "Id", "Next", "PeriodClockDisplayEnd", "Previous", "Readonly",
-    "PeriodClockElapsedEnd", "PeriodClockElapsedStart"])
+    "PeriodClockElapsedEnd", "PeriodClockElapsedStart",
+    "first_scoring_pass_durations_1", "first_scoring_pass_durations_2"])
 
     return pdf_jams_summary_withteams
 
@@ -290,12 +304,9 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
         (pdf_ateamjam_fieldcounts.keychunk_4 == n_jams)
         & ~pdf_ateamjam_fieldcounts.keychunk_4.index.str.contains("ScoringTrip")].index
     
-    # I don't think we need anything in the ScoringTrip fields, but if we do this is the place to
-    # parse it. Maybe counting scoring trips would be interesting?
-
     pdf_ateamjams_simpledata = pdf_ateamjams_data[
         pdf_ateamjams_data.keychunk_4.isin(teamjam_simple_fields)]
-    
+
     pdf_ateamjams_summary = pdf_ateamjams_simpledata[["keychunk_4", "prd_jam", "value"]].pivot(
         index="prd_jam", 
         columns="keychunk_4", values="value")
@@ -314,7 +325,9 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
     scoringtrip_cols_to_rename = [x for x in pdf_scoringtrips.columns
                                   if x != "prd_jam"]
 
-    pdf_ateamjams_summary_withscoringtrips = pdf_ateamjams_summary.merge(pdf_scoringtrips, on="prd_jam")
+
+    pdf_ateamjams_summary_withscoringtrips = pdf_ateamjams_summary.merge(
+        pdf_scoringtrips, on="prd_jam")
     pdf_ateamjams_summary_kept = pdf_ateamjams_summary_withscoringtrips[
         ["prd_jam"] + TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename]
 
@@ -326,17 +339,21 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
 
 def parse_scoringtrip_data(pdf_ateamjams_data: pd.DataFrame) -> pd.DataFrame:
     """ Parse the data we want from the scoring trips.
-    Currently just counting them. If we want score counts from individual trips, or something,
+    Currently just counting them and getting the duration of the first one,
+    which is "time to lead" for the team that gets lead.
+
+    If we want score counts from individual trips, or something,
     parse it out and add it here.
 
     Args:
-        pdf_ateamjams_data (pd.DataFrame): 
+        pdf_ateamjams_data (pd.DataFrame): jam data for one team
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: scoring trip summary pdf with one row per jam
     """
     jams = []
     scoring_pass_counts = []
+    first_scoring_pass_durations_seconds = []
     for prd_jam in sorted(list(set(pdf_ateamjams_data.prd_jam))):
         pdf_thisjam = pdf_ateamjams_data[pdf_ateamjams_data.prd_jam == prd_jam]
         thisjam_keys = set(pdf_thisjam.key)
@@ -347,9 +364,20 @@ def parse_scoringtrip_data(pdf_ateamjams_data: pd.DataFrame) -> pd.DataFrame:
         n_scoring_passes = max(scoring_trip_numbers)
         jams.append(prd_jam)
         scoring_pass_counts.append(n_scoring_passes)
+        # "time to lead" (time between the start whistle and the lead jammer getting lead)
+        # is stored as the Duration of ScoringTrip(1), which is a fake "scoring" trip
+        # representing the initial pass.
+        first_trip_duration_key = [x for x in thisjam_scoringtrip_keys
+                                   if x.endswith("ScoringTrip(1).Duration")][0]
+        first_trip_duration_seconds = int(list(
+            pdf_thisjam[pdf_thisjam.key == first_trip_duration_key].value)[0]) / 1000
+        first_scoring_pass_durations_seconds.append(
+            first_trip_duration_seconds
+        )
     pdf_scoring_pass_counts = pd.DataFrame({
         "prd_jam": jams,
-        "n_scoring_trips": scoring_pass_counts
+        "n_scoring_trips": scoring_pass_counts,
+        "first_scoring_pass_durations": first_scoring_pass_durations_seconds
     })
     pdf_scoring_pass_counts.index = range(len(pdf_scoring_pass_counts))
     return pdf_scoring_pass_counts
