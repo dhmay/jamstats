@@ -49,6 +49,7 @@ def make_all_plots(derby_game: DerbyGame) -> List[Figure]:
         pdf_jam_data_longpdf_jams_data, derby_game.game_data_dict))
     figures.append(plot_jammers_by_team(derby_game.pdf_jams_data, derby_game.game_data_dict))
     figures.append(histogram_jam_duration(derby_game.pdf_jams_data))
+    figures.append(plot_lead_summary(derby_game))
 
     return figures
 
@@ -228,4 +229,38 @@ def histogram_jam_duration(pdf_jams_data: pd.DataFrame) -> Figure:
     ax.set_title("Jam duration (s)")
     ax.set_xlabel("Seconds")
     f.set_size_inches(8, 6)
+    return f
+
+
+def plot_lead_summary(derby_game: DerbyGame) -> Figure:
+    """violin plot time to lead (from whistle until lead jammer gets lead)
+
+    Args:
+        derby_game (DerbyGame): derby game
+
+    Returns:
+        Figure: violin plot
+    """
+    pdf_jams_with_lead = derby_game.pdf_jams_data[derby_game.pdf_jams_data.Lead_1 |
+                                              derby_game.pdf_jams_data.Lead_2]
+    pdf_jams_with_lead["Team with Lead"] = [derby_game.team_1_name if team1_has_lead
+                                            else derby_game.team_2_name
+                                            for team1_has_lead in pdf_jams_with_lead.Lead_1]
+    f, axes = plt.subplots(1, 2)
+    ax = axes[0]
+    pdf_jams_with_lead["Lost"] = pdf_jams_with_lead.Lost_1 | pdf_jams_with_lead.Lost_2
+
+    pdf_for_plot = pdf_jams_with_lead[
+        ["Team with Lead", "Lost", "prd_jam"]].groupby(
+            ["Team with Lead", "Lost"]).agg("count").reset_index()
+    sns.barplot(y="prd_jam", x="Team with Lead", hue="Lost", data=pdf_for_plot, ax=ax)
+    ax.set_title("Jams with Lead")
+
+    ax = axes[1]
+    sns.violinplot(y="time_to_lead", x="Team with Lead", data=pdf_jams_with_lead, cut=0, ax=ax)
+    ax.set_ylabel("Time to Lead (s)")
+    ax.set_title("Time to Lead")
+    f.set_size_inches(8, 4)
+    f.tight_layout()
+
     return f
