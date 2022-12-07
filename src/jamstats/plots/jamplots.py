@@ -263,16 +263,17 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
             ["Team with Lead"]).agg("count").reset_index()
     sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax)
     sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_called_or_lost, ax=ax,
-                color="yellow")
+                color="gray")
     sns.barplot(y="prd_jam", x="Team with Lead",
                 data=pdf_for_plot_lost, ax=ax, color="darkred")
 
     ax.set_ylabel("Jams")
-    ax.set_title("Jams with Lead\n(red=lost, yellow=called)")
+    ax.set_title("Jams with Lead\n(red=lost, gray=called)")
 
     ax = axes[1]
     sns.violinplot(y="time_to_lead", x="Team with Lead",
-                   data=pdf_jams_with_lead, cut=0, ax=ax)
+                   data=pdf_jams_with_lead, cut=0, ax=ax,
+                   inner="stick")
     ax.set_ylabel("Time to Lead (s)")
     ax.set_title("Time to Lead")
     f.set_size_inches(8, 4)
