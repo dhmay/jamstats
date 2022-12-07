@@ -5,6 +5,9 @@ __author__ = "Damon May"
 import pandas as pd
 from typing import Dict, Any
 from jamstats.data.game_data import DerbyGame, DerbyGameFactory
+import logging
+
+logger = logging.Logger(__name__)
 
 # Columns to keep at the team+jam level
 TEAMJAM_SUMMARY_COLUMNS = [
@@ -51,12 +54,33 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
 
     if json_major_version == 5:
         # v5.0 adds a "Game(<game_id>)" chunk to almost every key. Get rid of that.
+
+        # In-process games have both "CurrentGame" fields and fields
+        # annotated with a game identifier. Complete games don't have
+        # "CurrentGame" fields.
+        # I believe the "CurrentGame" fields are the ones I want,
+        # for in-process games. Strip out the others.
+        logger.debug(f"Found version 5. Checking for in-progress game...")
+        is_in_progress_game = False
+        for key in game_dict:
+            if ".CurrentGame." in key:
+               is_in_progress_game = True
+               break
+        if is_in_progress_game:
+            logger.debug(f"Found in-progress game. Stripping rows. Before: {len(game_dict)} keys")
+            game_dict_new = {}
+            for key in game_dict:
+                if not key.split(".")[1].startswith("Game("):
+                    game_dict_new[key.replace("CurrentGame", "Game(dummy)")] = game_dict[key]
+            game_dict = game_dict_new
+            logger.debug(f"After: {len(game_dict)} keys.")
         game_dict_new = {
             ".".join([chunk for chunk in key.split(".") if not chunk.startswith("Game(")]):
             game_dict[key]
             for key in game_dict
         }
         game_dict = game_dict_new
+        
 
     pdf_game_state = pd.DataFrame({
         "key": game_dict.keys(),
@@ -99,7 +123,8 @@ def get_json_major_version_from_pdf(pdf_game_data: pd.DataFrame) -> int:
     Returns:
         int: major version
     """
-    version_str = list(pdf_game_data[pdf_game_data.key == "ScoreBoard.Version(release)"].value)[0]
+    version_str = list(
+        pdf_game_data[pdf_game_data.key == "ScoreBoard.Version(release)"].value)[0]
     major_version = version_str.split(".")[0]
     assert(major_version.startswith("v"))
     return int(major_version[1:])
@@ -144,11 +169,15 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
     # All the "Period" fields have at least 3 chunks
     pdf_period["keychunk_2"] = [
         chunks[2] for chunks in pdf_period.key_chunks]
+
+    logger.debug(f"Found {len(pdf_period)} Period rows.")
     
     pdf_jam_data = pdf_period[
         pdf_period.keychunk_2.str.startswith("Jam(")]
     # All the "Jam" fields have at least 3 chunks
     pdf_jam_data["keychunk_3"] = [x[3] for x in pdf_jam_data.key_chunks]
+
+    logger.debug(f"Found {len(pdf_jam_data)} Jam rows.")
 
     # Extract jam and period into columns
     pdf_jam_data["jam"] = [
@@ -161,6 +190,8 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
         for period, jam in zip(*[pdf_jam_data.period, pdf_jam_data.jam])]
     n_jams = len(set(pdf_jam_data.prd_jam))
 
+    logger.debug(f"Found {n_jams} jams.")
+
     # There are some jam fields with one entry per jam.
     # Grab those into a dataframe
     pdf_jam_fieldcounts = pd.DataFrame(
@@ -169,6 +200,7 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
         pdf_jam_fieldcounts.keychunk_3 == n_jams].index
     pdf_jam_simpledata = pdf_jam_data[
         pdf_jam_data.keychunk_3.isin(jam_simple_fields)]
+    logger.debug(f"Jam simple fields: {jam_simple_fields}")
 
     pdf_jams_summary = pdf_jam_simpledata[
         ["keychunk_3", "jam", "period", "prd_jam", "value"]].pivot(
@@ -177,9 +209,13 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
     pdf_jams_summary["prd_jam"] = pdf_jams_summary.index
     pdf_jams_summary.index = range(len(pdf_jams_summary))
 
+    logger.debug(f"Jams summary rows: {len(pdf_jams_summary)}")
+
     # For some reason there's an empty 0th jam recorded in an empty 0th period.
     # Remove it.
     pdf_jams_summary = pdf_jams_summary[pdf_jams_summary.prd_jam != "0:00"]
+
+    logger.debug(f"Jams summary rows (without 0:00): {len(pdf_jams_summary)}")
 
     # all time values are in ms.
     pdf_jams_summary["duration_seconds"] = pdf_jams_summary.Duration / 1000
@@ -193,6 +229,8 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
         pdf_jams_summary
         .merge(pdf_teamjam_team1, on="prd_jam")
         .merge(pdf_teamjam_team2, on="prd_jam"))
+
+    logger.debug(f"After merging teamjams: {len(pdf_jams_summary_withteams)}")
 
     # add a column indicating whether anyone called it off
     pdf_jams_summary_withteams["Calloff_any"] = [
@@ -295,7 +333,9 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
     pdf_ateamjams_data = pdf_jam_data[
         pdf_jam_data.keychunk_3.str.contains(f"TeamJam\({team_number}")]
     pdf_ateamjams_data["keychunk_4"] = [chunks[4] for chunks in pdf_ateamjams_data.key_chunks]
-    #print(set(pdf_ateamjams_data["keychunk_4"]))
+
+    logger.debug(f"teamjam rows, team {team_number}: {len(pdf_ateamjams_data)}")
+
     pdf_ateamjam_fieldcounts = pd.DataFrame(pdf_ateamjams_data["keychunk_4"].value_counts())
 
     # Grab the one-per-jam fields from the teamjam dataframe, identifying by the fact that they
@@ -303,6 +343,8 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
     teamjam_simple_fields = pdf_ateamjam_fieldcounts[
         (pdf_ateamjam_fieldcounts.keychunk_4 == n_jams)
         & ~pdf_ateamjam_fieldcounts.keychunk_4.index.str.contains("ScoringTrip")].index
+
+    logger.debug(f"teamjam simple fields: {teamjam_simple_fields}")
     
     pdf_ateamjams_simpledata = pdf_ateamjams_data[
         pdf_ateamjams_data.keychunk_4.isin(teamjam_simple_fields)]
@@ -313,12 +355,16 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary["prd_jam"] = pdf_ateamjams_summary.index
     pdf_ateamjams_summary.index = range(len(pdf_ateamjams_summary))
 
+    logger.debug(f"teamjams pivoted rows: {len(pdf_ateamjams_summary)}")
+
     # add jammer info
     pdf_ateamjams_summary["jammer_id"] = list(pdf_ateamjams_data[
         pdf_ateamjams_data.key.str.endswith("Fielding(Jammer).Skater")].value)
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_roster.rename(
         columns={"Id": "jammer_id", "Name": "jammer_name", "RosterNumber": "jammer_number"}),
-        on="jammer_id")
+        on="jammer_id", how="left")
+
+    logger.debug(f"After adding jammer info: {len(pdf_ateamjams_summary)}")
 
     pdf_scoringtrips = parse_scoringtrip_data(pdf_ateamjams_data)
     # need to rename the informational columns of pdf_scoringtrips

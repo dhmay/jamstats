@@ -35,27 +35,34 @@ def make_all_plots(derby_game: DerbyGame) -> List[Figure]:
     Returns:
         List[Figure]: figures
     """
-    pdf_game_summary = derby_game.extract_game_summary()
-    pdf_game_teams_summary = derby_game.extract_game_teams_summary()
-    pdf_jam_data_longpdf_jams_data = derby_game.build_jams_dataframe_long()
-
-
     figures = []
-    figures.append(plot_game_summary_table(pdf_game_summary))
-    figures.append(plot_game_teams_summary_table(pdf_game_teams_summary))
-    figures.append(plot_jam_lead_and_scores(
-        pdf_jam_data_longpdf_jams_data, derby_game.game_data_dict))
-    figures.append(plot_cumulative_score_by_jam(
-        pdf_jam_data_longpdf_jams_data, derby_game.game_data_dict))
-    figures.append(plot_jammers_by_team(derby_game.pdf_jams_data, derby_game.game_data_dict))
-    figures.append(histogram_jam_duration(derby_game.pdf_jams_data))
-    figures.append(plot_lead_summary(derby_game))
-
+    for plot_func in [
+        plot_game_summary_table,
+        plot_game_teams_summary_table,
+        plot_jam_lead_and_scores,
+        plot_cumulative_score_by_jam,
+        plot_jammers_by_team,
+        histogram_jam_duration,
+        plot_lead_summary
+    ]:
+        try:
+            figures.append(plot_func(derby_game))
+        except Exception as e:
+            logger.warn(f"Failed to make plot: {e}")
     return figures
 
 
-def plot_jammers_by_team(pdf_jams_data: pd.DataFrame,
-                         game_data_dict: Dict[str, str]) -> Figure:
+def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
+    """Plot jammers by team
+
+    Args:
+        derby_game (DerbyGame): Derby game
+
+    Returns:
+        Figure: figure
+    """
+    pdf_jams_data = derby_game.pdf_jams_data
+    game_data_dict = derby_game.game_data_dict
     team_1 = game_data_dict["team_1"]
     team_2 = game_data_dict["team_2"]
 
@@ -108,16 +115,18 @@ def plot_jammers_by_team(pdf_jams_data: pd.DataFrame,
     return f
 
 
-def plot_game_summary_table(pdf_game_summary: pd.DataFrame) -> Figure:
+def plot_game_summary_table(derby_game: DerbyGame) -> Figure:
     """Make a table figure out of the game summary dataframe,
     suitable for writing to a .pdf
 
     Args:
-        pdf_game_summary (pd.DataFrame): game summary dataframe
+        derby_game (DerbyGame): a derby game
 
     Returns:
         Figure: table figure
     """
+    pdf_game_summary = derby_game.extract_game_summary()
+
     f, ax = plt.subplots()
     ax.axis('tight')
     ax.axis('off')
@@ -128,16 +137,18 @@ def plot_game_summary_table(pdf_game_summary: pd.DataFrame) -> Figure:
     return f
 
 
-def plot_game_teams_summary_table(pdf_game_teams_summary: pd.DataFrame) -> Figure:
+def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
     """Make a table figure out of the teams summary dataframe,
     suitable for writing to a .pdf
 
     Args:
-        pdf_jams_data (pd.DataFrame): jams dataframe
+        derby_game (DerbyGame): a derby game
 
     Returns:
         Figure: table figure
     """
+    pdf_game_teams_summary = derby_game.extract_game_teams_summary
+
     f, ax = plt.subplots()
     ax.axis('tight')
     ax.axis('off')
@@ -148,16 +159,17 @@ def plot_game_teams_summary_table(pdf_game_teams_summary: pd.DataFrame) -> Figur
     return f
 
 
-def plot_jam_lead_and_scores(pdf_jam_data_long: pd.DataFrame,
-                             game_data_dict: Dict[str, str]) -> Figure:
+def plot_jam_lead_and_scores(derby_game: DerbyGame) -> Figure:
     """Given a long-format jam dataframe, visualize lead and scores per jam
 
     Args:
-        pdf_jam_data_long (pd.DataFrame): long-format jam dataframe
+        derby_game (DerbyGame): a derby game
 
     Returns:
         Figure: figure
     """
+    game_data_dict = derby_game.game_data_dict
+    pdf_jam_data_long = derby_game.build_jams_dataframe_long()
     team_1 = game_data_dict["team_1"]
     team_2 = game_data_dict["team_2"]
 
@@ -185,17 +197,16 @@ def plot_jam_lead_and_scores(pdf_jam_data_long: pd.DataFrame,
     return f
 
 
-def plot_cumulative_score_by_jam(pdf_jam_data_long: pd.DataFrame,
-                                game_data_dict: Dict[str, str]) -> Figure:
+def plot_cumulative_score_by_jam(derby_game: DerbyGame) -> Figure:
     """Plot cumulative score by jam
 
     Args:
-        pdf_jam_data_long (pd.DataFrame): long-format jam data
-        game_data_dict (Dict[str, str]): game metadata dictionary
 
     Returns:
-        Figure: _description_
+        Figure: figure with cumulative score by jam
     """
+    game_data_dict = derby_game.game_data_dict
+    pdf_jam_data_long = derby_game.build_jams_dataframe_long()
     team_1 = game_data_dict["team_1"]
     team_2 = game_data_dict["team_2"]
 
@@ -215,7 +226,7 @@ def plot_cumulative_score_by_jam(pdf_jam_data_long: pd.DataFrame,
     return f
 
 
-def histogram_jam_duration(pdf_jams_data: pd.DataFrame) -> Figure:
+def histogram_jam_duration(derby_game: DerbyGame) -> Figure:
     """histogram jam durations
 
     Args:
@@ -225,7 +236,7 @@ def histogram_jam_duration(pdf_jams_data: pd.DataFrame) -> Figure:
         Figure: histogram of jam durations
     """
     f, ax = plt.subplots()
-    sns.histplot(pdf_jams_data.duration_seconds, ax=ax)
+    sns.histplot(derby_game.pdf_jams_data.duration_seconds, ax=ax)
     ax.set_title("Jam duration (s)")
     ax.set_xlabel("Seconds")
     f.set_size_inches(8, 6)
@@ -237,6 +248,9 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
 
     Args:
         derby_game (DerbyGame): derby game
+
+    # TODO: currently, ordering teams by team name in this plot. Order by team number
+    for consistency.
 
     Returns:
         Figure: violin plot
@@ -252,15 +266,15 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
 
     pdf_for_plot_all = pdf_jams_with_lead[
         ["Team with Lead", "prd_jam"]].groupby(
-            ["Team with Lead"]).agg("count").reset_index()
+            ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
     pdf_for_plot_lost = pdf_jams_with_lead[pdf_jams_with_lead.Lost][
         ["Team with Lead", "prd_jam"]].groupby(
-            ["Team with Lead"]).agg("count").reset_index()
+            ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
     pdf_for_plot_called_or_lost = pdf_jams_with_lead[pdf_jams_with_lead.Lost |
                                                      pdf_jams_with_lead.Calloff_1 |
                                                      pdf_jams_with_lead.Calloff_2][
         ["Team with Lead", "prd_jam"]].groupby(
-            ["Team with Lead"]).agg("count").reset_index()
+            ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
     sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax)
     sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_called_or_lost, ax=ax,
                 color="gray")
@@ -272,10 +286,11 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
 
     ax = axes[1]
     sns.violinplot(y="time_to_lead", x="Team with Lead",
-                   data=pdf_jams_with_lead, cut=0, ax=ax,
-                   inner="stick")
+                data=pdf_jams_with_lead.sort_values("Team with Lead"), cut=0, ax=ax,
+                inner="stick")
     ax.set_ylabel("Time to get Lead")
     ax.set_title("Time to get Lead (s)\nper jam")
+    logger.debug("Failed to make violinplot, probably lack of data.")
     f.set_size_inches(8, 4)
     f.tight_layout()
 
