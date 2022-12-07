@@ -256,12 +256,19 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     pdf_for_plot_lost = pdf_jams_with_lead[pdf_jams_with_lead.Lost][
         ["Team with Lead", "prd_jam"]].groupby(
             ["Team with Lead"]).agg("count").reset_index()
+    pdf_for_plot_called_or_lost = pdf_jams_with_lead[pdf_jams_with_lead.Lost |
+                                                     pdf_jams_with_lead.Calloff_1 |
+                                                     pdf_jams_with_lead.Calloff_2][
+        ["Team with Lead", "prd_jam"]].groupby(
+            ["Team with Lead"]).agg("count").reset_index()
     sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax)
+    sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_called_or_lost, ax=ax,
+                color="yellow")
     sns.barplot(y="prd_jam", x="Team with Lead",
                 data=pdf_for_plot_lost, ax=ax, color="darkred")
 
     ax.set_ylabel("Jams")
-    ax.set_title("Jams with Lead\n(red = lost)")
+    ax.set_title("Jams with Lead\n(red=lost, yellow=called)")
 
     ax = axes[1]
     sns.violinplot(y="time_to_lead", x="Team with Lead",
