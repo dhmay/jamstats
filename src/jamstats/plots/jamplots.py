@@ -274,8 +274,8 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     sns.violinplot(y="time_to_lead", x="Team with Lead",
                    data=pdf_jams_with_lead, cut=0, ax=ax,
                    inner="stick")
-    ax.set_ylabel("Time to Lead (s)")
-    ax.set_title("Time to Lead")
+    ax.set_ylabel("Time to get Lead")
+    ax.set_title("Time to get Lead (s)\nper jam")
     f.set_size_inches(8, 4)
     f.tight_layout()
 
