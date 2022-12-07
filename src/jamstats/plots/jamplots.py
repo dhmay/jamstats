@@ -275,11 +275,14 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
                                                      pdf_jams_with_lead.Calloff_2][
         ["Team with Lead", "prd_jam"]].groupby(
             ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
-    sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax)
-    sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_called_or_lost, ax=ax,
-                color="gray")
-    sns.barplot(y="prd_jam", x="Team with Lead",
-                data=pdf_for_plot_lost, ax=ax, color="darkred")
+    if len(pdf_for_plot_all) > 0:
+        sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax)
+    if len(pdf_for_plot_called_or_lost) > 0:
+        sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_called_or_lost, ax=ax,
+                    color="gray")
+    if len(pdf_for_plot_lost) > 0:
+        sns.barplot(y="prd_jam", x="Team with Lead",
+                    data=pdf_for_plot_lost, ax=ax, color="darkred")
 
     ax.set_ylabel("Jams")
     ax.set_title("Jams with Lead\n(red=lost, gray=called)")
