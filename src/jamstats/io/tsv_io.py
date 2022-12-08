@@ -1,24 +1,22 @@
 __author__ = "Damon May"
 
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict
 import csv
-from jamstats.data.game_data import DerbyGame, DerbyGameFactory
+from jamstats.data.game_data import DerbyGame
 
-class TsvDerbyGameFactory(DerbyGameFactory):
-    """Build DerbyGame objects from a .tsv file
+def load_derby_game_from_tsv(filepath) -> DerbyGame:
+    """Load a derby game from a TSV file.
+
+    Args:
+        filepath (str): filepath
+
+    Returns:
+        DerbyGame: derby game
     """
-    def __init__(self, filepath):
-        self.game_data_dict = read_jams_tsv_header_dict(filepath)
-        self.pdf_jams_data = read_jams_tsv_to_pandas(filepath)
-        
-    def get_derby_game(self) -> DerbyGame:
-        """Build the derby game
-
-        Returns:
-            DerbyGame: derby game
-        """
-        return DerbyGame(self.pdf_jams_data, self.game_data_dict)
+    game_data_dict = read_jams_tsv_header_dict(filepath)
+    pdf_jams_data = read_jams_tsv_to_pandas(filepath)
+    return DerbyGame(pdf_jams_data, game_data_dict)
 
 def read_jams_tsv_header_dict(filepath: str) -> Dict[str, str]:
     """Read the key-value pairs from '# ' comments at the top of the jams .tsv

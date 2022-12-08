@@ -4,7 +4,7 @@ __author__ = "Damon May"
 
 import pandas as pd
 from typing import Dict, Any
-from jamstats.data.game_data import DerbyGame, DerbyGameFactory
+from jamstats.data.game_data import DerbyGame
 import logging
 
 logger = logging.Logger(__name__)
@@ -15,25 +15,19 @@ TEAMJAM_SUMMARY_COLUMNS = [
     "Lost", "NoInitial", "StarPass", "TotalScore", "jammer_name", "jammer_number"]
 
 
-class JsonDerbyGameFactory(DerbyGameFactory):
-    """Build DerbyGame objects from JSON
-    """
-    def __init__(self, game_json: Dict[Any, Any]):
-        self.game_json = game_json
-        
-    def get_derby_game(self) -> DerbyGame:
-        """Build the derby game
+def load_json_derby_game(game_json) -> DerbyGame:
+    """Load the derby game stored in a json dict
 
-        Returns:
-            DerbyGame: derby game
-        """
-        pdf_game_state = json_to_game_dataframe(self.game_json)
-        game_data_dict = extract_game_data_dict(pdf_game_state)
-        pdf_roster = extract_roster(pdf_game_state,
-                                    game_data_dict["team_1"],
-                                    game_data_dict["team_2"])
-        pdf_game_data = extract_jam_data(pdf_game_state, pdf_roster)
-        return DerbyGame(pdf_game_data, game_data_dict)
+    Returns:
+        DerbyGame: derby game
+    """
+    pdf_game_state = json_to_game_dataframe(game_json)
+    game_data_dict = extract_game_data_dict(pdf_game_state)
+    pdf_roster = extract_roster(pdf_game_state,
+                                game_data_dict["team_1"],
+                                game_data_dict["team_2"])
+    pdf_game_data = extract_jam_data(pdf_game_state, pdf_roster)
+    return DerbyGame(pdf_game_data, game_data_dict)
 
 
 def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
