@@ -19,6 +19,7 @@ def save_game_plots_to_pdf(derby_game: DerbyGame,
         in_filepath (str): jams .tsv filepath
         out_filepath (str): output .pdf filepath
     """
+    prepare_to_plot()
     figures = make_all_plots(derby_game)
     pdfout = PdfPages(out_filepath)
     logging.debug(f"Saving {len(figures)} figures to {out_filepath}")
@@ -26,6 +27,13 @@ def save_game_plots_to_pdf(derby_game: DerbyGame,
         pdfout.savefig(figure)
     pdfout.close()
     logging.debug(f"Wrote {out_filepath}")
+
+
+def prepare_to_plot() -> None:
+    """Prepare Seaborn to make pretty plots.
+    """
+    sns.set_context("talk")
+    sns.set_style("white")
 
 def make_all_plots(derby_game: DerbyGame) -> List[Figure]:
     """Build all plots, suitable for exporting to a .pdf
