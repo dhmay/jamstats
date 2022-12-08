@@ -11,7 +11,7 @@ With Python 3.x installed, type:
 
 ## Usage
 
-There are two scripts, one for making a PDF with plots derived from a derby game json file:
+Installation gives you two commands, one for making a PDF with plots derived from a derby game json file:
 
 `jamstats-plot-pdf <game.json> <plots.pdf>`
 
