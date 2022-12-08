@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import argparse
+from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
+from jamstats.io import tsv_io
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('jsonfile', type=argparse.FileType('r'),
+                    help='Scoreboard json file to convert')
+parser.add_argument('tsvfile', type=argparse.FileType('w'),
+                    help='.tsv file to write')
+args = parser.parse_args()
+
+args.tsvfile.close()
+
+derby_game = load_derby_game_from_json_file(args.jsonfile.name)
+
+tsv_io.write_game_data_tsv(derby_game, args.tsvfile.name)

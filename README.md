@@ -1,11 +1,6 @@
 # jamstats
 Tools for doing statistics and making plots on data from [CRG derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files.
 
-Has some basic dependencies that I really need to document better:
-
-* Seaborn
-* Pandas
-
 Supports both v4.x and v5.x JSON files.
 
 ## If you like these plot, you might like this set of tools
