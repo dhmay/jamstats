@@ -85,9 +85,3 @@ class DerbyGame:
 
         pdf_jam_data_long = pd.concat([pdf_repeatedcols_team1, pdf_repeatedcols_team2])
         return pdf_jam_data_long
-
-
-class DerbyGameFactory(ABC):
-    @abstractmethod
-    def get_derby_game(self) -> DerbyGame:
-        pass

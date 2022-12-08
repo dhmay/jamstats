@@ -21,7 +21,7 @@ The very simplest thing you can do to check it out is to add the `src` directory
 Python or Jupyter or whatever, and do something like:
 
 ```python
-from jamstats.io.scoreboard_json_io import ScoreboardJsonFileDerbyGameFactory
+from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
 from jamstats.plots import jamplots
 
 in_json_filepath = "period2.json"
@@ -29,8 +29,7 @@ out_tsv_filepath = "jam_data.tsv"
 out_pdf_filepath = "game_plots.pdf"
 
 # parse a scoreboard json file
-game_factory = ScoreboardJsonFileDerbyGameFactory(in_filepath)
-derby_game = game_factory.get_derby_game()
+derby_game = load_derby_game_from_json_file(in_json_filepath)
 
 # Write out a .tsv file with jam data.
 tsv_io.write_game_data_tsv(derby_game, out_tsv_filepath)

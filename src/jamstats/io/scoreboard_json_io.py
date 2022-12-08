@@ -3,26 +3,23 @@ __author__ = "Damon May"
 import json
 import pandas as pd
 from typing import Dict, Any, Tuple
-from jamstats.data.game_data import DerbyGameFactory, DerbyGame
-from jamstats.data.json_to_pandas import JsonDerbyGameFactory
+from jamstats.data.game_data import DerbyGame
+from jamstats.data.json_to_pandas import load_json_derby_game
 
-class ScoreboardJsonFileDerbyGameFactory(DerbyGameFactory):
-    """Build DerbyGame objects from a .json file
+def load_derby_game_from_json_file(filepath) -> DerbyGame:
+    """Load the derby game from a JSON file
+
+    Args:
+        filepath (str): file to load from
+
+    Returns:
+        DerbyGame: derby game
     """
-    def __init__(self, filepath):
-        game_json = read_game_data_json_file(filepath)
-        self.json_derby_game_factory = JsonDerbyGameFactory(game_json)
-        
-    def get_derby_game(self) -> DerbyGame:
-        """Build the derby game
-
-        Returns:
-            DerbyGame: derby game
-        """
-        return self.json_derby_game_factory.get_derby_game()
+    game_json = read_game_data_json_file(filepath)
+    return load_json_derby_game(game_json)
 
 
-def read_game_data_json_file(filepath: str) -> Tuple[Dict[str, Any], pd.DataFrame]:
+def read_game_data_json_file(filepath: str) -> Dict[str, Any]:
     """Read game data from a json file.
 
     This method is trivial, just loads the json. Putting it here in case more
