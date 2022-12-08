@@ -3,18 +3,34 @@ Tools for doing statistics and making plots on data from [CRG derby scoreboard](
 
 Supports both v4.x and v5.x JSON files.
 
-## If you like these plot, you might like this set of tools
+## Installation
+
+With Python 3.x installed, type:
+
+`pip install jamstats`
+
+## Usage
+
+There are two scripts, one for making a PDF with plots derived from a derby game json file:
+
+`jamstats-plot-pdf <game.json> <plots.pdf>`
+
+and one for converting a derby game json file to a TSV (tab-separated value) file that can be used in Excel, R, etc.:
+
+`jamstats-convert-tsv <game.json> <game.tsv>`
+
+## Let's see some plots!
+
+If you like these plots, you might like this set of tools
 
 ![Cumulative points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png)
 ![Barplot of points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png)
 ![Plots summarizign lead by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png)
 ![Plots summarizing jammers by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png)
 
-## Using jamstats
+## Using jamstats from Python
 
-Right now, this is purely a Python API -- there's no packaging or ability to do stuff from the commandline.
-The very simplest thing you can do to check it out is to add the `src` directory to your PYTHONPATH, fire up
-Python or Jupyter or whatever, and do something like:
+This example Python code parses a scoreboard json file, writes it out as a TSV file, makes a bunch of plots and saves the to a PDF file.
 
 ```python
 from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
