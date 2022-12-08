@@ -8,11 +8,12 @@ Has some basic dependencies that I really need to document better:
 
 Supports both v4.x and v5.x JSON files.
 
-## Here's a sample plot
+## If you like these plot, you might like this set of tools
 
-If you like this plot, you might like this set of tools:
-
-![points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.jpg)
+![points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png)
+![points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png)
+![points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png)
+![points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png)
 
 ## Using jamstats
 
