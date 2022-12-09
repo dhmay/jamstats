@@ -158,8 +158,8 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
         pd.DataFrame: jam data dataframe
     """
     # Jam-level data all lives under the "Period" structure
-    pdf_period = pdf_game_state[
-        pdf_game_state.keychunk_1.str.startswith("Period")]
+    pdf_period = pdf_game_state.loc[
+        pdf_game_state.keychunk_1.str.startswith("Period")].copy()
     # All the "Period" fields have at least 3 chunks
     pdf_period["keychunk_2"] = [
         chunks[2] for chunks in pdf_period.key_chunks]
@@ -167,7 +167,7 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
     logger.debug(f"Found {len(pdf_period)} Period rows.")
     
     pdf_jam_data = pdf_period[
-        pdf_period.keychunk_2.str.startswith("Jam(")]
+        pdf_period.keychunk_2.str.startswith("Jam(")].copy()
     # All the "Jam" fields have at least 3 chunks
     pdf_jam_data["keychunk_3"] = [x[3] for x in pdf_jam_data.key_chunks]
 
@@ -282,12 +282,13 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     elif json_major_version == 4:
         team_string_1 = f"PreparedTeam\({team_name_1}\)"
         team_string_2 = f"PreparedTeam\({team_name_2}\)"
-    pdf_game_state_roster = pdf_game_state[
+    pdf_game_state_roster = pdf_game_state.loc[
         pdf_game_state.key.str.contains(
             f"ScoreBoard.{team_string_1}.Skater") |
         pdf_game_state.key.str.contains(
             f"ScoreBoard.{team_string_2}.Skater")
-    ]
+    ].copy()
+
     pdf_game_state_roster["team"] = [
         chunks[1][chunks[1].index("(") + 1:chunks[1].index(")")]
         for chunks in pdf_game_state_roster.key_chunks]
@@ -325,7 +326,7 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
         pd.DataFrame: pdf with info for one team's jams
     """
     pdf_ateamjams_data = pdf_jam_data[
-        pdf_jam_data.keychunk_3.str.contains(f"TeamJam\({team_number}")]
+        pdf_jam_data.keychunk_3.str.contains(f"TeamJam\({team_number}")].copy()
     pdf_ateamjams_data["keychunk_4"] = [chunks[4] for chunks in pdf_ateamjams_data.key_chunks]
 
     logger.debug(f"teamjam rows, team {team_number}: {len(pdf_ateamjams_data)}")
