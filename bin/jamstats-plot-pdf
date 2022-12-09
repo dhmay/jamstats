@@ -18,3 +18,4 @@ args.pdffile.close()
 derby_game = load_derby_game_from_json_file(args.jsonfile.name)
 
 jamplots.save_game_plots_to_pdf(derby_game, args.pdffile.name)
+print(f"Wrote {args.pdffile.name}.")

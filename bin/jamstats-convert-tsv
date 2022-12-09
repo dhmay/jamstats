@@ -17,3 +17,4 @@ args.tsvfile.close()
 derby_game = load_derby_game_from_json_file(args.jsonfile.name)
 
 tsv_io.write_game_data_tsv(derby_game, args.tsvfile.name)
+print(f"Wrote {args.tsvfile.name}.")

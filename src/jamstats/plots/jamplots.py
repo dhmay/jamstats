@@ -155,7 +155,7 @@ def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
     Returns:
         Figure: table figure
     """
-    pdf_game_teams_summary = derby_game.extract_game_teams_summary
+    pdf_game_teams_summary = derby_game.extract_game_teams_summary()
 
     f, ax = plt.subplots()
     ax.axis('tight')
@@ -264,7 +264,7 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
         Figure: violin plot
     """
     pdf_jams_with_lead = derby_game.pdf_jams_data[derby_game.pdf_jams_data.Lead_1 |
-                                              derby_game.pdf_jams_data.Lead_2]
+                                              derby_game.pdf_jams_data.Lead_2].copy()
     pdf_jams_with_lead["Team with Lead"] = [derby_game.team_1_name if team1_has_lead
                                             else derby_game.team_2_name
                                             for team1_has_lead in pdf_jams_with_lead.Lead_1]
