@@ -19,8 +19,6 @@ and one for converting a derby game json file to a TSV (tab-separated value) fil
 
 `jamstats-convert-tsv <game.json> <game.tsv>`
 
-I apologize: both those commands will give you a bunch of unsightly warning messages. But they will probably succeed!
-
 ## Let's see some plots!
 
 If you like these plots, you might like this set of tools
