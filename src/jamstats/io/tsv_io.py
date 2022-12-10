@@ -16,7 +16,9 @@ def load_derby_game_from_tsv(filepath) -> DerbyGame:
     """
     game_data_dict = read_jams_tsv_header_dict(filepath)
     pdf_jams_data = read_jams_tsv_to_pandas(filepath)
-    return DerbyGame(pdf_jams_data, game_data_dict)
+    derby_game = DerbyGame(pdf_jams_data, game_data_dict)
+    derby_game.game_data_dict["source_filepath"] = filepath
+    return derby_game
 
 def read_jams_tsv_header_dict(filepath: str) -> Dict[str, str]:
     """Read the key-value pairs from '# ' comments at the top of the jams .tsv
