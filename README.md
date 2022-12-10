@@ -1,7 +1,7 @@
 # jamstats
 Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files.
 
-Supports both v4.x and v5.x JSON files. Supports completed-game and in-progress game files.
+Supports both v4.x and v5.x JSON files. Supports completed and in-progress game files.
 
 ## Installation
 
