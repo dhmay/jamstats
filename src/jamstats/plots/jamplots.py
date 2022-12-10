@@ -135,7 +135,7 @@ def plot_game_summary_table(derby_game: DerbyGame) -> Figure:
     """
     pdf_game_summary = derby_game.extract_game_summary()
 
-    f = plt.figure(figsize=(9,3))
+    f = plt.figure(figsize=(8,3))
     ax = plt.subplot(111)
     ax.axis('off')
     ax.table(cellText=pdf_game_summary.values,

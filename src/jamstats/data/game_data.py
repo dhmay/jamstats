@@ -31,8 +31,8 @@ class DerbyGame:
             "Periods": n_periods,
             "Jams": n_jams,
             "Minutes": period_duration_minutes,
-            "Team 1 Final Score": final_score_team_1,
-            "Team 2 Final Score": final_score_team_2,
+            f"{self.team_1_name} Final Score": final_score_team_1,
+            f"{self.team_2_name} Final Score": final_score_team_2,
         }
 
         pdf_game_summary = pd.DataFrame({
@@ -52,7 +52,7 @@ class DerbyGame:
         """
         cols_to_sum = ["Calloff", "Injury", "JamScore", "Lead", "Lost", "NoInitial",
                 "StarPass", "n_scoring_trips"]
-        teams_summary_dict = {"Team": ["Team1", "Team2", "both"]}
+        teams_summary_dict = {"Team": [self.team_1_name, self.team_2_name, "sum"]}
         for col in cols_to_sum:
             sum_1 = sum(self.pdf_jams_data[col + "_1"])
             sum_2 = sum(self.pdf_jams_data[col + "_2"])
