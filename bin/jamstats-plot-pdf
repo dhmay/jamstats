@@ -4,9 +4,12 @@ __author__ = "Damon May"
 
 
 import argparse
-from jamstats.plots import jamplots
 from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
-from jamstats.plots.plot_together import make_all_plots, save_game_plots_to_pdf
+from jamstats.plots.plot_together import save_game_plots_to_pdf
+from jamstats.plots import plot_together, jamplots, skaterplots
+import logging
+
+logger = logging.Logger(__name__)
 
 
 parser = argparse.ArgumentParser()
@@ -14,7 +17,24 @@ parser.add_argument('jsonfile', type=argparse.FileType('r'),
                     help='Scoreboard json file to read')
 parser.add_argument('pdffile', type=argparse.FileType('w'), nargs='?',
                     help='PDF file to write')
+parser.add_argument('--anonymize', action="store_true",
+                    help="Anonymize individual skater names?")
+parser.add_argument('--debug', action="store_true",
+                    help="enable debug logging")
 args = parser.parse_args()
+
+formatter = logging.Formatter(
+    '%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
+logging.basicConfig(level=logging.WARNING, format=formatter)
+if args.debug:
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+    stream_handler.setFormatter(formatter)
+
+    logger.warning("Enabling debug logging.")
+    for mymodule in [plot_together, jamplots, skaterplots]:
+        mymodule.logger.setLevel(logging.DEBUG)
+        mymodule.logger.addHandler(stream_handler)
 
 print(f"Loading game from {args.jsonfile.name}")
 derby_game = load_derby_game_from_json_file(args.jsonfile.name)
@@ -31,6 +51,5 @@ else:
     pdf_filepath = args.pdffile.name
     args.pdffile.close()
 
-print(pdf_filepath)
-save_game_plots_to_pdf(derby_game, pdf_filepath)
+save_game_plots_to_pdf(derby_game, pdf_filepath, anonymize_names=args.anonymize)
 print(f"Wrote {pdf_filepath}.")
