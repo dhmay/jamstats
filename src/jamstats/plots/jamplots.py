@@ -45,16 +45,21 @@ def make_all_plots(derby_game: DerbyGame) -> List[Figure]:
         List[Figure]: figures
     """
     figures = []
-    for plot_func in [
+    plots_to_run = [
         plot_game_summary_table,
         plot_game_teams_summary_table,
         plot_cumulative_score_by_jam,
         plot_jam_lead_and_scores_period1,
+    ]
+    if max(derby_game.pdf_jams_data.PeriodNumber) >= 2:
+        plots_to_run.append(plot_jam_lead_and_scores_period2)
+    plots_to_run.extend([
         plot_jam_lead_and_scores_period2,
         plot_jammers_by_team,
+        plot_lead_summary,
         histogram_jam_duration,
-        plot_lead_summary
-    ]:
+    ])
+    for plot_func in plots_to_run:
         try:
             figures.append(plot_func(derby_game))
         except Exception as e:
@@ -207,6 +212,7 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     colors = [(1,1,1), sns.color_palette()[0], sns.color_palette()[1]]
     pdf_jambool_heatmap = pd.DataFrame(jamboolint_dict)
     sns.heatmap(pdf_jambool_heatmap, ax=ax, cbar=False, cmap=sns.color_palette(colors, as_cmap=True))
+    # add lines separating jams
     for i in range(len(pdf_jambools)):
         if i % 2 == 0:
             pdf_linedata = {
@@ -214,6 +220,15 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
                 "y": [i, i],
             }
             sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax)
+    # add letter indicators of attributes
+    for i in range(len(pdf_jambools.columns)):
+        col = pdf_jambools.columns[i]
+        vals = list(pdf_jambools[col])
+        for j in range(len(vals)):
+            if vals[j]:
+                ax.text(i + .5, j + .5, col[0], size="small",
+                        horizontalalignment="center",
+                        verticalalignment="center")
     ax.set_xlabel("")
     ax.set_ylabel("")
     ax.set_xticks([x+.5 for x in range(len(pdf_jambool_heatmap.columns))])
@@ -223,15 +238,16 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
 
     ax = ax1
     sns.barplot(x="JamScore", y="prd_jam", data=pdf_jam_data_long, hue="team", ax=ax)
+    n_period_jams = len(set(pdf_jam_data_long.prd_jam))
     ax.legend()
-    if False:
-        for i in range(int(len(pdf_jambools) / 2)):
-            if i % 2 == 1:
-                pdf_linedata = {
-                    "x": ax.get_xlim(),
-                    "y": [i, i],
-                }
-                sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax)
+    # add lines separating jams
+    for i in range(n_period_jams):
+        pdf_linedata = {
+            "x": ax.get_xlim(),
+            "y": [i + 0.5, i + 0.5],
+        }
+        sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax)
+    ax.set_ylim((n_period_jams - 0.5, -0.5))
     title = "Points per jam by team"
     if period is not None:
         title = title + f" (period {period})"

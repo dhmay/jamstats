@@ -9,13 +9,28 @@ class DerbyGame:
     """Class for storing all the data related to a derby game.
     """
     def __init__(self, pdf_jams_data: pd.DataFrame, game_data_dict: Dict[str, str]):
+        self.pdf_jams_data = pdf_jams_data
         self.game_data_dict = game_data_dict
         self.team_1_name = game_data_dict["team_1"]
         self.team_2_name = game_data_dict["team_2"]
-        self.pdf_jams_data = pdf_jams_data
+        self.game_summary_dict = self.extract_game_summary_dict()
+        self.n_jams = self.game_summary_dict["Jams"]
 
     def extract_game_summary(self) -> pd.DataFrame:
         """Build a gross game-summary dataframe
+
+        Returns:
+            pd.DataFrame: game summary dataframe
+        """
+        gross_summary_dict = self.extract_game_summary_dict()
+        pdf_game_summary = pd.DataFrame({
+            "Statistic": gross_summary_dict.keys(),
+            "Value": gross_summary_dict.values()})
+
+        return pdf_game_summary
+
+    def extract_game_summary_dict(self) -> pd.DataFrame:
+        """Build a gross game-summary dictionary
 
         Returns:
             pd.DataFrame: game summary dataframe
@@ -34,12 +49,7 @@ class DerbyGame:
             f"{self.team_1_name} Final Score": final_score_team_1,
             f"{self.team_2_name} Final Score": final_score_team_2,
         }
-
-        pdf_game_summary = pd.DataFrame({
-            "Statistic": gross_summary_dict.keys(),
-            "Value": gross_summary_dict.values()})
-
-        return pdf_game_summary
+        return gross_summary_dict
 
     def extract_game_teams_summary(self) -> pd.DataFrame:
         """Build a summary dataframe with per-team data
