@@ -174,32 +174,40 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame) -> Figure:
     Returns:
         Figure: figure
     """
-    game_data_dict = derby_game.game_data_dict
     pdf_jam_data_long = derby_game.build_jams_dataframe_long()
-    team_1 = game_data_dict["team_1"]
-    team_2 = game_data_dict["team_2"]
 
-    f, ax = plt.subplots()
+    f, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 4]})
+    
+    teamname_number_map = {derby_game.team_1_name: 1, derby_game.team_2_name: 2}
+    pdf_jam_data_long["team_number"] = [teamname_number_map[name] for name in pdf_jam_data_long.team]
+    
+    ax = ax0
+    pdf_jam_data_long_byjam = pdf_jam_data_long.sort_values(["prd_jam", "team_number"])
+    pdf_jambools = pdf_jam_data_long_byjam[["Lead", "Lost", "Calloff", "NoInitial", "StarPass"]]
+    team_color_map = {derby_game.team_1_name: 1,
+                      derby_game.team_2_name: 2}
+    team_colors = [team_color_map[team] for team in pdf_jam_data_long_byjam.team]
+    jamboolint_dict = {}
+    for col in pdf_jambools.columns:
+        jamboolint_dict[col] = [team_color if abool else 0
+                                for team_color, abool in zip(*[team_colors, pdf_jambools[col]])]
+    colors = [(1,1,1), sns.color_palette()[0], sns.color_palette()[1]]
+    pdf_jambool_heatmap = pd.DataFrame(jamboolint_dict)
+    sns.heatmap(pdf_jambool_heatmap, ax=ax, cbar=False, cmap=sns.color_palette(colors, as_cmap=True))
+    ax.set_xticks([x+.5 for x in range(len(pdf_jambool_heatmap.columns))])
+    ax.set_yticklabels([])
+    ax.set_xticklabels(pdf_jambool_heatmap.columns, rotation=90)
+    ax.set_title("Attributes")
 
-    sns.barplot(x="JamScore", y="prd_jam", data=pdf_jam_data_long, hue="team")
+    ax = ax1
+    sns.barplot(x="JamScore", y="prd_jam", data=pdf_jam_data_long, hue="team", ax=ax)
     ax.legend()
-    ax.set_title("Points per jam (O indicates lead, X if lost)")
+    ax.set_title("Points per jam by team")
     ax.set_xlabel("Points")
-    ax.set_ylabel("Jam")
+    ax.set_ylabel(None)
 
-    pdf_team1 = pdf_jam_data_long[pdf_jam_data_long.team == team_1].sort_values("prd_jam")
-    pdf_team2 = pdf_jam_data_long[pdf_jam_data_long.team == team_2].sort_values("prd_jam")
-
-    jamidx = -1
-    for lead_1, lost_1, lead_2, lost_2 in zip(*[pdf_team1.Lead, pdf_team1.Lost, pdf_team2.Lead, pdf_team2.Lost]):
-        jamidx += 1
-        if lead_1 or lead_2:
-            offset = 0.0 if lead_1 else .4
-            symbol = "X" if (lost_1 or lost_2) else "O"
-            color = sns.color_palette()[0] if lead_1 else sns.color_palette()[1]
-            ax.text(-0.9, jamidx + offset, symbol, color=color, size=14, weight="bold")
-                
     f.set_size_inches(8, 11)
+    f.tight_layout()
     return f
 
 
