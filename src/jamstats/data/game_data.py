@@ -72,13 +72,15 @@ class DerbyGame:
         cols_repeated_byteam = [x for x in self.pdf_jams_data.columns
                                 if x.endswith("_1")]
         cols_repeated_byteam = [x[:-2] for x in cols_repeated_byteam]
-        pdf_repeatedcols_team1 = (self.pdf_jams_data[["prd_jam"] +
-                                  [x + "_1" for x in cols_repeated_byteam]].copy())
+        pdf_repeatedcols_team1 = (
+            self.pdf_jams_data[["prd_jam", "PeriodNumber"] +
+            [x + "_1" for x in cols_repeated_byteam]].copy())
         pdf_repeatedcols_team1["team"] = self.team_1_name
         pdf_repeatedcols_team1 = pdf_repeatedcols_team1.rename(
             columns={x + "_1": x for x in cols_repeated_byteam})
         pdf_repeatedcols_team2 = self.pdf_jams_data[
-            ["prd_jam"] + [x + "_2" for x in cols_repeated_byteam]].copy()
+            ["prd_jam", "PeriodNumber"] +
+            [x + "_2" for x in cols_repeated_byteam]].copy()
         pdf_repeatedcols_team2["team"] = self.team_2_name
         pdf_repeatedcols_team2 = pdf_repeatedcols_team2.rename(
             columns={x + "_2": x for x in cols_repeated_byteam})

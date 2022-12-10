@@ -2,12 +2,13 @@ __author__ = "Damon May"
 
 import pandas as pd
 from matplotlib.figure import Figure
-from typing import Dict, List
+from typing import List, Optional
 import seaborn as sns
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from jamstats.data.game_data import DerbyGame
 import logging
+
 
 logger = logging.Logger(__name__)
 
@@ -47,8 +48,9 @@ def make_all_plots(derby_game: DerbyGame) -> List[Figure]:
     for plot_func in [
         plot_game_summary_table,
         plot_game_teams_summary_table,
-        plot_jam_lead_and_scores,
         plot_cumulative_score_by_jam,
+        plot_jam_lead_and_scores_period1,
+        plot_jam_lead_and_scores_period2,
         plot_jammers_by_team,
         histogram_jam_duration,
         plot_lead_summary
@@ -164,17 +166,28 @@ def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
             colLabels=None, bbox=[0,0,1,1])
     return f
 
+def plot_jam_lead_and_scores_period1(derby_game: DerbyGame) -> Figure:
+    return plot_jam_lead_and_scores(derby_game, period=1)
 
-def plot_jam_lead_and_scores(derby_game: DerbyGame) -> Figure:
+def plot_jam_lead_and_scores_period2(derby_game: DerbyGame) -> Figure:
+    return plot_jam_lead_and_scores(derby_game, period=2)
+
+def plot_jam_lead_and_scores(derby_game: DerbyGame,
+                             period: Optional[int] = None) -> Figure:
     """Given a long-format jam dataframe, visualize lead and scores per jam
 
     Args:
         derby_game (DerbyGame): a derby game
+        period (int): Period to plot. If not provided, plot both
 
     Returns:
         Figure: figure
     """
+    logger.debug("Plotting jam lead and scores...")
     pdf_jam_data_long = derby_game.build_jams_dataframe_long()
+    if period is not None:
+        logger.debug(f"Restricting to period {period}")
+        pdf_jam_data_long = pdf_jam_data_long[pdf_jam_data_long.PeriodNumber == period]
 
     f, (ax0, ax1) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [1, 4]})
     
@@ -183,7 +196,7 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame) -> Figure:
     
     ax = ax0
     pdf_jam_data_long_byjam = pdf_jam_data_long.sort_values(["prd_jam", "team_number"])
-    pdf_jambools = pdf_jam_data_long_byjam[["Lead", "Lost", "Calloff", "NoInitial", "StarPass"]]
+    pdf_jambools = pdf_jam_data_long_byjam[["Lead", "Calloff", "Lost", "NoInitial", "StarPass"]]
     team_color_map = {derby_game.team_1_name: 1,
                       derby_game.team_2_name: 2}
     team_colors = [team_color_map[team] for team in pdf_jam_data_long_byjam.team]
@@ -194,6 +207,15 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame) -> Figure:
     colors = [(1,1,1), sns.color_palette()[0], sns.color_palette()[1]]
     pdf_jambool_heatmap = pd.DataFrame(jamboolint_dict)
     sns.heatmap(pdf_jambool_heatmap, ax=ax, cbar=False, cmap=sns.color_palette(colors, as_cmap=True))
+    for i in range(len(pdf_jambools)):
+        if i % 2 == 0:
+            pdf_linedata = {
+                "x": [0, len(pdf_jambools.columns)],
+                "y": [i, i],
+            }
+            sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax)
+    ax.set_xlabel("")
+    ax.set_ylabel("")
     ax.set_xticks([x+.5 for x in range(len(pdf_jambool_heatmap.columns))])
     ax.set_yticklabels([])
     ax.set_xticklabels(pdf_jambool_heatmap.columns, rotation=90)
@@ -202,12 +224,25 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame) -> Figure:
     ax = ax1
     sns.barplot(x="JamScore", y="prd_jam", data=pdf_jam_data_long, hue="team", ax=ax)
     ax.legend()
-    ax.set_title("Points per jam by team")
+    if False:
+        for i in range(int(len(pdf_jambools) / 2)):
+            if i % 2 == 1:
+                pdf_linedata = {
+                    "x": ax.get_xlim(),
+                    "y": [i, i],
+                }
+                sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax)
+    title = "Points per jam by team"
+    if period is not None:
+        title = title + f" (period {period})"
+    ax.set_title(title)
     ax.set_xlabel("Points")
     ax.set_ylabel(None)
 
     f.set_size_inches(8, 11)
     f.tight_layout()
+
+    print("Done plotting.")
     return f
 
 
