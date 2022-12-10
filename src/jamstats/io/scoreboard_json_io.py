@@ -16,8 +16,9 @@ def load_derby_game_from_json_file(filepath) -> DerbyGame:
         DerbyGame: derby game
     """
     game_json = read_game_data_json_file(filepath)
-    return load_json_derby_game(game_json)
-
+    derby_game = load_json_derby_game(game_json)
+    derby_game.game_data_dict["source_filepath"] = filepath
+    return derby_game
 
 def read_game_data_json_file(filepath: str) -> Dict[str, Any]:
     """Read game data from a json file.

@@ -9,13 +9,24 @@ from jamstats.data import json_to_pandas
 parser = argparse.ArgumentParser()
 parser.add_argument('jsonfile', type=argparse.FileType('r'),
                     help='Scoreboard json file to read')
-parser.add_argument('pdffile', type=argparse.FileType('w'),
+parser.add_argument('pdffile', type=argparse.FileType('w'), nargs='?',
                     help='PDF file to write')
 args = parser.parse_args()
 
-args.pdffile.close()
-
+print(f"Loading game from {args.jsonfile.name}")
 derby_game = load_derby_game_from_json_file(args.jsonfile.name)
 
-jamplots.save_game_plots_to_pdf(derby_game, args.pdffile.name)
-print(f"Wrote {args.pdffile.name}.")
+if args.pdffile is None:
+    if args.jsonfile.name.lower().endswith(".json"):
+        print(f"Output filepath not provided. "
+              f"Using input filepath with extension .pdf instead of {args.jsonfile.name[-5:]}")
+        pdf_filepath = args.jsonfile.name[:-len(".json")] + ".pdf"
+    else:
+        print("Input file doesn't end with .json, so refusing to guess what output file you want."
+              "  Please rename your input file or specify an output filepath.")
+else:
+    pdf_filepath = args.pdffile.name
+    args.pdffile.close()
+
+jamplots.save_game_plots_to_pdf(derby_game, pdf_filepath)
+print(f"Wrote {pdf_filepath}.")
