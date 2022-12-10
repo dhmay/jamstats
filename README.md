@@ -32,7 +32,7 @@ If you like these plots, you might like this set of tools
 
 ## Using jamstats from Python
 
-This example Python code parses a scoreboard json file, writes it out as a TSV file, makes a bunch of plots and saves the to a PDF file.
+This example Python code parses a scoreboard json file, writes it out as a TSV file, makes a bunch of plots and saves them to a PDF file.
 
 ```python
 from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
