@@ -254,6 +254,11 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
     pdf_jams_summary_withteams["jam_endtime_seconds"] = pdf_jams_summary_withteams[
         "PeriodClockElapsedEnd"] / 1000
 
+    # Add net points column for each team
+    pdf_jams_summary_withteams["net_points_1"] = (
+        pdf_jams_summary_withteams["JamScore_1"] - pdf_jams_summary_withteams["JamScore_2"])
+    pdf_jams_summary_withteams["net_points_2"] = -pdf_jams_summary_withteams["net_points_1"]
+
     # Drop a bunch of useless columns
     pdf_jams_summary_withteams = pdf_jams_summary_withteams.drop(columns=[
     "Duration", "Id", "Next", "PeriodClockDisplayEnd", "Previous", "Readonly",

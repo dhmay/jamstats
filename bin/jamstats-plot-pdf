@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
+__author__ = "Damon May"
+
+
 import argparse
 from jamstats.plots import jamplots
 from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
-from jamstats.data import json_to_pandas
+from jamstats.plots.plot_together import make_all_plots, save_game_plots_to_pdf
 
 
 parser = argparse.ArgumentParser()
@@ -29,5 +32,5 @@ else:
     args.pdffile.close()
 
 print(pdf_filepath)
-jamplots.save_game_plots_to_pdf(derby_game, pdf_filepath)
+save_game_plots_to_pdf(derby_game, pdf_filepath)
 print(f"Wrote {pdf_filepath}.")

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+__author__ = "Damon May"
+
 import argparse
 from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
 from jamstats.io import tsv_io

@@ -97,3 +97,28 @@ class DerbyGame:
 
         pdf_jam_data_long = pd.concat([pdf_repeatedcols_team1, pdf_repeatedcols_team2])
         return pdf_jam_data_long
+
+    def build_team_jammersummary_df(self, team_number: int):
+        """Build a dataframe with data on all the jammers for a team.
+
+        Args:
+            team_number (int): Team number
+        """
+        jammer_col = f"jammer_name_{team_number}"
+        jamscore_col = f"JamScore_{team_number}"
+        netpoints_col = f"net_points_{team_number}"
+        lead_col = f"Lead_{team_number}"
+
+        pdf_jammer_data = self.pdf_jams_data.groupby(jammer_col).agg({
+            jamscore_col: "sum",
+            netpoints_col: "mean",
+            'Number': "count",
+            lead_col: "mean"}).reset_index()
+        pdf_jammer_data = pdf_jammer_data.rename(columns={
+            jammer_col: "Jammer",
+            jamscore_col: "Total Score",
+            netpoints_col: "Mean Net Points",
+            lead_col: "Proportion Lead",
+            "Number": "Jams"
+        })
+        return pdf_jammer_data
