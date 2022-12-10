@@ -226,7 +226,7 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
         vals = list(pdf_jambools[col])
         for j in range(len(vals)):
             if vals[j]:
-                ax.text(i + .5, j + .5, col[0], size="small",
+                ax.text(i + .5, j + .5, col[0], size="x-small",
                         horizontalalignment="center",
                         verticalalignment="center")
     ax.set_xlabel("")
@@ -241,12 +241,14 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     n_period_jams = len(set(pdf_jam_data_long.prd_jam))
     ax.legend()
     # add lines separating jams
+    highscore = ax.get_xlim()[1]
     for i in range(n_period_jams):
         pdf_linedata = {
-            "x": ax.get_xlim(),
+            "x": [0, highscore],
             "y": [i + 0.5, i + 0.5],
         }
         sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax)
+    ax.set_xlim((0, highscore))
     ax.set_ylim((n_period_jams - 0.5, -0.5))
     title = "Points per jam by team"
     if period is not None:
