@@ -36,7 +36,7 @@ This example Python code parses a scoreboard json file, writes it out as a TSV f
 
 ```python
 from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
-from jamstats.plots import jamplots
+from jamstats.plots import plot_together
 
 in_json_filepath = "period2.json"
 out_tsv_filepath = "jam_data.tsv"
@@ -49,5 +49,5 @@ derby_game = load_derby_game_from_json_file(in_json_filepath)
 tsv_io.write_game_data_tsv(derby_game, out_tsv_filepath)
                                        
 # Write a .pdf with a bunch of plots
-jamplots.save_game_plots_to_pdf(derby_game, out_pdf_filepath)
+plot_together.save_game_plots_to_pdf(derby_game, out_pdf_filepath)
 ```
