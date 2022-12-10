@@ -135,13 +135,11 @@ def plot_game_summary_table(derby_game: DerbyGame) -> Figure:
     """
     pdf_game_summary = derby_game.extract_game_summary()
 
-    f, ax = plt.subplots()
-    ax.axis('tight')
+    f = plt.figure(figsize=(9,3))
+    ax = plt.subplot(111)
     ax.axis('off')
     ax.table(cellText=pdf_game_summary.values,
-             colLabels=pdf_game_summary.columns,
-             loc='center')
-    f.set_size_inches(8, 4)
+             colLabels=pdf_game_summary.columns, bbox=[0,0,1,1])
     return f
 
 
@@ -155,15 +153,15 @@ def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
     Returns:
         Figure: table figure
     """
-    pdf_game_teams_summary = derby_game.extract_game_teams_summary()
-
-    f, ax = plt.subplots()
-    ax.axis('tight')
+    pdf_game_teams_summary = derby_game.extract_game_teams_summary().transpose()
+    pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
+    pdf_game_teams_summary["asdf"] = pdf_game_teams_summary.index
+    pdf_game_teams_summary = pdf_game_teams_summary[["asdf", 0, 1, 2]]
+    f = plt.figure(figsize=(8, 10))
+    ax = plt.subplot(111)
     ax.axis('off')
     ax.table(cellText=pdf_game_teams_summary.values,
-             colLabels=pdf_game_teams_summary.columns,
-             loc='center')
-    f.set_size_inches(8,4)
+            colLabels=None, bbox=[0,0,1,1])
     return f
 
 
