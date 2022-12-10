@@ -13,11 +13,13 @@ With Python 3.x installed, type:
 
 Installation gives you two commands, one for making a PDF with plots derived from a derby game json file:
 
-`jamstats-plot-pdf <game.json> <plots.pdf>`
+`jamstats-plot-pdf <game.json> [plots.pdf]`
 
 and one for converting a derby game json file to a TSV (tab-separated value) file that can be used in Excel, R, etc.:
 
-`jamstats-convert-tsv <game.json> <game.tsv>`
+`jamstats-convert-tsv <game.json> [game.tsv]`
+
+If output files aren't specified, output will be written to the same path as the input file, with .json replaced with .pdf or .txt, respectively.
 
 ## Let's see some plots!
 
