@@ -28,5 +28,6 @@ else:
     pdf_filepath = args.pdffile.name
     args.pdffile.close()
 
+print(pdf_filepath)
 jamplots.save_game_plots_to_pdf(derby_game, pdf_filepath)
 print(f"Wrote {pdf_filepath}.")
