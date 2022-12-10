@@ -5,7 +5,7 @@ Supports both v4.x and v5.x JSON files. Supports completed-game and in-progress 
 
 ## Installation
 
-With Python 3.x installed, type:
+With Python 3.7 or later installed, type:
 
 `pip install jamstats`
 
