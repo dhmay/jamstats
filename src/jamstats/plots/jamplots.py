@@ -5,66 +5,13 @@ from matplotlib.figure import Figure
 from typing import List, Optional
 import seaborn as sns
 from matplotlib import pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 from jamstats.data.game_data import DerbyGame
 import logging
 
 
 logger = logging.Logger(__name__)
 
-def save_game_plots_to_pdf(derby_game: DerbyGame,
-                           out_filepath: str) -> None:
-    """Read in a jams .tsv file, make all the plots, write to a .pdf
 
-    Args:
-        in_filepath (str): jams .tsv filepath
-        out_filepath (str): output .pdf filepath
-    """
-    prepare_to_plot()
-    figures = make_all_plots(derby_game)
-    pdfout = PdfPages(out_filepath)
-    logging.debug(f"Saving {len(figures)} figures to {out_filepath}")
-    for figure in figures:
-        pdfout.savefig(figure)
-    pdfout.close()
-    logging.debug(f"Wrote {out_filepath}")
-
-
-def prepare_to_plot() -> None:
-    """Prepare Seaborn to make pretty plots.
-    """
-    sns.set_context("talk")
-    sns.set_style("white")
-
-def make_all_plots(derby_game: DerbyGame) -> List[Figure]:
-    """Build all plots, suitable for exporting to a .pdf
-
-    Args:
-        derby_game (DerbyGame): a derby game
-    Returns:
-        List[Figure]: figures
-    """
-    figures = []
-    plots_to_run = [
-        plot_game_summary_table,
-        plot_game_teams_summary_table,
-        plot_cumulative_score_by_jam,
-        plot_jam_lead_and_scores_period1,
-    ]
-    if max(derby_game.pdf_jams_data.PeriodNumber) >= 2:
-        plots_to_run.append(plot_jam_lead_and_scores_period2)
-    plots_to_run.extend([
-        plot_jam_lead_and_scores_period2,
-        plot_jammers_by_team,
-        plot_lead_summary,
-        histogram_jam_duration,
-    ])
-    for plot_func in plots_to_run:
-        try:
-            figures.append(plot_func(derby_game))
-        except Exception as e:
-            logger.warn(f"Failed to make plot: {e}")
-    return figures
 
 
 def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
@@ -260,7 +207,7 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     f.set_size_inches(8, 11)
     f.tight_layout()
 
-    print("Done plotting.")
+    logger.debug("Done plotting.")
     return f
 
 
