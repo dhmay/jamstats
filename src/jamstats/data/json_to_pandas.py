@@ -157,7 +157,53 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
     Returns:
         pd.DataFrame: jam data dataframe
     """
-    # Jam-level data all lives under the "Period" structure
+    pdf_jam_data = build_jam_dataframe(pdf_game_state)
+    pdf_teamindependent_jam_data = extract_nonteam_jam_data(pdf_jam_data)
+    n_jams = len(pdf_teamindependent_jam_data)
+    logger.debug(f"Jams: {n_jams}")
+
+    # process the team jam info for each team
+    # Add 1 to jam count for jam 0
+    pdf_teamjam_team1 = process_team_jam_info(pdf_jam_data, 1, n_jams+1, pdf_roster)
+    pdf_teamjam_team2 = process_team_jam_info(pdf_jam_data, 2, n_jams+1, pdf_roster)
+    
+    # merge jam summary data with team jam data
+    pdf_jams_summary_withteams = (
+        pdf_teamindependent_jam_data
+        .merge(pdf_teamjam_team1, on="prd_jam")
+        .merge(pdf_teamjam_team2, on="prd_jam"))
+
+    logger.debug(f"After merging teamjams: {len(pdf_jams_summary_withteams)}")
+
+    # Add net points column
+    pdf_jams_summary_withteams["net_points_1"] = (
+        pdf_jams_summary_withteams["JamScore_1"] - pdf_jams_summary_withteams["JamScore_2"])
+    pdf_jams_summary_withteams["net_points_2"] = -pdf_jams_summary_withteams["net_points_1"]
+
+    # add a column indicating whether anyone called it off
+    pdf_jams_summary_withteams["Calloff_any"] = [
+        x or y
+        for x, y
+        in zip(*[pdf_jams_summary_withteams.Calloff_1,
+                 pdf_jams_summary_withteams.Calloff_2])]
+
+    # calculate time to lead (None if no lead). It's the duration of the
+    # first scoring pass for the team that got lead, if any.
+    pdf_jams_summary_withteams["time_to_lead"] = [
+        time_1 if lead_1
+        else time_2 if lead_2
+        else None
+        for time_1, time_2, lead_1, lead_2
+        in zip(*[pdf_jams_summary_withteams.first_scoring_pass_durations_1,
+                 pdf_jams_summary_withteams.first_scoring_pass_durations_2,
+                 pdf_jams_summary_withteams.Lead_1,
+                 pdf_jams_summary_withteams.Lead_2])]
+    
+    return pdf_jams_summary_withteams
+
+
+def build_jam_dataframe(pdf_game_state: pd.DataFrame) -> pd.DataFrame:
+   # Jam-level data all lives under the "Period" structure
     pdf_period = pdf_game_state.loc[
         pdf_game_state.keychunk_1.str.startswith("Period")].copy()
     # All the "Period" fields have at least 3 chunks
@@ -182,9 +228,22 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
     pdf_jam_data["prd_jam"] = [
         f"{period}:{'0' if (jam < 10) else ''}{jam}" 
         for period, jam in zip(*[pdf_jam_data.period, pdf_jam_data.jam])]
+    return pdf_jam_data
+
+
+def extract_nonteam_jam_data(pdf_jam_data: pd.DataFrame) -> pd.DataFrame:
+    """Process all the team-independent jam-level data into a dataframe
+    with one row per jam.
+
+    Args:
+        pdf_game_state (pd.DataFrame): game state dataframe
+
+    Returns:
+        pd.DataFrame: jam data dataframe
+    """
     n_jams = len(set(pdf_jam_data.prd_jam))
 
-    logger.debug(f"Found {n_jams} jams.")
+    logger.debug(f"Found {n_jams} jams.") 
 
     # There are some jam fields with one entry per jam.
     # Grab those into a dataframe
@@ -214,58 +273,21 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
     # all time values are in ms.
     pdf_jams_summary["duration_seconds"] = pdf_jams_summary.Duration / 1000
 
-    # process the team jam info for each team
-    pdf_teamjam_team1 = process_team_jam_info(pdf_jam_data, 1, n_jams, pdf_roster)
-    pdf_teamjam_team2 = process_team_jam_info(pdf_jam_data, 2, n_jams, pdf_roster)
-
-    # merge jam summary data with team jam data
-    pdf_jams_summary_withteams = (
-        pdf_jams_summary
-        .merge(pdf_teamjam_team1, on="prd_jam")
-        .merge(pdf_teamjam_team2, on="prd_jam"))
-
-    logger.debug(f"After merging teamjams: {len(pdf_jams_summary_withteams)}")
-
-    # add a column indicating whether anyone called it off
-    pdf_jams_summary_withteams["Calloff_any"] = [
-        x or y
-        for x, y
-        in zip(*[pdf_jams_summary_withteams.Calloff_1,
-                 pdf_jams_summary_withteams.Calloff_2])]
-
-    # calculate time to lead (None if no lead). It's the duration of the
-    # first scoring pass for the team that got lead, if any.
-    pdf_jams_summary_withteams["time_to_lead"] = [
-        time_1 if lead_1
-        else time_2 if lead_2
-        else None
-        for time_1, time_2, lead_1, lead_2
-        in zip(*[pdf_jams_summary_withteams.first_scoring_pass_durations_1,
-                 pdf_jams_summary_withteams.first_scoring_pass_durations_2,
-                 pdf_jams_summary_withteams.Lead_1,
-                 pdf_jams_summary_withteams.Lead_2])]
-
     # transform times we're keeping from ms to s
-    pdf_jams_summary_withteams["jam_duration_seconds"] = (
-        pdf_jams_summary_withteams["PeriodClockElapsedEnd"] -
-        pdf_jams_summary_withteams["PeriodClockElapsedStart"]) / 1000
-    pdf_jams_summary_withteams["jam_starttime_seconds"] = pdf_jams_summary_withteams[
+    pdf_jams_summary["jam_duration_seconds"] = (
+        pdf_jams_summary["PeriodClockElapsedEnd"] -
+        pdf_jams_summary["PeriodClockElapsedStart"]) / 1000
+    pdf_jams_summary["jam_starttime_seconds"] = pdf_jams_summary[
         "PeriodClockElapsedStart"] / 1000
-    pdf_jams_summary_withteams["jam_endtime_seconds"] = pdf_jams_summary_withteams[
+    pdf_jams_summary["jam_endtime_seconds"] = pdf_jams_summary[
         "PeriodClockElapsedEnd"] / 1000
 
-    # Add net points column for each team
-    pdf_jams_summary_withteams["net_points_1"] = (
-        pdf_jams_summary_withteams["JamScore_1"] - pdf_jams_summary_withteams["JamScore_2"])
-    pdf_jams_summary_withteams["net_points_2"] = -pdf_jams_summary_withteams["net_points_1"]
-
     # Drop a bunch of useless columns
-    pdf_jams_summary_withteams = pdf_jams_summary_withteams.drop(columns=[
+    pdf_jams_summary = pdf_jams_summary.drop(columns=[
     "Duration", "Id", "Next", "PeriodClockDisplayEnd", "Previous", "Readonly",
-    "PeriodClockElapsedEnd", "PeriodClockElapsedStart",
-    "first_scoring_pass_durations_1", "first_scoring_pass_durations_2"])
+    "PeriodClockElapsedEnd", "PeriodClockElapsedStart"])
 
-    return pdf_jams_summary_withteams
+    return pdf_jams_summary
 
 def extract_roster(pdf_game_state: pd.DataFrame,
                    team_name_1: str, team_name_2: str) -> pd.DataFrame:
@@ -317,7 +339,7 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     return pdf_roster
 
 
-def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
+def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
                           n_jams: int, pdf_roster: pd.DataFrame) -> pd.DataFrame:
     """Process the jam info for one team.
 
@@ -330,8 +352,8 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
     Returns:
         pd.DataFrame: pdf with info for one team's jams
     """
-    pdf_ateamjams_data = pdf_jam_data[
-        pdf_jam_data.keychunk_3.str.contains(f"TeamJam\({team_number}")].copy()
+    pdf_ateamjams_data = pdf_game_state[
+        pdf_game_state.keychunk_3.str.contains(f"TeamJam\({team_number}")].copy()
     pdf_ateamjams_data["keychunk_4"] = [chunks[4] for chunks in pdf_ateamjams_data.key_chunks]
 
     logger.debug(f"teamjam rows, team {team_number}: {len(pdf_ateamjams_data)}")
@@ -371,7 +393,6 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
     scoringtrip_cols_to_rename = [x for x in pdf_scoringtrips.columns
                                   if x != "prd_jam"]
 
-
     pdf_ateamjams_summary_withscoringtrips = pdf_ateamjams_summary.merge(
         pdf_scoringtrips, on="prd_jam")
     pdf_ateamjams_summary_kept = pdf_ateamjams_summary_withscoringtrips[
@@ -380,6 +401,7 @@ def process_team_jam_info(pdf_jam_data: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary_kept_colsrenamed = pdf_ateamjams_summary_kept.rename(
         columns={col: f"{col}_{team_number}"
                  for col in TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename})
+
     return pdf_ateamjams_summary_kept_colsrenamed.sort_values("prd_jam")
 
 
