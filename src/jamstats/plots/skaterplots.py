@@ -8,6 +8,7 @@ import logging
 from matplotlib import pyplot as plt
 import random
 import string
+import pandas as pd
 
 logger = logging.Logger(__name__)
 
@@ -66,6 +67,60 @@ def plot_jammer_stats(derby_game: DerbyGame, team_number: int,
     f.suptitle(f"Jammer Stats: {team_name}")
     f.tight_layout()
 
+    return f
+
+
+def plot_skater_stats_team1(derby_game: DerbyGame,
+                            anonymize_names: bool = False) -> Figure:
+    return plot_skater_stats(derby_game, 1, anonymize_names=anonymize_names)
+
+
+def plot_skater_stats_team2(derby_game: DerbyGame,
+                            anonymize_names: bool = False) -> Figure:
+    return plot_skater_stats(derby_game, 2, anonymize_names=anonymize_names)
+
+
+def plot_skater_stats(derby_game: DerbyGame, team_number: int,
+                      anonymize_names: bool = False) -> Figure:
+    """Plot skater stats for one team's skaters
+
+    Args:
+        derby_game (DerbyGame): derby game
+        team_number (int): team number
+        anonymize_names (bool): anonymize skater names
+
+    Returns:
+        Figure: figure
+    """
+    team_name = derby_game.team_1_name if team_number == 1 else derby_game.team_2_name
+    skater_lists = derby_game.pdf_jams_data[f"Skaters_{team_number}"]
+    skater_jamcount_map = {}
+    for skater_list in skater_lists:
+        for skater in skater_list:
+            if skater not in skater_jamcount_map:
+                skater_jamcount_map[skater] = 0
+            skater_jamcount_map[skater] += 1
+    print(len(skater_jamcount_map))
+
+    pdf_skater_data = pd.DataFrame({
+        "Skater": list(skater_jamcount_map.keys()),
+        "Jams": list(skater_jamcount_map.values()),
+    })
+
+    print(len(pdf_skater_data))
+
+    if anonymize_names:
+        logger.debug("Anonymizing skater names.")
+        name_dict = build_anonymizer_map(set(pdf_skater_data.Skater))
+        pdf_skater_data["Skater"] = [name_dict[skater] for skater in pdf_skater_data.Skater]    
+
+    pdf_skater_data = pdf_skater_data.sort_values("Skater")
+
+    f, ax = plt.subplots()
+    sns.barplot(y="Skater", x="Jams", data=pdf_skater_data, ax=ax)
+    f.set_size_inches(16, min(2 + len(pdf_skater_data), 11))
+    f.suptitle(f"Skater Stats: {team_name}")
+    f.tight_layout() 
     return f
 
 
