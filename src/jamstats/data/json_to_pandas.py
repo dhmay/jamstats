@@ -12,7 +12,8 @@ logger = logging.Logger(__name__)
 # Columns to keep at the team+jam level
 TEAMJAM_SUMMARY_COLUMNS = [
     "Calloff", "Injury", "JamScore", "Lead",
-    "Lost", "NoInitial", "StarPass", "TotalScore", "jammer_name", "jammer_number"]
+    "Lost", "NoInitial", "StarPass", "TotalScore", "jammer_name", "jammer_number",
+    "Skaters"]
 
 
 def load_json_derby_game(game_json) -> DerbyGame:
@@ -388,6 +389,12 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
 
     logger.debug(f"After adding jammer info: {len(pdf_ateamjams_summary)}")
 
+    # add list of skater names per jam
+    pdf_jam_skater_lists = extract_team_perjam_skaters(pdf_ateamjams_data, pdf_roster)
+    pdf_ateamjams_summary = pdf_ateamjams_summary.merge(
+        pdf_jam_skater_lists, on="prd_jam"
+    )
+
     pdf_scoringtrips = parse_scoringtrip_data(pdf_ateamjams_data)
     # need to rename the informational columns of pdf_scoringtrips
     scoringtrip_cols_to_rename = [x for x in pdf_scoringtrips.columns
@@ -403,6 +410,40 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
                  for col in TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename})
 
     return pdf_ateamjams_summary_kept_colsrenamed.sort_values("prd_jam")
+
+
+def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
+                                pdf_roster: pd.DataFrame) -> pd.DataFrame:
+    """Calculate the list of skater names per jam for this team.
+
+    Args:
+        pdf_ateamjams_data (pd.DataFrame): dataframe with a single team's jam data
+        pdf_roster (pd.DataFrame): Roster dataframe
+
+    Returns:
+        pd.DataFrame: dataframe mapping prd_jam to list of skater names for the jam
+    """
+    pdf_ateamjams_data_fielding = pdf_ateamjams_data[
+        pdf_ateamjams_data["keychunk_4"].str.startswith("Fielding")].copy()
+    pdf_ateamjams_data_fielding["keychunk_5"] = [
+        chunks[5] for chunks in pdf_ateamjams_data_fielding.key_chunks]
+    pdf_ateamjams_data_skaters = pdf_ateamjams_data_fielding[
+        pdf_ateamjams_data_fielding.keychunk_5 == "Skater"]
+    pdf_ateamjams_data_skaters = pdf_ateamjams_data_skaters.rename(columns={
+        "value": "Id"
+    })
+
+    print(len(pdf_ateamjams_data_skaters))
+
+    pdf_ateamjams_data_skaters_withname = pdf_ateamjams_data_skaters.merge(
+        pdf_roster, on="Id")
+    print(len(pdf_ateamjams_data_skaters_withname))
+
+    pdf_jam_skater_lists = pdf_ateamjams_data_skaters_withname.groupby(
+        "prd_jam")["Name"].apply(list).reset_index()
+    pdf_jam_skater_lists = pdf_jam_skater_lists.rename(columns={"Name": "Skaters"})
+
+    return pdf_jam_skater_lists
 
 
 def parse_scoringtrip_data(pdf_ateamjams_data: pd.DataFrame) -> pd.DataFrame:
