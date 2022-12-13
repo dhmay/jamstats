@@ -16,7 +16,9 @@ from jamstats.plots.jamplots import (
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
-    plot_jammer_stats_team2
+    plot_jammer_stats_team2,
+    plot_skater_stats_team1,
+    plot_skater_stats_team2,
 )
 from jamstats.plots.plot_util import prepare_to_plot
 from matplotlib.backends.backend_pdf import PdfPages
@@ -77,7 +79,8 @@ def make_all_plots(derby_game: DerbyGame,
             logger.warn(f"Failed to make jam plot: {e}")
 
     if plot_skaterplots:
-        for plot_func in [plot_jammer_stats_team1, plot_jammer_stats_team2]:
+        for plot_func in [plot_jammer_stats_team1, plot_jammer_stats_team2,
+                          plot_skater_stats_team1, plot_skater_stats_team2]:
             try:
                 f = plot_func(derby_game, anonymize_names=anonymize_names)
                 figures.append(f)
