@@ -439,11 +439,9 @@ def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
         "value": "Id"
     })
 
-    print(len(pdf_ateamjams_data_skaters))
 
     pdf_ateamjams_data_skaters_withname = pdf_ateamjams_data_skaters.merge(
         pdf_roster, on="Id")
-    print(len(pdf_ateamjams_data_skaters_withname))
 
     pdf_jam_skater_lists = pdf_ateamjams_data_skaters_withname.groupby(
         "prd_jam")["Name"].apply(list).reset_index()
