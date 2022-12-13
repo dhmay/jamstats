@@ -100,14 +100,33 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
             if skater not in skater_jamcount_map:
                 skater_jamcount_map[skater] = 0
             skater_jamcount_map[skater] += 1
-    print(len(skater_jamcount_map))
 
     pdf_skater_data = pd.DataFrame({
         "Skater": list(skater_jamcount_map.keys()),
         "Jams": list(skater_jamcount_map.values()),
     })
 
-    print(len(pdf_skater_data))
+    pdf_team_penalties = derby_game.pdf_penalties[
+        derby_game.pdf_penalties.team == team_name]
+    pdf_team_penalty_counts = pdf_team_penalties.Name.value_counts().reset_index().rename(
+        columns={"index": "Skater", "Name": "Penalties"})
+    # there is for sure a more efficient way to figure out most common penalty.
+    # But I want to make sure I get the lowest-in-alphabet letter
+    skater_mostcommon_penalties = []
+    for skater in pdf_team_penalty_counts.Skater:
+        pdf_skater_penalty_counts = pdf_team_penalties[
+            pdf_team_penalties.Name == skater].penalty_code.value_counts().reset_index().rename(
+                columns={"index": "penalty_code", "penalty_code": "Count"}
+            )
+        penalties_tiedfor_max = list(pdf_skater_penalty_counts[
+            pdf_skater_penalty_counts.Count == max(pdf_skater_penalty_counts.Count)].penalty_code)
+        skater_mostcommon_penalties.append(sorted(penalties_tiedfor_max)[0])
+    pdf_team_penalty_counts["Top Penalty"] = skater_mostcommon_penalties
+    
+
+    pdf_skater_data = pdf_skater_data.merge(
+        pdf_team_penalty_counts, on="Skater", how="left").fillna({
+            "Penalties": 0, "Top Penalty": ""})
 
     if anonymize_names:
         logger.debug("Anonymizing skater names.")
@@ -116,9 +135,26 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
 
     pdf_skater_data = pdf_skater_data.sort_values("Skater")
 
-    f, ax = plt.subplots()
+    f, axes = plt.subplots(1, 2)
+
+    ax = axes[0]
     sns.barplot(y="Skater", x="Jams", data=pdf_skater_data, ax=ax)
-    f.set_size_inches(16, min(2 + len(pdf_skater_data), 11))
+    ax.set_title("Jams")
+    ax.set_ylabel("")
+
+    ax = axes[1]
+    sns.barplot(y="Skater", x="Penalties", data=pdf_skater_data, ax=ax)
+    for i, penalty in enumerate(pdf_skater_data["Top Penalty"]):
+        ax.text(.5, i, penalty,
+                horizontalalignment="center",
+                verticalalignment="center")
+    ax.set_title("Penalties (top marked)")
+
+    ax.set_yticklabels([])
+    ax.set_ylabel("")
+
+
+    f.set_size_inches(8, min(2 + len(pdf_skater_data), 11))
     f.suptitle(f"Skater Stats: {team_name}")
     f.tight_layout() 
     return f

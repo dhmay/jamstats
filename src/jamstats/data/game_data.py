@@ -8,13 +8,15 @@ from abc import ABC, abstractmethod
 class DerbyGame:
     """Class for storing all the data related to a derby game.
     """
-    def __init__(self, pdf_jams_data: pd.DataFrame, game_data_dict: Dict[str, str]):
+    def __init__(self, pdf_jams_data: pd.DataFrame, game_data_dict: Dict[str, str],
+                 pdf_penalties: pd.DataFrame):
         self.pdf_jams_data = pdf_jams_data
         self.game_data_dict = game_data_dict
         self.team_1_name = game_data_dict["team_1"]
         self.team_2_name = game_data_dict["team_2"]
         self.game_summary_dict = self.extract_game_summary_dict()
         self.n_jams = self.game_summary_dict["Jams"]
+        self.pdf_penalties = pdf_penalties
 
     def extract_game_summary(self) -> pd.DataFrame:
         """Build a gross game-summary dataframe

@@ -28,7 +28,8 @@ def load_json_derby_game(game_json) -> DerbyGame:
                                 game_data_dict["team_1"],
                                 game_data_dict["team_2"])
     pdf_game_data = extract_jam_data(pdf_game_state, pdf_roster)
-    return DerbyGame(pdf_game_data, game_data_dict)
+    pdf_penalties = extract_penalties(pdf_game_state, pdf_roster)
+    return DerbyGame(pdf_game_data, game_data_dict, pdf_penalties)
 
 
 def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
@@ -334,9 +335,14 @@ def extract_roster(pdf_game_state: pd.DataFrame,
         chunks[3] for chunks in pdf_game_state_roster.key_chunks]
     # dump a bunch of extraneous columns
     pdf_game_state_roster = pdf_game_state_roster[pdf_game_state_roster.roster_key.isin(
-        ["Id", "Name", "RosterNumber"]
+        ["Id", "Name", "RosterNumber", "team"]
     )]
     pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
+
+    pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
+    
+    skaterid_team_map = dict(zip(*[pdf_game_state_roster["skater"], pdf_game_state_roster["team"]]))
+    pdf_roster["team"] = [skaterid_team_map[skater] for skater in pdf_roster.Id]
     return pdf_roster
 
 
@@ -490,3 +496,31 @@ def parse_scoringtrip_data(pdf_ateamjams_data: pd.DataFrame) -> pd.DataFrame:
     })
     pdf_scoring_pass_counts.index = range(len(pdf_scoring_pass_counts))
     return pdf_scoring_pass_counts
+
+
+def extract_penalties(pdf_game_state: pd.DataFrame,
+                      pdf_roster: pd.DataFrame) -> pd.DataFrame:
+    """Extract a dataframe with one row per penalty
+
+    Args:
+        pdf_game_state (pd.DataFrame): game state dataframe
+        pdf_roster (pd.DataFrame): roster dataframe
+
+    Returns:
+        pd.DataFrame: penalty dataframe
+    """
+
+    pdf_penalty_gamedata = pdf_game_state[(pdf_game_state.n_key_chunks == 5)].copy()
+    pdf_penalty_gamedata["keychunk_2"] = [chunks[2] for chunks in pdf_penalty_gamedata.key_chunks]
+    pdf_penalty_gamedata["keychunk_3"] = [chunks[3] for chunks in pdf_penalty_gamedata.key_chunks]
+    pdf_penalty_gamedata = pdf_penalty_gamedata[
+        pdf_penalty_gamedata.keychunk_3.str.startswith("Penalty(")]
+    pdf_penalty_gamedata["penalty_key"] = [chunks[4] for chunks in pdf_penalty_gamedata.key_chunks]
+    pdf_penalty_gamedata["Id"] = [chunk[len("Skater("):-1]
+                                  for chunk in pdf_penalty_gamedata.keychunk_2]
+    pdf_penalty_gamedata = pdf_penalty_gamedata.merge(
+        pdf_roster[["Id", "Name", "team"]], on="Id")
+    pdf_penalties = pdf_penalty_gamedata[pdf_penalty_gamedata.penalty_key == "Code"]
+    pdf_penalties = pdf_penalties.rename(columns={"value": "penalty_code"})
+    pdf_penalties = pdf_penalties[["Name", "team", "penalty_code"]]
+    return pdf_penalties
