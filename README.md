@@ -1,5 +1,5 @@
 # jamstats
-Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files.
+Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files. These tools can be accessed from the commandline or from Python.
 
 Supports both v4.x and v5.x JSON files. Supports completed and in-progress game files.
 
@@ -15,7 +15,7 @@ Installation gives you two commands, one for making a PDF with plots derived fro
 
 `jamstats-plot-pdf <game.json> [plots.pdf]`
 
-and one for converting a derby game json file to a TSV (tab-separated value) file that can be used in Excel, R, etc.:
+and one for converting a derby game json file to a TSV (tab-separated value) file that can be loaded into Excel, R, etc.:
 
 `jamstats-convert-tsv <game.json> [game.tsv]`
 
