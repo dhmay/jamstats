@@ -18,7 +18,7 @@ parser.add_argument('jsonfile', type=argparse.FileType('r'),
 parser.add_argument('pdffile', type=argparse.FileType('w'), nargs='?',
                     help='PDF file to write')
 parser.add_argument('--anonymize', action="store_true",
-                    help="Anonymize individual skater names?")
+                    help="Replace actual skater names with random pregenerated ones?")
 parser.add_argument('--debug', action="store_true",
                     help="enable debug logging")
 args = parser.parse_args()
