@@ -160,21 +160,88 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
     return f
 
 
-def build_anonymizer_map(names: Iterable[str],
-                         anonymized_len = 8) -> Dict[str, str]:
-    """Build a dictionary from unique passed-in names to randomly constructed names
+def build_anonymizer_map(names: Iterable[str]) -> Dict[str, str]:
+    """Build a dictionary from unique passed-in names to randomly selected
+    anonymized skater names.
+
+    Will fail if you ask for more names than the list contains (about 60)
 
     Args:
         names (Iterable[str]): input names
-        anonymized_len (int, optional): length of anon names. Defaults to 8.
 
     Returns:
         Dict[str, str]: map from input names to anonymized names
     """
-    names_set = set(names)
-    anonymizer_dict = dict()
-    for name in names_set:
-        anonymizer_dict[name] = ''.join(
-            random.choices(string.ascii_uppercase + string.digits,
-                           k=anonymized_len))
-    return anonymizer_dict
+    # just in case the names aren't unique
+    names_set_list = list(set(names))
+    anonymized_names = random.sample(ANONYMIZED_SKATER_NAMES, len(names_set_list))
+    return {
+        names_set_list[i]: anonymized_names[i]
+        for i in range(len(names_set_list))
+    }
+
+
+ANONYMIZED_SKATER_NAMES = [
+    "Middle Skull Crush",
+    "Magic Missile",
+    "Caffiend",
+    "Artemis Foul",
+    "Madame Fury",
+    "Rejected",
+    "Elena Traffic",
+    "Fate Skar",
+    "Bee Knighter",
+    "Hate Skar'd",
+    "Clever Bruise",
+    "Sudden Beth",
+    "Nasty, Brutish and Me",
+    "Penalty Fox",
+    "Mike Wheeler",
+    "Foe Stops",
+    "Foul Doubt",
+    "Scarlight Express",
+    "Stang 'Er Things",
+    "Strangler Things",
+    "Tragic Missile",
+    "Skate of Shock",
+    "Murder Hornet",
+    "Max May-wheeled",
+    "Boba Teen",
+    "Superscar",
+    "Elenavalanche",
+    "Scar the Grouch",
+    "Scar Wylde",
+    "Rebel Girl",
+    "Scarhawk",
+    "Sass Squatch",
+    "Stronger Than You",
+    "Scartillery",
+    "Bad Assassin",
+    "Sassassin",
+    "Ambulance",
+    "Global Harming",
+    "Seabattle",
+    "Cascade Deranged",
+    "Columbia Shiv 'Er",
+    "Scarstruck",
+    "Sneak Attrack",
+    "Duel Wheeled",
+    "Awful Good",
+    "Broad Sword",
+    "Roll for Damage",
+    "Nat Twenty",
+    "Scorehammer",
+    "Javelin",
+    "Unarmed Strike",
+    "Morning Scar",
+    "Critical Roll",
+    "Shortsword",
+    "Chaos Muppet",
+    "Scartemis",
+    "Kestrel",
+    "No Regrette",
+    "The Sparkly Cloud Killer",
+    "Ada Hatelace",
+    "Wheela Monster",
+    "Poison Dart Frog",
+]
