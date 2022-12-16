@@ -42,10 +42,11 @@ def plot_jammer_stats(derby_game: DerbyGame, team_number: int,
         name_dict = build_anonymizer_map(set(pdf_jammer_data.Jammer))
         pdf_jammer_data["Jammer"] = [name_dict[jammer] for jammer in pdf_jammer_data.Jammer]
 
-    f, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4)
+    f, (ax0, ax1, ax2, ax3, ax4) = plt.subplots(1, 5)
 
     ax = ax0
     sns.barplot(y="Jammer", x="Jams", data=pdf_jammer_data, ax=ax)
+    ax.set_ylabel("")
 
     ax = ax1
     sns.barplot(y="Jammer", x="Total Score", data=pdf_jammer_data, ax=ax)
@@ -60,6 +61,11 @@ def plot_jammer_stats(derby_game: DerbyGame, team_number: int,
     ax = ax3
     sns.barplot(y="Jammer", x="Proportion Lead", data=pdf_jammer_data, ax=ax)
     ax.set_xlim(0,1)
+    ax.set_yticks([])
+    ax.set_ylabel("")
+
+    ax = ax4
+    sns.barplot(y="Jammer", x="Mean Time to Initial", data=pdf_jammer_data, ax=ax)
     ax.set_yticks([])
     ax.set_ylabel("")
 

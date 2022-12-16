@@ -110,17 +110,21 @@ class DerbyGame:
         jamscore_col = f"JamScore_{team_number}"
         netpoints_col = f"net_points_{team_number}"
         lead_col = f"Lead_{team_number}"
+        time_to_initial_col = f"first_scoring_pass_durations_{team_number}"
 
         pdf_jammer_data = self.pdf_jams_data.groupby(jammer_col).agg({
             jamscore_col: "sum",
             netpoints_col: "mean",
             'Number': "count",
-            lead_col: "mean"}).reset_index()
+            lead_col: "mean",
+            time_to_initial_col: "mean"}).reset_index()
+
         pdf_jammer_data = pdf_jammer_data.rename(columns={
             jammer_col: "Jammer",
             jamscore_col: "Total Score",
             netpoints_col: "Mean Net Points",
             lead_col: "Proportion Lead",
-            "Number": "Jams"
+            "Number": "Jams",
+            time_to_initial_col: "Mean Time to Initial",
         })
         return pdf_jammer_data
