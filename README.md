@@ -3,6 +3,12 @@ Tools for doing statistics and making plots on data from [CRG roller derby score
 
 ## Installation
 
+### On a Mac, without Python
+
+Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the files `jamstats-plot-pdf` and `jamstats-convert-tsv`. For convenience, put them in a directory that's on your PATH.
+
+### With Python
+
 With Python 3.7 or later installed, type:
 
 `pip install jamstats`
