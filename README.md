@@ -11,17 +11,19 @@ With Python 3.7 or later installed, type:
 
 ## Usage
 
-Installation gives you two commands, one for making a PDF with plots derived from a derby game json file:
+Installation gives you two commands. Get full help for either command by running it with the `--help` argument.
 
-`jamstats-plot-pdf <game.json> [plots.pdf]`
+### jamstats-plot-pdf
 
-and one for converting a derby game json file to a TSV (tab-separated value) file that can be loaded into Excel, R, etc.:
+`jamstats-plot-pdf <game.json> [plots.pdf] [--inprogress]`
+
+Makes plots describing a game and writes them to a PDF. If output PDF file isn't specified, uses the input filepath and changes .json to .pdf. If `--inprogress` is specified, instead of reading an input JSON file, connects to a running scoreboard server and downloads the current game state. In that case, the first argument should be a string of the format <server>:<port>, e.g., `localhost:8000`. 
+
+### jamstats-convert-tsv
+
+Coverts a derby game json file to a TSV (tab-separated value) file that can be loaded into Excel, R, etc.:
 
 `jamstats-convert-tsv <game.json> [game.tsv]`
-
-If output files aren't specified, output will be written to the same path as the input file, with .json replaced with .pdf or .txt, respectively.
-
-There are a few optional commandline arguments (e.g., anonymize skater names). Use the `--help` argument to get full usage for each command.
 
 ## Let's see some plots!
 
