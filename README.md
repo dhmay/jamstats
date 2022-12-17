@@ -1,5 +1,5 @@
 # jamstats
-Commandline tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or from a running scoreboard server. Supports both v4.x and v5.x scoreboard versions.
+Commandline tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or from a running scoreboard server. Supports both v4.x and v5.x scoreboard versions. [Let's see some plots!](https://github.com/dhmay/jamstats#lets-see-some-plots)
 
 ## Installation
 
@@ -17,7 +17,7 @@ Installation gives you two commands. Get full help for either command by running
 
 ### jamstats-plot-pdf
 
-`jamstats-plot-pdf <game.json> [plots.pdf] [--inprogress]`
+`jamstats-plot-pdf [-h] [--anonymize] [--debug] [--inprogress] jsonfileorserver [pdffile]`
 
 Makes plots describing a game and writes them to a PDF. If output PDF file isn't specified, uses the input filepath and changes .json to .pdf. If `--inprogress` is specified, instead of reading an input JSON file, connects to a running scoreboard server and downloads the current game state. In that case, the first argument should be a string of the format `server:port`, e.g., `localhost:8000`. 
 
@@ -25,7 +25,7 @@ Makes plots describing a game and writes them to a PDF. If output PDF file isn't
 
 Coverts a derby game json file to a TSV (tab-separated value) file that can be loaded into Excel, R, etc.:
 
-`jamstats-convert-tsv <game.json> [game.tsv]`
+`jamstats-convert-tsv [-h] jsonfile [tsvfile]`
 
 ## Let's see some plots!
 
