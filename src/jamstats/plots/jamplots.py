@@ -12,8 +12,6 @@ import logging
 logger = logging.Logger(__name__)
 
 
-
-
 def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     """Plot jammers by team
 
