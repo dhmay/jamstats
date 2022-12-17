@@ -19,7 +19,7 @@ Installation gives you two commands. Get full help for either command by running
 
 `jamstats-plot-pdf [-h] [--anonymize] [--debug] [--inprogress] jsonfileorserver [pdffile]`
 
-Makes plots describing a game and writes them to a PDF. If output PDF file isn't specified, uses the input filepath and changes .json to .pdf. If `--inprogress` is specified, instead of reading an input JSON file, connects to a running scoreboard server and downloads the current game state. In that case, the first argument should be a string of the format `server:port`, e.g., `localhost:8000`. 
+Makes plots describing a game and writes them to a PDF. If output PDF file isn't specified, uses the input filepath and changes .json to .pdf. If `--inprogress` is specified, instead of reading an input JSON file, connects to a running scoreboard server and downloads the current game state. In that case, the first unnamed argument should be a string of the format `server:port`, e.g., `localhost:8000`. 
 
 ### jamstats-convert-tsv
 
