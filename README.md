@@ -1,5 +1,5 @@
 # jamstats
-Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files. These tools can be accessed from the commandline or from Python.
+Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or by connecting to a running scoreboard server.
 
 Supports both v4.x and v5.x JSON files. Supports completed and in-progress game files.
 
