@@ -107,6 +107,7 @@ def get_json_major_version(game_dict: Dict[str, Any]) -> int:
     version_str = game_dict["ScoreBoard.Version(release)"]
     major_version = version_str.split(".")[0]
     assert(major_version.startswith("v"))
+    logger.debug(f"JSON major version string: {major_version}")
     return int(major_version[1:])
 
 
@@ -191,15 +192,15 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
 
     # calculate time to lead (None if no lead). It's the duration of the
     # first scoring pass for the team that got lead, if any.
-    pdf_jams_summary_withteams["time_to_lead"] = [
-        time_1 if lead_1
-        else time_2 if lead_2
-        else None
-        for time_1, time_2, lead_1, lead_2
-        in zip(*[pdf_jams_summary_withteams.first_scoring_pass_durations_1,
-                 pdf_jams_summary_withteams.first_scoring_pass_durations_2,
-                 pdf_jams_summary_withteams.Lead_1,
-                 pdf_jams_summary_withteams.Lead_2])]
+    times_to_lead = []
+    for _, row in pdf_jams_summary_withteams.iterrows():
+        if row["Lead_1"]:
+            times_to_lead.append(row["first_scoring_pass_durations_1"])
+        elif row["Lead_2"]:
+            times_to_lead.append(row["first_scoring_pass_durations_2"])
+        else:
+            times_to_lead.append(None)
+    pdf_jams_summary_withteams["time_to_lead"] = times_to_lead
     
     return pdf_jams_summary_withteams
 
@@ -304,11 +305,14 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     Returns:
         pd.DataFrame: _description_
     """
+    logger.debug("extract_roster begin")
     json_major_version = get_json_major_version_from_pdf(pdf_game_state)
     if json_major_version == 5:
+        logger.debug("JSON version 5")
         team_string_1 = f"Team\(1\)"
         team_string_2 = f"Team\(2\)"
     elif json_major_version == 4:
+        logger.debug("JSON version 5")
         team_string_1 = f"PreparedTeam\({team_name_1}\)"
         team_string_2 = f"PreparedTeam\({team_name_2}\)"
     pdf_game_state_roster = pdf_game_state.loc[
@@ -408,6 +412,7 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
 
     pdf_ateamjams_summary_withscoringtrips = pdf_ateamjams_summary.merge(
         pdf_scoringtrips, on="prd_jam")
+    logger.debug(f"After adding scoring trips: {len(pdf_ateamjams_summary)}")
     pdf_ateamjams_summary_kept = pdf_ateamjams_summary_withscoringtrips[
         ["prd_jam"] + TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename]
 
@@ -438,7 +443,6 @@ def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
     pdf_ateamjams_data_skaters = pdf_ateamjams_data_skaters.rename(columns={
         "value": "Id"
     })
-
 
     pdf_ateamjams_data_skaters_withname = pdf_ateamjams_data_skaters.merge(
         pdf_roster, on="Id")

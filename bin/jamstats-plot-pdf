@@ -4,7 +4,8 @@ __author__ = "Damon May"
 
 
 import argparse
-from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
+from jamstats.io.scoreboard_json_io import (
+    load_derby_game_from_json_file, load_inprogress_game_from_server)
 from jamstats.plots.plot_together import save_game_plots_to_pdf
 from jamstats.plots import plot_together, jamplots, skaterplots
 import logging
@@ -13,14 +14,18 @@ logger = logging.Logger(__name__)
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('jsonfile', type=argparse.FileType('r'),
-                    help='Scoreboard json file to read')
+parser.add_argument('jsonfileorserver', type=str,
+                    help="Scoreboard json file to read (or server:port, e.g., localhost:8000,"
+                    "if --inprogress)")
 parser.add_argument('pdffile', type=argparse.FileType('w'), nargs='?',
                     help='PDF file to write')
 parser.add_argument('--anonymize', action="store_true",
                     help="Replace actual skater names with random pregenerated ones?")
 parser.add_argument('--debug', action="store_true",
                     help="enable debug logging")
+parser.add_argument('--inprogress', action="store_true",
+                    help="If true, treats unnamed argument as the server and port"
+                    "of an in-progress game, connects to it and grabs the current json.")
 args = parser.parse_args()
 
 formatter = logging.Formatter(
@@ -36,17 +41,37 @@ if args.debug:
         mymodule.logger.setLevel(logging.DEBUG)
         mymodule.logger.addHandler(stream_handler)
 
-print(f"Loading game from {args.jsonfile.name}")
-derby_game = load_derby_game_from_json_file(args.jsonfile.name)
+print(f"Loading game from {args.jsonfileorserver}...")
+
+if args.inprogress:
+    print("Connecting to server...")
+    try:
+        server, port = args.jsonfileorserver.split(":")
+        port = int(port)
+    except Exception:
+        quit(f"Tried to parse {args.jsonfileorserver} as server:port, failed. Quitting.")
+    try:
+        derby_game = load_inprogress_game_from_server(server, port)
+    except Exception as e:
+        quit(f"Failed to download in-game data from server {server}:{port}: {e}")
+else:
+    try:
+        derby_game = load_derby_game_from_json_file(args.jsonfileorserver)
+    except Exception as e:
+        quit(f"Failed to open file {args.jsonfileorserver}: {e}")
 
 if args.pdffile is None:
-    if args.jsonfile.name.lower().endswith(".json"):
+    if args.inprogress:
+        quit("Output filepath not provided, and connecting to an in-progress game. "
+        "Don't know where to write output, quitting.")
+    elif args.jsonfileorserver.lower().endswith(".json"):
         print(f"Output filepath not provided. "
-              f"Using input filepath with extension .pdf instead of {args.jsonfile.name[-5:]}")
-        pdf_filepath = args.jsonfile.name[:-len(".json")] + ".pdf"
+              f"Using input filepath with extension .pdf instead of {args.jsonfileorserver[-5:]}")
+        pdf_filepath = args.jsonfileorserver[:-len(".json")] + ".pdf"
     else:
         print("Input file doesn't end with .json, so refusing to guess what output file you want."
-              "  Please rename your input file or specify an output filepath.")
+              "  Please rename your input file or specify an output filepath. Quitting.")
+        quit()
 else:
     pdf_filepath = args.pdffile.name
     args.pdffile.close()
