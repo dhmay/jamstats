@@ -8,7 +8,9 @@ from jamstats.io.scoreboard_json_io import (
     load_derby_game_from_json_file, load_inprogress_game_from_server)
 from jamstats.plots.plot_together import save_game_plots_to_pdf
 from jamstats.plots import plot_together, jamplots, skaterplots
+from jamstats.data import json_to_pandas
 import logging
+import sys
 
 logger = logging.Logger(__name__)
 
@@ -35,9 +37,10 @@ if args.debug:
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.DEBUG)
     stream_handler.setFormatter(formatter)
+    stream_handler.setStream(sys.stdout)
 
     logger.warning("Enabling debug logging.")
-    for mymodule in [plot_together, jamplots, skaterplots]:
+    for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas]:
         mymodule.logger.setLevel(logging.DEBUG)
         mymodule.logger.addHandler(stream_handler)
 
@@ -77,4 +80,4 @@ else:
     args.pdffile.close()
 
 save_game_plots_to_pdf(derby_game, pdf_filepath, anonymize_names=args.anonymize)
-print(f"Wrote {pdf_filepath}.")
+print(f"Wrote {pdf_filepath}")
