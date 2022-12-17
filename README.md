@@ -1,5 +1,5 @@
 # jamstats
-Commandline tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or by connecting to a running scoreboard server. Supports both v4.x and v5.x scoreboard versions.
+Commandline tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, from a running scoreboard server. Supports both v4.x and v5.x scoreboard versions.
 
 ## Installation
 
