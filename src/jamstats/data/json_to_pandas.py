@@ -143,6 +143,11 @@ def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
         pdf_game_state.key == team1_key].value)[0]
     team_name_2 = list(pdf_game_state[
         pdf_game_state.key == team2_key].value)[0]
+
+    # Get rid of weird characters in team names
+    team_name_1 = cleanup_team_name(team_name_1)
+    team_name_2 = cleanup_team_name(team_name_2)
+
     return {
         "team_1": team_name_1,
         "team_2": team_name_2
@@ -312,9 +317,14 @@ def extract_roster(pdf_game_state: pd.DataFrame,
         team_string_1 = f"Team\(1\)"
         team_string_2 = f"Team\(2\)"
     elif json_major_version == 4:
-        logger.debug("JSON version 5")
+        logger.debug("JSON version 4")
         team_string_1 = f"PreparedTeam\({team_name_1}\)"
         team_string_2 = f"PreparedTeam\({team_name_2}\)"
+    
+    team_string_1 = cleanup_team_name(team_string_1)
+    team_string_2 = cleanup_team_name(team_string_2)
+
+    logger.debug(f"Looking for teams in roster: {team_string_1}, {team_string_2}")
     pdf_game_state_roster = pdf_game_state.loc[
         pdf_game_state.key.str.contains(
             f"ScoreBoard.{team_string_1}.Skater") |
@@ -325,6 +335,8 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     pdf_game_state_roster["team"] = [
         chunks[1][chunks[1].index("(") + 1:chunks[1].index(")")]
         for chunks in pdf_game_state_roster.key_chunks]
+    logger.debug("Roster rows by team:")
+    logger.debug(pdf_game_state_roster.team.value_counts())
     if json_major_version == 5:
         # Version 4 stored the team name. Version 5 stores the number,
         # so translate.
@@ -343,10 +355,10 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     )]
     pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
 
-    pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
-    
     skaterid_team_map = dict(zip(*[pdf_game_state_roster["skater"], pdf_game_state_roster["team"]]))
     pdf_roster["team"] = [skaterid_team_map[skater] for skater in pdf_roster.Id]
+    logger.debug("Loaded roster. Skater count by team:")
+    logger.debug(pdf_roster.team.value_counts())
     return pdf_roster
 
 
@@ -404,15 +416,17 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(
         pdf_jam_skater_lists, on="prd_jam"
     )
+    logger.debug(f"After adding skaters/jam: {len(pdf_ateamjams_summary)}")
 
     pdf_scoringtrips = parse_scoringtrip_data(pdf_ateamjams_data)
     # need to rename the informational columns of pdf_scoringtrips
+    logger.debug(f"Loaded {len(pdf_scoringtrips)} scoring trips.")
     scoringtrip_cols_to_rename = [x for x in pdf_scoringtrips.columns
                                   if x != "prd_jam"]
 
     pdf_ateamjams_summary_withscoringtrips = pdf_ateamjams_summary.merge(
         pdf_scoringtrips, on="prd_jam")
-    logger.debug(f"After adding scoring trips: {len(pdf_ateamjams_summary)}")
+    logger.debug(f"After adding scoring trips: {len(pdf_ateamjams_summary_withscoringtrips)}")
     pdf_ateamjams_summary_kept = pdf_ateamjams_summary_withscoringtrips[
         ["prd_jam"] + TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename]
 
@@ -434,6 +448,7 @@ def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
     Returns:
         pd.DataFrame: dataframe mapping prd_jam to list of skater names for the jam
     """
+    logger.debug("extract_team_perjam_skaters begin")
     pdf_ateamjams_data_fielding = pdf_ateamjams_data[
         pdf_ateamjams_data["keychunk_4"].str.startswith("Fielding")].copy()
     pdf_ateamjams_data_fielding["keychunk_5"] = [
@@ -444,12 +459,15 @@ def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
         "value": "Id"
     })
 
+    logger.debug(f"    Before roster merge, team jam skater data: {len(pdf_ateamjams_data_skaters)}")
     pdf_ateamjams_data_skaters_withname = pdf_ateamjams_data_skaters.merge(
         pdf_roster, on="Id")
+    logger.debug(f"    After roster merge, team jam skater data: {len(pdf_ateamjams_data_skaters_withname)}")
 
     pdf_jam_skater_lists = pdf_ateamjams_data_skaters_withname.groupby(
         "prd_jam")["Name"].apply(list).reset_index()
     pdf_jam_skater_lists = pdf_jam_skater_lists.rename(columns={"Name": "Skaters"})
+    logger.debug(f"    Jam skater lists length: {len(pdf_jam_skater_lists)}")
 
     return pdf_jam_skater_lists
 
@@ -526,3 +544,17 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     pdf_penalties = pdf_penalties.rename(columns={"value": "penalty_code"})
     pdf_penalties = pdf_penalties[["Name", "team", "penalty_code"]]
     return pdf_penalties
+
+
+def cleanup_team_name(team_name: str) -> str:
+    """ clean up weird characters in team names. I'm not positive this generalizes well.
+    One of our teams had an apostrophe in it, and it was removed in the roster
+    but not elsewhere.
+
+    Args:
+        team_name (str): team name with potentially weird characters
+
+    Returns:
+        stra: cleaned-up team name
+    """
+    return team_name.replace("'", "")
