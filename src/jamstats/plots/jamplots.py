@@ -305,7 +305,6 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
                 inner="stick")
     ax.set_ylabel("Time to get Lead")
     ax.set_title("Time to get Lead (s)\nper jam")
-    logger.debug("Failed to make violinplot, probably lack of data.")
     f.set_size_inches(8, 4)
     f.tight_layout()
 
