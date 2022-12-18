@@ -5,6 +5,10 @@ from typing import Dict, Any
 from jamstats.data.game_data import DerbyGame
 from jamstats.data.json_to_pandas import load_json_derby_game
 import urllib
+import logging
+from io import TextIOWrapper
+
+logger = logging.Logger(__name__)
 
 def load_derby_game_from_json_file(filepath) -> DerbyGame:
     """Load the derby game from a JSON file
@@ -61,5 +65,6 @@ def load_game_json_from_server(
     """
     with urllib.request.urlopen(
         f"http://{server}:{port}/SaveJSON/scoreboard-0-secs-ago.json") as response:
-        game_json = json.load(response)
+        game_json = json.load(response,
+            encoding=response.headers.get_content_charset())
     return game_json
