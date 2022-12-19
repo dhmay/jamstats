@@ -19,17 +19,13 @@ Clone this repo and then run the scripts with e.g., `python src/jamstats-plot-pd
 
 Installation gives you two commands. Get full help for either command by running it with the `--help` argument.
 
-### jamstats-plot-pdf
-
 `jamstats-plot-pdf [-h] [--anonymize] [--debug] [--inprogress] jsonfileorserver [pdffile]`
 
 Makes plots describing a game and writes them to a PDF. If output PDF file isn't specified, uses the input filepath and changes .json to .pdf. If `--inprogress` is specified, instead of reading an input JSON file, connects to a running scoreboard server and downloads the current game state. In that case, the first unnamed argument should be a string of the format `server:port`, e.g., `localhost:8000`. 
 
-### jamstats-convert-tsv
+`jamstats-convert-tsv [-h] jsonfile [tsvfile]`
 
 Coverts a derby game json file to a TSV (tab-separated value) file that can be loaded into Excel, R, etc.:
-
-`jamstats-convert-tsv [-h] jsonfile [tsvfile]`
 
 ## Let's see some plots!
 
