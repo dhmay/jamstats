@@ -20,5 +20,5 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: jamstats-plot-pdf
-        path: /tmp\jamstats-convert-tsv\jamstats-convert-tsv.exe # or path/to/artifact
+        name: jamstats-plot-pdf.exe
+        path: /src/dist/windows # or path/to/artifact
