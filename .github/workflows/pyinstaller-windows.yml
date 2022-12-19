@@ -20,5 +20,5 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: bin/jamstats-plot-pdf
+        name: jamstats-plot-pdf
         path: src/dist/windows/jamstats-plot-pdf.exe # or path/to/artifact
