@@ -206,6 +206,8 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
         else:
             times_to_lead.append(None)
     pdf_jams_summary_withteams["time_to_lead"] = times_to_lead
+
+    logger.debug(f"Made jams summary dataframe. Rows: {len(pdf_jams_summary_withteams)}")
     
     return pdf_jams_summary_withteams
 
@@ -529,7 +531,7 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     Returns:
         pd.DataFrame: penalty dataframe
     """
-
+    logger.debug("extract_penalties begin")
     pdf_penalty_gamedata = pdf_game_state[(pdf_game_state.n_key_chunks == 5)].copy()
     pdf_penalty_gamedata["keychunk_2"] = [chunks[2] for chunks in pdf_penalty_gamedata.key_chunks]
     pdf_penalty_gamedata["keychunk_3"] = [chunks[3] for chunks in pdf_penalty_gamedata.key_chunks]
@@ -543,7 +545,36 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     pdf_penalties = pdf_penalty_gamedata[pdf_penalty_gamedata.penalty_key == "Code"]
     pdf_penalties = pdf_penalties.rename(columns={"value": "penalty_code"})
     pdf_penalties = pdf_penalties[["Name", "team", "penalty_code"]]
+
+    # add penalty names
+    pdf_penalty_codes_names = build_penalty_code_name_map(pdf_game_state)
+    pdf_penalties = pdf_penalties.merge(pdf_penalty_codes_names, on="penalty_code")
     return pdf_penalties
+
+
+def build_penalty_code_name_map(pdf_game_state: pd.DataFrame) -> Dict[str, str]:
+    """Pull out the map from penalty codes to names that's repeated in every game file.
+
+    Args:
+        pdf_game_state (pd.DataFrame): game json in dataframe
+
+    Returns:
+        Dict[str, str]: map from letter codes to names
+    """
+    logger.debug("build_penalty_code_name_map begin")
+    pdf_penalty_codes = pdf_game_state[pdf_game_state["key"].str.startswith(
+        "ScoreBoard.PenaltyCodes.Code(")].copy()
+    pdf_penalty_codes["penalty_code"] = [x[len("ScoreBoard.PenaltyCodes.Code("):-1]
+                                         for x in pdf_penalty_codes.key]
+    logger.debug("Built penalty code:name map")
+    pdf_penalty_codes = pdf_penalty_codes[["penalty_code", "value"]].rename(columns={
+        "value": "penalty_name"
+    })
+    # some of the penalty codes are quite long. Truncate at first comma
+    pdf_penalty_codes["penalty_name"] = [penalty.split(",")[0]
+                                         for penalty in pdf_penalty_codes.penalty_name]
+    return pdf_penalty_codes
+    
 
 
 def cleanup_team_name(team_name: str) -> str:

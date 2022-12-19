@@ -121,11 +121,11 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
     skater_mostcommon_penalties = []
     for skater in pdf_team_penalty_counts.Skater:
         pdf_skater_penalty_counts = pdf_team_penalties[
-            pdf_team_penalties.Name == skater].penalty_code.value_counts().reset_index().rename(
-                columns={"index": "penalty_code", "penalty_code": "Count"}
+            pdf_team_penalties.Name == skater].penalty_name.value_counts().reset_index().rename(
+                columns={"index": "penalty_name", "penalty_name": "Count"}
             )
         penalties_tiedfor_max = list(pdf_skater_penalty_counts[
-            pdf_skater_penalty_counts.Count == max(pdf_skater_penalty_counts.Count)].penalty_code)
+            pdf_skater_penalty_counts.Count == max(pdf_skater_penalty_counts.Count)].penalty_name)
         skater_mostcommon_penalties.append(sorted(penalties_tiedfor_max)[0])
     pdf_team_penalty_counts["Top Penalty"] = skater_mostcommon_penalties
     
@@ -145,14 +145,14 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
 
     ax = axes[0]
     sns.barplot(y="Skater", x="Jams", data=pdf_skater_data, ax=ax)
-    ax.set_title("Jams")
+    ax.set_title("Jams") 
     ax.set_ylabel("")
 
     ax = axes[1]
     sns.barplot(y="Skater", x="Penalties", data=pdf_skater_data, ax=ax)
     for i, penalty in enumerate(pdf_skater_data["Top Penalty"]):
         ax.text(.5, i, penalty,
-                horizontalalignment="center",
+                horizontalalignment="left",
                 verticalalignment="center")
     ax.set_title("Penalties (top marked)")
 
