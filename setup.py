@@ -7,7 +7,7 @@ setup(
     author='Damon May',
     package_dir={"":"src"},
     packages=find_packages('src', exclude=['test']),
-    scripts=['bin/jamstats-plot-pdf', 'bin/jamstats-convert-tsv'],
+    scripts=['src/jamstats-plot-pdf', 'src/jamstats-convert-tsv'],
     install_requires=['pandas>=1.3.4', 'seaborn>=0.11.2'],
     classifiers=[
         'Development Status :: 3 - Alpha',
