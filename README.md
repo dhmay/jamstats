@@ -3,13 +3,17 @@ Commandline tools for doing statistics and making plots on data from [CRG roller
 
 ## Installation
 
-### Option 1: On a Mac, without Python
+#### Option 1: On a Mac, without Python
 
 Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the files `jamstats-plot-pdf` and `jamstats-convert-tsv`. For convenience, put them in a directory that's on your PATH.
 
-### Option 2: With Python 3.7 or later
+#### Option 2: With Python 3.7 or later
 
 `pip install jamstats`
+
+#### Option 3: From a cloned repo
+
+Clone this repo and then run the scripts with e.g., `python src/jamstats-plot-pdf`. The advantage there is you can work with the latest code from the main branch.
 
 ## Usage
 
