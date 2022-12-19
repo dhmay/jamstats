@@ -21,4 +21,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: jamstats-plot-pdf
-        path: src/dist/jamstats-plot-pdf # or path/to/artifact
+        path: dist/jamstats-plot-pdf # or path/to/artifact
