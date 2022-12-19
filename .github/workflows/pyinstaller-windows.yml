@@ -1,0 +1,24 @@
+name: Package jamstats-plot-pdf.exe with PyInstaller - Windows
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: PyInstaller Windows
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: src
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: bin/jamstats-plot-pdf
+        path: src/dist/windows/jamstats-plot-pdf.exe # or path/to/artifact
