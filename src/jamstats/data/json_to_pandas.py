@@ -405,8 +405,11 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
     logger.debug(f"teamjams pivoted rows: {len(pdf_ateamjams_summary)}")
 
     # add jammer info
-    pdf_ateamjams_summary["jammer_id"] = list(pdf_ateamjams_data[
-        pdf_ateamjams_data.key.str.endswith("Fielding(Jammer).Skater")].value)
+    pdf_ateamjams_jammers = pdf_ateamjams_data[
+        pdf_ateamjams_data.key.str.endswith("Fielding(Jammer).Skater")][
+            ["prd_jam", "value"]].rename(columns={"value": "jammer_id"})
+    pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_ateamjams_jammers,
+        on="prd_jam", how="left")
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_roster.rename(
         columns={"Id": "jammer_id", "Name": "jammer_name", "RosterNumber": "jammer_number"}),
         on="jammer_id", how="left")
