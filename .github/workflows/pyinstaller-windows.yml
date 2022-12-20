@@ -41,7 +41,6 @@ jobs:
         #run:  pyinstaller src/jamstats-plot-pdf.spec
         #run:  python -m PyInstaller src/jamstats-plot-pdf.spec
         run:  pyinstaller src/jamstats-plot-pdf --onefile
-        run:  ls dist
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
