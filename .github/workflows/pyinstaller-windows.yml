@@ -1,25 +1,51 @@
-name: Package jamstats-plot-pdf.exe with PyInstaller - Windows
+name: jamstats
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+      
+    runs-on: ${{ matrix.os }}
+    
     steps:
-    - uses: actions/checkout@v2
-    - name: PyInstaller Windows
-      uses: JackMcKew/pyinstaller-action-windows@main
-      with:
-        path: src
-        spec: jamstats-plot-pdf
+      - name: Check-out repository
+        uses: actions/checkout@v3
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: jamstats-plot-pdf
-        path: /src/dist/windows # or path/to/artifact
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        id: cp310
+        with:
+          python-version: '3.7.9' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+          
+      - run: echo '${{ steps.cp310.outputs.python-version }}'
+      - run: ls ${{ steps.cp310.outputs.python-path }}     
+      - run: echo "$Python_ROOT_DIR"
+      
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Package Application (windows)
+        if: runner.os == 'Windows'
+        run:  pyinstaller src/jamstats-plot-pdf.spec 
+             
+      - name: Package Application (linux)
+        if: runner.os == 'Linux'
+        run:  pyinstaller src/jamstats-plot-pdf.spec
+ 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: jamstats-plot-pdf-${{ runner.os }}   
+          path: dist
