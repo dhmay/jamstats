@@ -38,7 +38,8 @@ jobs:
       
       - name: Package Application (windows)
         if: runner.os == 'Windows'
-        run:  pyinstaller src/jamstats-plot-pdf.spec
+        #run:  pyinstaller src/jamstats-plot-pdf.spec
+        run:  python -m PyInstaller src/jamstats-plot-pdf.spec
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
@@ -48,4 +49,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: jamstats-plot-pdf-${{ runner.os }}   
-          path: dist/jamstats-plot-pdf.exe #/jamstats-plot-pdf.exe
+          path: dist/jamstats-plot-pdf.exe
