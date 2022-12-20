@@ -47,5 +47,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: jamstats-plot-pdf.exe
-          path: dist/jamstats-plot-pdf-${{ runner.os }}/jamstats-plot-pdf
+          name: jamstats-plot-pdf-${{ runner.os }}   
+          path: dist/jamstats-plot-pdf.exe
