@@ -42,7 +42,7 @@ jobs:
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
-        run:  pyinstaller src/jamstats-plot-pdf.spec
+        run:  python -m PyInstaller src/jamstats-plot-pdf.spec
  
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
