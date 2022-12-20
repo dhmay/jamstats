@@ -223,17 +223,20 @@ def plot_cumulative_score_by_jam(derby_game: DerbyGame) -> Figure:
     team_2 = game_data_dict["team_2"]
 
     f, ax = plt.subplots()
-    sns.lineplot(y="prd_jam", x="TotalScore",
+    sns.lineplot(x="prd_jam", y="TotalScore",
                  data=pdf_jam_data_long[pdf_jam_data_long.team == team_1], label=team_1,
                  estimator=None)
-    sns.lineplot(y="prd_jam", x="TotalScore",
+    sns.lineplot(x="prd_jam", y="TotalScore",
                  data=pdf_jam_data_long[pdf_jam_data_long.team == team_2], label=team_2,
                  estimator=None)
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
     ax.set_title("Cumulative score by jam")
-    ax.set_xlabel("Score")
-    ax.set_ylabel("Period:Jam")
+    ax.set_xlabel("Period:Jam")
+    ax.set_ylabel("Score")
 
-    f.set_size_inches(8, 11)
+    f.set_size_inches(11, 8)
+    f.tight_layout()
 
     return f
 
