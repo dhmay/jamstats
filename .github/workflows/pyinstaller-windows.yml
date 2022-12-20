@@ -39,7 +39,8 @@ jobs:
       - name: Package Application (windows)
         if: runner.os == 'Windows'
         #run:  pyinstaller src/jamstats-plot-pdf.spec
-        run:  python -m PyInstaller src/jamstats-plot-pdf.spec
+        #run:  python -m PyInstaller src/jamstats-plot-pdf.spec
+        pyinstaller src/jamstats-convert-tsv --onefile
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
