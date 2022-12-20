@@ -40,7 +40,8 @@ jobs:
         if: runner.os == 'Windows'
         #run:  pyinstaller src/jamstats-plot-pdf.spec
         #run:  python -m PyInstaller src/jamstats-plot-pdf.spec
-        run:  pyinstaller src/jamstats-convert-tsv --onefile
+        run:  pyinstaller src/jamstats-plot-pdf --onefile
+        run:  ls dist
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
@@ -50,4 +51,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: jamstats-plot-pdf-${{ runner.os }}   
-          path: dist/jamstats-plot-pdf
+          path: dist/jamstats-plot-pdf.exe
