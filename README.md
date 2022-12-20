@@ -5,7 +5,7 @@ Commandline tools for doing statistics and making plots on data from [CRG roller
 
 #### Option 1: Windows executable
 
-Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-plot-pdf.exe`. For convenience, put them in a directory that's on your PATH.
+Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-plot-pdf.exe`. For convenience, put it in a directory that's on your PATH.
 
 #### Option 2: On any platform, with Python 3.7 or later
 
