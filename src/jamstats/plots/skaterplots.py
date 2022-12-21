@@ -132,9 +132,11 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
 
     pdf_team_penalties = derby_game.pdf_penalties[
         derby_game.pdf_penalties.team == team_name]
-    pdf_team_penalties = pdf_team_penalties.rename(columns={
-        "penalty_name": "Penalty"
-    })
+    pdf_team_penalties["Penalty"] = [
+        code + ": " + name
+        for code, name in zip(*[pdf_team_penalties.penalty_code,
+                                pdf_team_penalties.penalty_name])
+    ]
     pdf_penalties_long = (
         pdf_team_penalties.groupby(['Name', 'Penalty']).size().reset_index())
     a_penalty = list(pdf_team_penalties.Penalty)[0]
