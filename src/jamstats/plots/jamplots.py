@@ -314,15 +314,7 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     return f
 
 
-def plot_team_penalty_counts_team1(derby_game: DerbyGame) -> Figure:
-    return plot_team_penalty_counts(derby_game, 1)
-
-
-def plot_team_penalty_counts_team2(derby_game: DerbyGame) -> Figure:
-    return plot_team_penalty_counts(derby_game, 2)
-
-
-def plot_team_penalty_counts(derby_game: DerbyGame, team_number: int) -> Figure:
+def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
     """barplot team penalty counts
 
     Args:
@@ -331,16 +323,25 @@ def plot_team_penalty_counts(derby_game: DerbyGame, team_number: int) -> Figure:
     Returns:
         Figure: barplot
     """
-    team_name = derby_game.team_1_name if team_number == 1 else derby_game.team_2_name
-    pdf_team_penalties = derby_game.pdf_penalties[
-        derby_game.pdf_penalties.team == team_name]
-    pdf_penalty_counts = pdf_team_penalties.penalty_name.value_counts().reset_index().rename(
-        columns={"index": "Penalty", "penalty_name": "Count"})
+    team_plot_pdfs = []
+    for team in [derby_game.team_1_name, derby_game.team_2_name]:
+        pdf_team_penalties = derby_game.pdf_penalties[
+            derby_game.pdf_penalties.team == team
+        ]
+        pdf_team_penalty_counts = (pdf_team_penalties
+            .penalty_name.value_counts().reset_index().rename(
+                columns={"index": "Penalty", "penalty_name": "Count"}))
+        pdf_team_penalty_counts["team"] = team
+        team_plot_pdfs.append(pdf_team_penalty_counts)
+    
+    pdf_penalty_counts = pd.concat(team_plot_pdfs)
+    pdf_penalty_counts = pdf_penalty_counts.sort_values("Penalty")
     
     f, ax = plt.subplots()
 
-    sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts, ax=ax, color="black")
-    ax.set_title(f"{team_name} penalty counts") 
+    sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts,
+                hue="team", ax=ax)
+    ax.set_title(f"Penalty counts") 
     ax.set_ylabel("")
 
     f.set_size_inches(8, 11)
