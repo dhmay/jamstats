@@ -13,6 +13,8 @@ Go to the [latest release](https://github.com/dhmay/jamstats/releases) and downl
 
 ## Usage
 
+On windows, to generate a plots .pdf, you can simply drag your game JSON file onto the jamstats-plot-pdf.exe file. That will generate a .pdf file with the same name as your JSON file except with the .json extension replaced with .pdf.
+
 Installation gives you two commands. Get full help for either command by running it with the `--help` argument.
 
 `jamstats-plot-pdf [-h] [--anonymize] [--debug] [--inprogress] jsonfileorserver [pdffile]`
