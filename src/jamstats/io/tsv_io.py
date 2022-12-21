@@ -16,7 +16,8 @@ def load_derby_game_from_tsv(filepath) -> DerbyGame:
     """
     game_data_dict = read_jams_tsv_header_dict(filepath)
     pdf_jams_data = read_jams_tsv_to_pandas(filepath)
-    derby_game = DerbyGame(pdf_jams_data, game_data_dict)
+    # todo: handle penalties and team colors
+    derby_game = DerbyGame(pdf_jams_data, game_data_dict, None, None)
     derby_game.game_data_dict["source_filepath"] = filepath
     return derby_game
 

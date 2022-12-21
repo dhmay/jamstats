@@ -10,6 +10,8 @@ import random
 import string
 import pandas as pd
 from matplotlib import gridspec
+from jamstats.plots.plot_util import make_team_color_palette
+
 
 logger = logging.Logger(__name__)
 
@@ -113,10 +115,14 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
         "Jams": list(skater_jamcount_map.values()),
     }).sort_values("Skater")
 
+    pdf_team_penalties = derby_game.pdf_penalties[
+        derby_game.pdf_penalties.team == team_name].copy()
+
     if anonymize_names:
         logger.debug("Anonymizing skater names.")
         name_dict = build_anonymizer_map(set(pdf_skater_data.Skater))
         pdf_skater_data["Skater"] = [name_dict[skater] for skater in pdf_skater_data.Skater]   
+        pdf_team_penalties["Name"] = [name_dict[skater] for skater in pdf_team_penalties.Name]   
 
     f, dummy_axis = plt.subplots()
     dummy_axis.set_xticks([])
@@ -130,8 +136,6 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
     ax.set_title("Jams") 
     ax.set_ylabel("")
 
-    pdf_team_penalties = derby_game.pdf_penalties[
-        derby_game.pdf_penalties.team == team_name]
     pdf_team_penalties["Penalty"] = [
         code + ": " + name
         for code, name in zip(*[pdf_team_penalties.penalty_code,
