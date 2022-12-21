@@ -166,6 +166,7 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
 
     f.set_size_inches(12, min(2 + len(pdf_skater_data), 11))
     f.suptitle(f"Skater Stats: {team_name}")
+    f.tight_layout()
     return f
 
 
