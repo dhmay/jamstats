@@ -3,6 +3,7 @@ __author__ = "Damon May"
 from typing import Dict
 import pandas as pd
 from abc import ABC, abstractmethod
+import time
 
 
 class DerbyGame:
@@ -27,7 +28,7 @@ class DerbyGame:
         gross_summary_dict = self.extract_game_summary_dict()
         pdf_game_summary = pd.DataFrame({
             "Statistic": gross_summary_dict.keys(),
-            "Value": gross_summary_dict.values()})
+            "Value": [str(x) for x in gross_summary_dict.values()]})
 
         return pdf_game_summary
 
@@ -39,15 +40,16 @@ class DerbyGame:
         """
         n_periods = len(set([x for x in self.pdf_jams_data.PeriodNumber if x > 0]))
         n_jams = len(self.pdf_jams_data.prd_jam)  # is this correct? Is jam 0 a real jam?
-        period_duration_seconds = max(self.pdf_jams_data.jam_endtime_seconds)
-        period_duration_minutes = period_duration_seconds / 60
+
+        game_duration_s = (max(self.pdf_jams_data.jam_endtime_seconds) -
+                           min(self.pdf_jams_data.jam_starttime_seconds))
         final_score_team_1 = max(self.pdf_jams_data.TotalScore_1)
         final_score_team_2 = max(self.pdf_jams_data.TotalScore_2)
 
         gross_summary_dict = {
             "Periods": n_periods,
             "Jams": n_jams,
-            "Minutes": period_duration_minutes,
+            "Minutes": time.strftime('%M:%S', time.gmtime(game_duration_s)),
             f"{self.team_1_name} Final Score": final_score_team_1,
             f"{self.team_2_name} Final Score": final_score_team_2,
         }

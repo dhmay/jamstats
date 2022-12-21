@@ -155,7 +155,7 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
     ax = f.add_subplot(spec[1])
     pdf_penalty_plot.plot(kind="barh", stacked=True, ax=ax)
     plt.gca().invert_yaxis()
-    ax.set_title(f"Penalties by skater, {team_name}")
+    ax.set_title(f"Penalties by skater")
     ax.set_ylabel("")
     ax.set_xlabel("Penalties")
     ax.set_yticks([])
