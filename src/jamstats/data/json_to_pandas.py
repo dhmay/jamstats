@@ -6,6 +6,7 @@ import pandas as pd
 from typing import Dict, Any
 from jamstats.data.game_data import DerbyGame
 import logging
+import seaborn as sns
 
 logger = logging.Logger(__name__)
 
@@ -29,7 +30,12 @@ def load_json_derby_game(game_json) -> DerbyGame:
                                 game_data_dict["team_2"])
     pdf_game_data = extract_jam_data(pdf_game_state, pdf_roster)
     pdf_penalties = extract_penalties(pdf_game_state, pdf_roster)
-    return DerbyGame(pdf_game_data, game_data_dict, pdf_penalties)
+    try:
+        pdf_team_colors = extract_team_colors(pdf_game_state)
+    except Exception as e:
+        logger.warn(f"Failed to extract team colors. Exception: {e}")
+
+    return DerbyGame(pdf_game_data, game_data_dict, pdf_penalties, pdf_team_colors)
 
 
 def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
@@ -579,7 +585,6 @@ def build_penalty_code_name_map(pdf_game_state: pd.DataFrame) -> Dict[str, str]:
     return pdf_penalty_codes
     
 
-
 def cleanup_team_name(team_name: str) -> str:
     """ clean up weird characters in team names. I'm not positive this generalizes well.
     One of our teams had an apostrophe in it, and it was removed in the roster
@@ -592,3 +597,21 @@ def cleanup_team_name(team_name: str) -> str:
         stra: cleaned-up team name
     """
     return team_name.replace("'", "")
+
+
+def extract_team_colors(pdf_game_data:pd.DataFrame) -> pd.DataFrame:
+    """Extract the team color hex values from the game data
+
+    Args:
+        pdf_game_data (pd.DataFrame): game data
+
+    Returns:
+        pd.DataFrame: dataframe mapping team to color
+    """
+    pdf_team_colors = pdf_game_data[pdf_game_data.key.str.startswith("ScoreBoard.PreparedTeam") &
+                                    pdf_game_data.key.str.endswith("Color(scoreboard_bg)")].copy()
+    pdf_team_colors["team"] = [x[len("ScoreBoard.PreparedTeam("):-len(").Color(scoreboard_bg)")]
+                            for x in pdf_team_colors.key]
+    pdf_team_colors = pdf_team_colors[["team", "value"]].rename(columns={"value": "color"})
+    logger.debug(f"Team colors: {pdf_team_colors}")
+    return pdf_team_colors

@@ -13,8 +13,7 @@ from jamstats.plots.jamplots import (
         plot_jammers_by_team,
         plot_lead_summary,
         histogram_jam_duration,
-        plot_team_penalty_counts_team1,
-        plot_team_penalty_counts_team2
+        plot_team_penalty_counts,
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
@@ -81,9 +80,7 @@ def make_all_plots(derby_game: DerbyGame,
             logger.warn(f"Failed to make jam plot: {e}")
 
     try:
-        f = plot_team_penalty_counts_team1(derby_game)
-        figures.append(f)
-        f = plot_team_penalty_counts_team2(derby_game)
+        f = plot_team_penalty_counts(derby_game)
         figures.append(f)
     except Exception as e:
             logger.warn(f"Failed to make penalty plots: {e}")

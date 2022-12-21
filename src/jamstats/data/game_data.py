@@ -2,14 +2,17 @@ __author__ = "Damon May"
 
 from typing import Dict
 import pandas as pd
-from abc import ABC, abstractmethod
+import time
+import seaborn as sns
+import logging
 
+logger = logging.Logger(__name__)
 
 class DerbyGame:
     """Class for storing all the data related to a derby game.
     """
     def __init__(self, pdf_jams_data: pd.DataFrame, game_data_dict: Dict[str, str],
-                 pdf_penalties: pd.DataFrame):
+                 pdf_penalties: pd.DataFrame, pdf_team_colors: pd.DataFrame):
         self.pdf_jams_data = pdf_jams_data
         self.game_data_dict = game_data_dict
         self.team_1_name = game_data_dict["team_1"]
@@ -17,6 +20,19 @@ class DerbyGame:
         self.game_summary_dict = self.extract_game_summary_dict()
         self.n_jams = self.game_summary_dict["Jams"]
         self.pdf_penalties = pdf_penalties
+        self.pdf_team_colors = pdf_team_colors
+        if pdf_team_colors is None:
+            self.team_color_1 = sns.color_palette()[0]
+            self.team_color_2 = sns.color_palette()[1]
+        else:
+            try:
+                team_color_dict = dict(zip(pdf_team_colors.team, pdf_team_colors.color))
+                self.team_color_1 = team_color_dict[self.team_1_name]
+                self.team_color_2 = team_color_dict[self.team_2_name]
+            except Exception as e:
+                logger.warn("Failed to find teams in color definitions. Dummying.")
+                self.team_color_1 = sns.color_palette()[0]
+                self.team_color_2 = sns.color_palette()[1]
 
     def extract_game_summary(self) -> pd.DataFrame:
         """Build a gross game-summary dataframe
@@ -27,7 +43,7 @@ class DerbyGame:
         gross_summary_dict = self.extract_game_summary_dict()
         pdf_game_summary = pd.DataFrame({
             "Statistic": gross_summary_dict.keys(),
-            "Value": gross_summary_dict.values()})
+            "Value": [str(x) for x in gross_summary_dict.values()]})
 
         return pdf_game_summary
 
@@ -39,15 +55,21 @@ class DerbyGame:
         """
         n_periods = len(set([x for x in self.pdf_jams_data.PeriodNumber if x > 0]))
         n_jams = len(self.pdf_jams_data.prd_jam)  # is this correct? Is jam 0 a real jam?
-        period_duration_seconds = max(self.pdf_jams_data.jam_endtime_seconds)
-        period_duration_minutes = period_duration_seconds / 60
+
+        game_duration_s = 0
+        for period in sorted(list(set(self.pdf_jams_data.PeriodNumber))):
+            pdf_per = self.pdf_jams_data[self.pdf_jams_data.PeriodNumber == period]
+            period_duration_s = (max(pdf_per.jam_endtime_seconds) -
+                                 min(pdf_per.jam_starttime_seconds))
+            game_duration_s += period_duration_s
+    
         final_score_team_1 = max(self.pdf_jams_data.TotalScore_1)
         final_score_team_2 = max(self.pdf_jams_data.TotalScore_2)
 
         gross_summary_dict = {
             "Periods": n_periods,
             "Jams": n_jams,
-            "Minutes": period_duration_minutes,
+            "Total Game Time (min:sec)": time.strftime('%M:%S', time.gmtime(game_duration_s)),
             f"{self.team_1_name} Final Score": final_score_team_1,
             f"{self.team_2_name} Final Score": final_score_team_2,
         }

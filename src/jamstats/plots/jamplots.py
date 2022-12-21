@@ -7,6 +7,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from jamstats.data.game_data import DerbyGame
 import logging
+from jamstats.plots.plot_util import make_team_color_palette
 
 
 logger = logging.Logger(__name__)
@@ -36,6 +37,8 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
         "jam_count": jammer_jamcounts
     })
 
+    team_color_palette = make_team_color_palette(derby_game)
+
     f, axes = plt.subplots(1, 3)
     ax = axes[0]
     sns.barplot(x="team", y="jammers",
@@ -44,11 +47,12 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
                     "jammers": [sum(pdf_jammer_jamcounts.team == team_1),
                                 sum(pdf_jammer_jamcounts.team == team_2)]
                 }),
-                ax=ax)
+                ax=ax, palette=team_color_palette)
     ax.set_title("Jammers per team")
 
     ax = axes[1]
-    sns.violinplot(x="team", y="jam_count", data=pdf_jammer_jamcounts, cut=0, ax=ax)
+    sns.violinplot(x="team", y="jam_count", data=pdf_jammer_jamcounts, cut=0, ax=ax,
+                   palette=team_color_palette)
     ax.set_title("Jams per jammer")
     ax.set_ylabel("Jams per jammer")
 
@@ -62,8 +66,10 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     pdf_jammer_summary_2.index = range(len(pdf_jammer_summary_2))
 
     ax =axes[2]
-    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_1, label=team_1)
-    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_2, label=team_2)
+    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_1, label=team_1,
+                    color=team_color_palette[0])
+    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_2, label=team_2,
+                    color=team_color_palette[1])
     ax.set_title("Mean jam score vs.\n# jams per jammer")
     ax.set_ylabel("Mean jam score")
     ax.set_xlabel("# jams")
@@ -146,7 +152,18 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     
     ax = ax0
     pdf_jam_data_long_byjam = pdf_jam_data_long.sort_values(["prd_jam", "team_number"])
-    pdf_jambools = pdf_jam_data_long_byjam[["Lead", "Calloff", "Lost", "NoInitial", "StarPass"]]
+    pdf_jambools = pdf_jam_data_long_byjam[["StarPass", "Lost", "Lead", "Calloff", "NoInitial"]]
+
+    # set letter codes for each column
+    pdf_jambools = pdf_jambools.rename(columns={"Lost": "lOst"})
+    column_lettercode_map = {
+        "StarPass": "SP",
+        "lOst": "O",
+        "Lead": "L",
+        "Calloff": "C",
+        "NoInitial": "NI"
+    }
+
     team_color_map = {derby_game.team_1_name: 1,
                       derby_game.team_2_name: 2}
     team_colors = [team_color_map[team] for team in pdf_jam_data_long_byjam.team]
@@ -154,7 +171,8 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     for col in pdf_jambools.columns:
         jamboolint_dict[col] = [team_color if abool else 0
                                 for team_color, abool in zip(*[team_colors, pdf_jambools[col]])]
-    colors = [(1,1,1), sns.color_palette()[0], sns.color_palette()[1]]
+    team_color_palette = make_team_color_palette(derby_game)
+    colors = [(1,1,1), team_color_palette[0], team_color_palette[1]]
     pdf_jambool_heatmap = pd.DataFrame(jamboolint_dict)
     sns.heatmap(pdf_jambool_heatmap, ax=ax, cbar=False, cmap=sns.color_palette(colors, as_cmap=True))
     # add lines separating jams
@@ -171,7 +189,7 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
         vals = list(pdf_jambools[col])
         for j in range(len(vals)):
             if vals[j]:
-                ax.text(i + .5, j + .5, col[0], size="x-small",
+                ax.text(i + .5, j + .5, column_lettercode_map[col], size="small",
                         horizontalalignment="center",
                         verticalalignment="center")
     ax.set_xlabel("")
@@ -182,7 +200,8 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     ax.set_title("Attributes")
 
     ax = ax1
-    sns.barplot(x="JamScore", y="prd_jam", data=pdf_jam_data_long, hue="team", ax=ax)
+    sns.barplot(x="JamScore", y="prd_jam", data=pdf_jam_data_long, hue="team", ax=ax,
+                palette=team_color_palette)
     n_period_jams = len(set(pdf_jam_data_long.prd_jam))
     ax.legend()
     # add lines separating jams
@@ -222,18 +241,31 @@ def plot_cumulative_score_by_jam(derby_game: DerbyGame) -> Figure:
     team_1 = game_data_dict["team_1"]
     team_2 = game_data_dict["team_2"]
 
-    f, ax = plt.subplots()
-    sns.lineplot(y="prd_jam", x="TotalScore",
-                 data=pdf_jam_data_long[pdf_jam_data_long.team == team_1], label=team_1,
-                 estimator=None)
-    sns.lineplot(y="prd_jam", x="TotalScore",
-                 data=pdf_jam_data_long[pdf_jam_data_long.team == team_2], label=team_2,
-                 estimator=None)
-    ax.set_title("Cumulative score by jam")
-    ax.set_xlabel("Score")
-    ax.set_ylabel("Period:Jam")
+    team_color_palette = make_team_color_palette(derby_game)
 
-    f.set_size_inches(8, 11)
+    f, ax = plt.subplots()
+    sns.lineplot(x="prd_jam", y="TotalScore",
+                 data=pdf_jam_data_long[pdf_jam_data_long.team == team_1], label=team_1,
+                 estimator=None, color=team_color_palette[0])
+    sns.lineplot(x="prd_jam", y="TotalScore",
+                 data=pdf_jam_data_long[pdf_jam_data_long.team == team_2], label=team_2,
+                 estimator=None, color=team_color_palette[1])
+
+    # determine break betwen periods, if any. Draw a line there.
+    n_periods = len(set(derby_game.pdf_jams_data.PeriodNumber))
+    if n_periods == 2:
+        n_jams_period1 = sum(derby_game.pdf_jams_data.PeriodNumber == 1)
+        sns.lineplot(x=[n_jams_period1 - 0.5, n_jams_period1 - 0.5],
+                     y=[0, max(pdf_jam_data_long.TotalScore)])
+
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
+    ax.set_title("Cumulative score by jam")
+    ax.set_xlabel("Period:Jam")
+    ax.set_ylabel("Score")
+
+    f.set_size_inches(11, 8)
+    f.tight_layout()
 
     return f
 
@@ -267,8 +299,9 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     Returns:
         Figure: violin plot
     """
+    team_color_palette = make_team_color_palette(derby_game)
     pdf_jams_with_lead = derby_game.pdf_jams_data[derby_game.pdf_jams_data.Lead_1 |
-                                              derby_game.pdf_jams_data.Lead_2].copy()
+                                                  derby_game.pdf_jams_data.Lead_2].copy()
     pdf_jams_with_lead["Team with Lead"] = [derby_game.team_1_name if team1_has_lead
                                             else derby_game.team_2_name
                                             for team1_has_lead in pdf_jams_with_lead.Lead_1]
@@ -288,21 +321,22 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
         ["Team with Lead", "prd_jam"]].groupby(
             ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
     if len(pdf_for_plot_all) > 0:
-        sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax)
+        sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax,
+                    color="gray")
     if len(pdf_for_plot_called_or_lost) > 0:
         sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_called_or_lost, ax=ax,
-                    color="gray")
+                    palette=team_color_palette)
     if len(pdf_for_plot_lost) > 0:
         sns.barplot(y="prd_jam", x="Team with Lead",
                     data=pdf_for_plot_lost, ax=ax, color="darkred")
 
     ax.set_ylabel("Jams")
-    ax.set_title("Jams with Lead\n(red=lost, gray=called)")
+    ax.set_title("Jams with Lead\n(red=lost, gray=not called)")
 
     ax = axes[1]
     sns.violinplot(y="time_to_lead", x="Team with Lead",
-                data=pdf_jams_with_lead.sort_values("Team with Lead"), cut=0, ax=ax,
-                inner="stick")
+                   data=pdf_jams_with_lead.sort_values("Team with Lead"), cut=0, ax=ax,
+                   inner="stick", palette=team_color_palette)
     ax.set_ylabel("Time to get Lead")
     ax.set_title("Time to get Lead (s)\nper jam")
     f.set_size_inches(8, 4)
@@ -311,15 +345,7 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     return f
 
 
-def plot_team_penalty_counts_team1(derby_game: DerbyGame) -> Figure:
-    return plot_team_penalty_counts(derby_game, 1)
-
-
-def plot_team_penalty_counts_team2(derby_game: DerbyGame) -> Figure:
-    return plot_team_penalty_counts(derby_game, 2)
-
-
-def plot_team_penalty_counts(derby_game: DerbyGame, team_number: int) -> Figure:
+def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
     """barplot team penalty counts
 
     Args:
@@ -328,16 +354,26 @@ def plot_team_penalty_counts(derby_game: DerbyGame, team_number: int) -> Figure:
     Returns:
         Figure: barplot
     """
-    team_name = derby_game.team_1_name if team_number == 1 else derby_game.team_2_name
-    pdf_team_penalties = derby_game.pdf_penalties[
-        derby_game.pdf_penalties.team == team_name]
-    pdf_penalty_counts = pdf_team_penalties.penalty_name.value_counts().reset_index().rename(
-        columns={"index": "Penalty", "penalty_name": "Count"})
+    team_color_palette = make_team_color_palette(derby_game)
+    team_plot_pdfs = []
+    for team in [derby_game.team_1_name, derby_game.team_2_name]:
+        pdf_team_penalties = derby_game.pdf_penalties[
+            derby_game.pdf_penalties.team == team
+        ]
+        pdf_team_penalty_counts = (pdf_team_penalties
+            .penalty_name.value_counts().reset_index().rename(
+                columns={"index": "Penalty", "penalty_name": "Count"}))
+        pdf_team_penalty_counts["team"] = team
+        team_plot_pdfs.append(pdf_team_penalty_counts)
+    
+    pdf_penalty_counts = pd.concat(team_plot_pdfs)
+    pdf_penalty_counts = pdf_penalty_counts.sort_values("Penalty")
     
     f, ax = plt.subplots()
 
-    sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts, ax=ax, color="black")
-    ax.set_title(f"{team_name} penalty counts") 
+    sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts,
+                hue="team", ax=ax, palette=team_color_palette)
+    ax.set_title(f"Penalty counts") 
     ax.set_ylabel("")
 
     f.set_size_inches(8, 11)
