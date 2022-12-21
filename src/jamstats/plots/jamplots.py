@@ -152,7 +152,18 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     
     ax = ax0
     pdf_jam_data_long_byjam = pdf_jam_data_long.sort_values(["prd_jam", "team_number"])
-    pdf_jambools = pdf_jam_data_long_byjam[["Lead", "Calloff", "Lost", "NoInitial", "StarPass"]]
+    pdf_jambools = pdf_jam_data_long_byjam[["StarPass", "Lost", "Lead", "Calloff", "NoInitial"]]
+
+    # set letter codes for each column
+    pdf_jambools = pdf_jambools.rename(columns={"Lost": "lOst"})
+    column_lettercode_map = {
+        "StarPass": "SP",
+        "lOst": "O",
+        "Lead": "L",
+        "Calloff": "C",
+        "NoInitial": "NI"
+    }
+
     team_color_map = {derby_game.team_1_name: 1,
                       derby_game.team_2_name: 2}
     team_colors = [team_color_map[team] for team in pdf_jam_data_long_byjam.team]
@@ -178,7 +189,7 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
         vals = list(pdf_jambools[col])
         for j in range(len(vals)):
             if vals[j]:
-                ax.text(i + .5, j + .5, col[0], size="x-small",
+                ax.text(i + .5, j + .5, column_lettercode_map[col], size="small",
                         horizontalalignment="center",
                         verticalalignment="center")
     ax.set_xlabel("")
@@ -239,6 +250,14 @@ def plot_cumulative_score_by_jam(derby_game: DerbyGame) -> Figure:
     sns.lineplot(x="prd_jam", y="TotalScore",
                  data=pdf_jam_data_long[pdf_jam_data_long.team == team_2], label=team_2,
                  estimator=None, color=team_color_palette[1])
+
+    # determine break betwen periods, if any. Draw a line there.
+    n_periods = len(set(derby_game.pdf_jams_data.PeriodNumber))
+    if n_periods == 2:
+        n_jams_period1 = sum(derby_game.pdf_jams_data.PeriodNumber == 1)
+        sns.lineplot(x=[n_jams_period1 - 0.5, n_jams_period1 - 0.5],
+                     y=[0, max(pdf_jam_data_long.TotalScore)])
+
     for tick in ax.get_xticklabels():
         tick.set_rotation(90)
     ax.set_title("Cumulative score by jam")
@@ -303,16 +322,16 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
             ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
     if len(pdf_for_plot_all) > 0:
         sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax,
-                    palette=team_color_palette)
+                    color="gray")
     if len(pdf_for_plot_called_or_lost) > 0:
         sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_called_or_lost, ax=ax,
-                    color="gray")
+                    palette=team_color_palette)
     if len(pdf_for_plot_lost) > 0:
         sns.barplot(y="prd_jam", x="Team with Lead",
                     data=pdf_for_plot_lost, ax=ax, color="darkred")
 
     ax.set_ylabel("Jams")
-    ax.set_title("Jams with Lead\n(red=lost, gray=called)")
+    ax.set_title("Jams with Lead\n(red=lost, gray=not called)")
 
     ax = axes[1]
     sns.violinplot(y="time_to_lead", x="Team with Lead",
