@@ -5,7 +5,10 @@ __author__ = "Damon May"
 import argparse
 from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
 from jamstats.io import tsv_io
+import logging
 
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('jsonfile', type=argparse.FileType('r'),
