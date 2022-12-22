@@ -77,7 +77,7 @@ def make_all_plots(derby_game: DerbyGame,
             f = plot_func(derby_game)
             figures.append(f)
         except Exception as e:
-            logger.warn(f"Failed to make jam plot: {e}")
+            logger.warn(f"Failed to make jam plot {plot_func.__name__}: {e}")
 
     try:
         f = plot_team_penalty_counts(derby_game)
@@ -92,5 +92,5 @@ def make_all_plots(derby_game: DerbyGame,
                 f = plot_func(derby_game, anonymize_names=anonymize_names)
                 figures.append(f)
             except Exception as e:
-                logger.warn(f"Failed to make skater plot: {e}")
+                logger.warn(f"Failed to make skater plot {plot_func.__name__}: {e}")
     return figures

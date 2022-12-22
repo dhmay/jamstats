@@ -30,9 +30,8 @@ parser.add_argument('--inprogress', action="store_true",
                     "of an in-progress game, connects to it and grabs the current json.")
 args = parser.parse_args()
 
-formatter = logging.Formatter(
-    '%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
-logging.basicConfig(level=logging.WARNING, format=formatter)
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
 if args.debug:
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.DEBUG)

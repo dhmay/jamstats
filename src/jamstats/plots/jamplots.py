@@ -31,7 +31,8 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     jammer_jamcounts_2 = list(pdf_jams_data.value_counts("jammer_name_2"))
 
     jammer_jamcounts = jammer_jamcounts_1 + jammer_jamcounts_2
-    team_names_for_jamcounts = [team_1] * len(jammer_jamcounts_1) + [team_2] * len(jammer_jamcounts_2)
+    team_names_for_jamcounts = ([team_1] * len(jammer_jamcounts_1) +
+                                [team_2] * len(jammer_jamcounts_2))
     pdf_jammer_jamcounts = pd.DataFrame({
         "team": team_names_for_jamcounts,
         "jam_count": jammer_jamcounts
@@ -114,7 +115,7 @@ def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
     pdf_game_teams_summary = derby_game.extract_game_teams_summary().transpose()
     pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
     pdf_game_teams_summary["asdf"] = pdf_game_teams_summary.index
-    pdf_game_teams_summary = pdf_game_teams_summary[["asdf", 0, 1, 2]]
+    pdf_game_teams_summary = pdf_game_teams_summary[["asdf", 0, 1]]
     f = plt.figure(figsize=(8, 10))
     ax = plt.subplot(111)
     ax.axis('off')
