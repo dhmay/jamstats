@@ -5,7 +5,7 @@ Commandline tools for doing statistics and making plots on data from [CRG roller
 
 #### Option 1: Windows executable
 
-Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-plot-pdf.exe`. For convenience, put it in a directory that's on your PATH.
+Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-plot-pdf.exe`.
 
 #### Option 2: On any platform, with Python 3.7 or later
 
@@ -13,7 +13,11 @@ Go to the [latest release](https://github.com/dhmay/jamstats/releases) and downl
 
 ## Usage
 
+### No-commandline option
+
 On windows, to generate a plots .pdf, you can simply drag your game JSON file onto the jamstats-plot-pdf.exe file. That will generate a .pdf file with the same name as your JSON file except with the .json extension replaced with .pdf.
+
+### Commandline
 
 Installation gives you two commands. Get full help for either command by running it with the `--help` argument.
 
