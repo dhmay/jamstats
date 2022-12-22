@@ -28,6 +28,10 @@ parser.add_argument('--debug', action="store_true",
 parser.add_argument('--inprogress', action="store_true",
                     help="If true, treats unnamed argument as the server and port"
                     "of an in-progress game, connects to it and grabs the current json.")
+parser.add_argument('--teamcolor1', type=str,
+                    help="Set the color for team 1. Can be of the form 'green' or of the form '#00FF00'")
+parser.add_argument('--teamcolor2', type=str,
+                    help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.WARNING,
@@ -61,6 +65,33 @@ else:
         derby_game = load_derby_game_from_json_file(args.jsonfileorserver)
     except Exception as e:
         quit(f"Failed to open file {args.jsonfileorserver}: {e}")
+
+if args.teamcolor1 is not None:
+    derby_game.set_team_color_1(args.teamcolor1)
+    print(f"Setting team 1 color to {args.teamcolor1}")
+if args.teamcolor2 is not None:
+    derby_game.set_team_color_2(args.teamcolor2)
+    print(f"Setting team 2 color to {args.teamcolor2}")
+
+if args.pdffile is None:
+    if args.inprogress:
+        quit("Output filepath not provided, and connecting to an in-progress game. "
+        "Don't know where to write output, quitting.")
+    elif args.jsonfileorserver.lower().endswith(".json"):
+        print(f"Output filepath not provided. "
+              f"Using input filepath with extension .pdf instead of {args.jsonfileorserver[-5:]}")
+        pdf_filepath = args.jsonfileorserver[:-len(".json")] + ".pdf"
+    else:
+        print("Input file doesn't end with .json, so refusing to guess what output file you want."
+              "  Please rename your input file or specify an output filepath. Quitting.")
+        quit()
+else:
+    pdf_filepath = args.pdffile.name
+    args.pdffile.close()
+
+save_game_plots_to_pdf(derby_game, pdf_filepath, anonymize_names=args.anonymize)
+print(f"Wrote {pdf_filepath}")
+
 
 if args.pdffile is None:
     if args.inprogress:
