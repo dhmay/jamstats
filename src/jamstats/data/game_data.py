@@ -5,6 +5,8 @@ import pandas as pd
 import time
 import seaborn as sns
 import logging
+from matplotlib.colors import is_color_like
+
 
 logger = logging.Logger(__name__)
 
@@ -33,6 +35,16 @@ class DerbyGame:
                 logger.warn("Failed to find teams in color definitions. Dummying.")
                 self.team_color_1 = sns.color_palette()[0]
                 self.team_color_2 = sns.color_palette()[1]
+
+    def set_team_color_1(self, acolor: str) -> None:
+        if not is_color_like(acolor):
+            raise ValueError(f"Invalid color specified: {acolor}")
+        self.team_color_1 = acolor
+
+    def set_team_color_2(self, acolor: str) -> None:
+        if not is_color_like(acolor):
+            raise ValueError(f"Invalid color specified: {acolor}")
+        self.team_color_2 = acolor
 
     def extract_game_summary(self) -> pd.DataFrame:
         """Build a gross game-summary dataframe
