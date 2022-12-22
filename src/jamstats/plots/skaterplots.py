@@ -136,33 +136,36 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
     ax.set_title("Jams") 
     ax.set_ylabel("")
 
-    pdf_team_penalties["Penalty"] = [
-        code + ": " + name
-        for code, name in zip(*[pdf_team_penalties.penalty_code,
-                                pdf_team_penalties.penalty_name])
-    ]
-    pdf_penalties_long = (
-        pdf_team_penalties.groupby(['Name', 'Penalty']).size().reset_index())
-    a_penalty = list(pdf_team_penalties.Penalty)[0]
-    
-    # add rows for skaters with no penalties
-    skaters_no_penalties = set(pdf_skater_data.Skater).difference(set(set(pdf_team_penalties.Name)))
-    pdf_penalties_long = pd.DataFrame({
-        "Name": list(pdf_penalties_long.Name) + list(skaters_no_penalties),
-        "Penalty": list(pdf_penalties_long.Penalty) + [a_penalty] * len(skaters_no_penalties),
-        0: list(pdf_penalties_long[0]) + [0] * len(skaters_no_penalties)
-    })
-    
-    pdf_penalty_plot =pdf_penalties_long.pivot(columns='Penalty', index='Name', values=0)
-    pdf_penalty_plot = pdf_penalty_plot.sort_values("Name")
+    try:
+        pdf_team_penalties["Penalty"] = [
+            code + ": " + name
+            for code, name in zip(*[pdf_team_penalties.penalty_code,
+                                    pdf_team_penalties.penalty_name])
+        ]
+        pdf_penalties_long = (
+            pdf_team_penalties.groupby(['Name', 'Penalty']).size().reset_index())
+        a_penalty = list(pdf_team_penalties.Penalty)[0]
+        
+        # add rows for skaters with no penalties
+        skaters_no_penalties = set(pdf_skater_data.Skater).difference(set(set(pdf_team_penalties.Name)))
+        pdf_penalties_long = pd.DataFrame({
+            "Name": list(pdf_penalties_long.Name) + list(skaters_no_penalties),
+            "Penalty": list(pdf_penalties_long.Penalty) + [a_penalty] * len(skaters_no_penalties),
+            0: list(pdf_penalties_long[0]) + [0] * len(skaters_no_penalties)
+        })
+        
+        pdf_penalty_plot =pdf_penalties_long.pivot(columns='Penalty', index='Name', values=0)
+        pdf_penalty_plot = pdf_penalty_plot.sort_values("Name")
 
-    ax = f.add_subplot(spec[1])
-    pdf_penalty_plot.plot(kind="barh", stacked=True, ax=ax)
-    plt.gca().invert_yaxis()
-    ax.set_title(f"Penalties by skater")
-    ax.set_ylabel("")
-    ax.set_xlabel("Penalties")
-    ax.set_yticks([])
+        ax = f.add_subplot(spec[1])
+        pdf_penalty_plot.plot(kind="barh", stacked=True, ax=ax)
+        plt.gca().invert_yaxis()
+        ax.set_title(f"Penalties by skater")
+        ax.set_ylabel("")
+        ax.set_xlabel("Penalties")
+        ax.set_yticks([])
+    except Exception as e:
+        logger.warn(f"Failed to make skater penalty subplot: {e}")
 
     f.set_size_inches(12, min(2 + len(pdf_skater_data), 11))
     f.suptitle(f"Skater Stats: {team_name}")

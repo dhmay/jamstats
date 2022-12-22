@@ -558,6 +558,7 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     # add penalty names
     pdf_penalty_codes_names = build_penalty_code_name_map(pdf_game_state)
     pdf_penalties = pdf_penalties.merge(pdf_penalty_codes_names, on="penalty_code")
+    logger.debug(f"Extracted penalties: {len(pdf_penalties)} rows.")
     return pdf_penalties
 
 
