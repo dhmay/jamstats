@@ -21,7 +21,7 @@ from jamstats.plots.skaterplots import (
     plot_skater_stats_team1,
     plot_skater_stats_team2,
 )
-from jamstats.plots.plot_util import prepare_to_plot
+from jamstats.plots.plot_util import prepare_to_plot, DEFAULT_THEME
 from matplotlib.backends.backend_pdf import PdfPages
 
 
@@ -29,7 +29,8 @@ logger = logging.Logger(__name__)
 
 def save_game_plots_to_pdf(derby_game: DerbyGame,
                            out_filepath: str,
-                           anonymize_names: bool = False) -> None:
+                           anonymize_names: bool = False,
+                           theme: str = DEFAULT_THEME) -> None:
     """Read in a jams .tsv file, make all the plots, write to a .pdf
 
     Args:
@@ -37,7 +38,7 @@ def save_game_plots_to_pdf(derby_game: DerbyGame,
         out_filepath (str): output .pdf filepath
         anonymize_names (bool): anonymize skater names
     """
-    prepare_to_plot()
+    prepare_to_plot(theme=theme)
     figures = make_all_plots(derby_game, anonymize_names=anonymize_names)
     pdfout = PdfPages(out_filepath)
     logging.debug(f"Saving {len(figures)} figures to {out_filepath}")
