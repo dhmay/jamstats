@@ -289,7 +289,7 @@ def histogram_jam_duration(derby_game: DerbyGame) -> Figure:
 
 
 def plot_lead_summary(derby_game: DerbyGame) -> Figure:
-    """violin plot time to lead (from whistle until lead jammer gets lead)
+    """violin plot time to initial
 
     Args:
         derby_game (DerbyGame): derby game
@@ -303,6 +303,7 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     team_color_palette = make_team_color_palette(derby_game)
     pdf_jams_with_lead = derby_game.pdf_jams_data[derby_game.pdf_jams_data.Lead_1 |
                                                   derby_game.pdf_jams_data.Lead_2].copy()
+    pdf_jams_data_long = derby_game.build_jams_dataframe_long()
     pdf_jams_with_lead["Team with Lead"] = [derby_game.team_1_name if team1_has_lead
                                             else derby_game.team_2_name
                                             for team1_has_lead in pdf_jams_with_lead.Lead_1]
@@ -335,12 +336,15 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     ax.set_title("Jams with Lead\n(red=lost, gray=not called)")
 
     ax = axes[1]
-    sns.violinplot(y="time_to_lead", x="Team with Lead",
-                   data=pdf_jams_with_lead.sort_values("Team with Lead"), cut=0, ax=ax,
+    pdf_plot = pdf_jams_data_long.sort_values("team").rename(columns={
+        "team": "Team"
+    })
+    sns.violinplot(y="first_scoring_pass_durations", x="Team",
+                   data=pdf_plot, cut=0, ax=ax,
                    inner="stick", palette=team_color_palette)
-    ax.set_ylabel("Time to get Lead")
-    ax.set_title("Time to get Lead (s)\nper jam")
-    f.set_size_inches(8, 4)
+    ax.set_ylabel("Time to Initial (s)")
+    ax.set_title("Time to Initial per jam")
+    f.set_size_inches(10, 5)
     f.tight_layout()
 
     return f
