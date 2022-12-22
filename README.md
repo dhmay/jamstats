@@ -1,5 +1,21 @@
 # jamstats
-Commandline tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or from a running scoreboard server. Supports both v4.x and v5.x scoreboard versions. [Let's see some plots!](#lets-see-some-plots)
+Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or from a running scoreboard server. 
+
+Various installation options, including a Windows executable that can build plots without using the command line. Supports both v4.x and v5.x scoreboard versions. 
+
+* [Installation](#installation)
+* [Usage](#usage)
+
+## Let's see some plots!
+
+If you like these plots, you might like this set of tools
+
+![Cumulative points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png)
+![Barplot of points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png)
+![Plots summarizign lead by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png)
+![Plots summarizing jammers by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png)
+![Plots with individual anonymized jammer stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png)
+![Plots with individual anonymized skater stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png)
 
 ## Installation
 
@@ -15,7 +31,7 @@ Go to the [latest release](https://github.com/dhmay/jamstats/releases) and downl
 
 ### No-commandline option
 
-On windows, to generate a plots .pdf, you can simply drag your game JSON file onto the jamstats-plot-pdf.exe file. That will generate a .pdf file with the same name as your JSON file except with the .json extension replaced with .pdf.
+On windows, to generate a plots .pdf, you can simply drag your game JSON file onto the jamstats-plot-pdf.exe file. That will generate a .pdf file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
 
 ### Commandline
 
@@ -29,19 +45,7 @@ Makes plots describing a game and writes them to a PDF. If output PDF file isn't
 
 Coverts a derby game json file to a TSV (tab-separated value) file that can be loaded into Excel, R, etc.:
 
-## Let's see some plots!
-
-If you like these plots, you might like this set of tools
-
-![Cumulative points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png)
-![Barplot of points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png)
-![Plots summarizign lead by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png)
-![Plots summarizing jammers by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png)
-![Plots with individual anonymized jammer stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png)
-![Plots with individual anonymized skater stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png)
-
-
-## Using jamstats from Python
+### Using jamstats from Python
 
 This example Python code parses a scoreboard json file, writes it out as a TSV file, makes a bunch of plots and saves them to a PDF file.
 
