@@ -23,13 +23,15 @@ def load_json_derby_game(game_json) -> DerbyGame:
     Returns:
         DerbyGame: derby game
     """
+    json_major_version = get_json_major_version(game_json["state"])
     pdf_game_state = json_to_game_dataframe(game_json)
     game_data_dict = extract_game_data_dict(pdf_game_state)
     pdf_roster = extract_roster(pdf_game_state,
                                 game_data_dict["team_1"],
                                 game_data_dict["team_2"])
     pdf_game_data = extract_jam_data(pdf_game_state, pdf_roster)
-    pdf_penalties = extract_penalties(pdf_game_state, pdf_roster)
+    pdf_penalties = extract_penalties(pdf_game_state, pdf_roster,
+                                      json_major_version)
     try:
         pdf_team_colors = extract_team_colors(pdf_game_state)
     except Exception as e:
@@ -530,7 +532,8 @@ def parse_scoringtrip_data(pdf_ateamjams_data: pd.DataFrame) -> pd.DataFrame:
 
 
 def extract_penalties(pdf_game_state: pd.DataFrame,
-                      pdf_roster: pd.DataFrame) -> pd.DataFrame:
+                      pdf_roster: pd.DataFrame,
+                      json_major_version: int) -> pd.DataFrame:
     """Extract a dataframe with one row per penalty
 
     Args:
@@ -546,23 +549,27 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     pdf_penalty_gamedata["keychunk_3"] = [chunks[3] for chunks in pdf_penalty_gamedata.key_chunks]
     pdf_penalty_gamedata = pdf_penalty_gamedata[
         pdf_penalty_gamedata.keychunk_3.str.startswith("Penalty(")]
+    logger.debug(f"    Rows with `Penalty(`: {len(pdf_penalty_gamedata)}")
     pdf_penalty_gamedata["penalty_key"] = [chunks[4] for chunks in pdf_penalty_gamedata.key_chunks]
     pdf_penalty_gamedata["Id"] = [chunk[len("Skater("):-1]
                                   for chunk in pdf_penalty_gamedata.keychunk_2]
     pdf_penalty_gamedata = pdf_penalty_gamedata.merge(
         pdf_roster[["Id", "Name", "team"]], on="Id")
+    logger.debug(f"    After merging with roster: {len(pdf_penalty_gamedata)}")
     pdf_penalties = pdf_penalty_gamedata[pdf_penalty_gamedata.penalty_key == "Code"]
     pdf_penalties = pdf_penalties.rename(columns={"value": "penalty_code"})
     pdf_penalties = pdf_penalties[["Name", "team", "penalty_code"]]
+    logger.debug(f"    Before merge with penalty codes: {len(pdf_penalties)}")
 
     # add penalty names
-    pdf_penalty_codes_names = build_penalty_code_name_map(pdf_game_state)
+    pdf_penalty_codes_names = build_penalty_code_name_map(pdf_game_state, json_major_version)
     pdf_penalties = pdf_penalties.merge(pdf_penalty_codes_names, on="penalty_code")
     logger.debug(f"Extracted penalties: {len(pdf_penalties)} rows.")
     return pdf_penalties
 
 
-def build_penalty_code_name_map(pdf_game_state: pd.DataFrame) -> Dict[str, str]:
+def build_penalty_code_name_map(pdf_game_state: pd.DataFrame,
+                                json_major_version: int) -> Dict[str, str]:
     """Pull out the map from penalty codes to names that's repeated in every game file.
 
     Args:
@@ -571,12 +578,19 @@ def build_penalty_code_name_map(pdf_game_state: pd.DataFrame) -> Dict[str, str]:
     Returns:
         Dict[str, str]: map from letter codes to names
     """
-    logger.debug("build_penalty_code_name_map begin")
-    pdf_penalty_codes = pdf_game_state[pdf_game_state["key"].str.startswith(
-        "ScoreBoard.PenaltyCodes.Code(")].copy()
-    pdf_penalty_codes["penalty_code"] = [x[len("ScoreBoard.PenaltyCodes.Code("):-1]
-                                         for x in pdf_penalty_codes.key]
-    logger.debug("Built penalty code:name map")
+    # this code is very inefficient -- will do string matching on the whole game dictionary
+    logger.debug(f"build_penalty_code_name_map begin, version=={json_major_version}")
+    if json_major_version == 5:
+        pdf_penalty_codes = pdf_game_state[
+            pdf_game_state["key"].str.contains("PenaltyCode")].copy()
+    else:
+        pdf_penalty_codes = pdf_game_state[pdf_game_state["key"].str.startswith(
+            "ScoreBoard.PenaltyCodes.Code")].copy()
+    pdf_penalty_codes["penalty_code"] = [x[-2:-1]
+                                        for x in pdf_penalty_codes.key]       
+    logger.debug(f"Built penalty code dataframe: {len(pdf_penalty_codes)} codes")
+    if len(pdf_penalty_codes) == 0:
+        logger.warn("Could not load penalty codes! Penalty plots will fail.")
     pdf_penalty_codes = pdf_penalty_codes[["penalty_code", "value"]].rename(columns={
         "value": "penalty_name"
     })
