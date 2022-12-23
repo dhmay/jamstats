@@ -1,6 +1,5 @@
-![jamstats](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png)
+<img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="600">
 
-# jamstats
 Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or from a running scoreboard server. 
 
 Various installation options, including a Windows executable that can build plots without using the command line. Supports both v4.x and v5.x scoreboard versions. 
