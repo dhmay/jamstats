@@ -205,15 +205,21 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
 
     # calculate time to lead (None if no lead). It's the duration of the
     # first scoring pass for the team that got lead, if any.
+    teams_with_lead = []
     times_to_lead = []
     for _, row in pdf_jams_summary_withteams.iterrows():
+        time_to_lead = None
+        team_with_lead = None
         if row["Lead_1"]:
-            times_to_lead.append(row["first_scoring_pass_durations_1"])
+            time_to_lead = row["first_scoring_pass_durations_1"]
+            team_with_lead = 1
         elif row["Lead_2"]:
-            times_to_lead.append(row["first_scoring_pass_durations_2"])
-        else:
-            times_to_lead.append(None)
+            time_to_lead = row["first_scoring_pass_durations_2"]
+            team_with_lead = 2
+        times_to_lead.append(time_to_lead)
+        teams_with_lead.append(team_with_lead)
     pdf_jams_summary_withteams["time_to_lead"] = times_to_lead
+    pdf_jams_summary_withteams["team_with_lead"] = teams_with_lead
 
     logger.debug(f"Made jams summary dataframe. Rows: {len(pdf_jams_summary_withteams)}")
     
