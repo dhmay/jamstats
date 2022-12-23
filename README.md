@@ -36,13 +36,13 @@ On Windows, to generate a plots .pdf, you can simply drag your game JSON file on
 
 ### Commandline
 
-Installation gives you two commands. Get full help for either command by running it with the `--help` argument.
+Get full help for the `jamstats` command by running it with the `--help` argument.
 
 `jamstats [-h] [--anonymize] [--debug] [--inprogress] jsonfileorserver [outfile]`
 
 Makes plots describing a game and writes them to a PDF. If output PDF file isn't specified, uses the input filepath and changes .json to .pdf. If `--inprogress` is specified, instead of reading an input JSON file, connects to a running scoreboard server and downloads the current game state. In that case, the first unnamed argument should be a string of the format `server:port`, e.g., `localhost:8000`. 
 
-If `outfile` has a `.txt` or `.tsv` extension, will write tab-delimited game data. Otherwise, will write a PDF with plots.
+If `outfile` has a `.txt` or `.tsv` extension, will instead write tab-delimited game data.
 
 ### Using jamstats from Python
 
