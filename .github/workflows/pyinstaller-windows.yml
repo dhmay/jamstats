@@ -38,7 +38,7 @@ jobs:
       
       - name: Package Application (windows)
         if: runner.os == 'Windows'
-        run:  cd src; pyinstaller jamstats.spec --onefile -i ../resources/jamstats_icon.ico; cd ..
+        run:  cd src; pyinstaller ../bin/jamstats --onefile -i ../resources/jamstats_icon.ico; cd ..
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
