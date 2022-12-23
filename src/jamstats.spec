@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['bin/jamstats'],
+    ['../bin/jamstats'],
     pathex=[],
     binaries=[],
     datas=[],
