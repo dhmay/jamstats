@@ -11,6 +11,7 @@ import string
 import pandas as pd
 from matplotlib import gridspec
 from jamstats.plots.plot_util import make_team_color_palette
+import traceback
 
 
 logger = logging.Logger(__name__)
@@ -139,25 +140,48 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
         ]
         pdf_penalties_long = (
             pdf_team_penalties.groupby(['Skater', 'Penalty']).size().reset_index())
+        pdf_penalties_long = pdf_penalties_long.rename(columns={
+            0: "penalty_count"
+        })
         a_penalty = list(pdf_team_penalties.Penalty)[0]
         
         # add rows for skaters with no penalties.
         # There's probably some more-pandas-y way to do this. I trie and failed.
         skaters_no_penalties = set(pdf_skater_data.Skater).difference(
-            set(set(pdf_team_penalties.Name)))
+            set(set(pdf_team_penalties.Skater)))
         pdf_penalties_long = pd.DataFrame({
-            "Name": list(pdf_penalties_long.Name) + list(skaters_no_penalties),
+            "Skater": list(pdf_penalties_long.Skater) + list(skaters_no_penalties),
             "Penalty": list(pdf_penalties_long.Penalty) + [a_penalty] * len(skaters_no_penalties),
-            0: list(pdf_penalties_long[0]) + [0] * len(skaters_no_penalties)
+            "penalty_count": list(pdf_penalties_long["penalty_count"]) + [0] * len(skaters_no_penalties)
         })
+
+        # calculate number of penalties per skater. Again, there must be a better way,
+        # probably with groupby. Eh.
+        skater_penaltycount_map = {
+            skater: sum(pdf_penalties_long[pdf_penalties_long.Skater == skater].penalty_count)
+            for skater in set(pdf_penalties_long.Skater)
+        }
+
+        pdf_penalty_plot = pdf_penalties_long.pivot(
+            columns='Penalty', index='Skater', values="penalty_count")
+
+        pdf_penalty_plot["skater_order"] = [skater_penaltycount_map[skater]
+                                           for skater in pdf_penalty_plot.index]
+        pdf_penalty_plot = pdf_penalty_plot.sort_values("skater_order", ascending=False)
+        pdf_penalty_plot = pdf_penalty_plot.drop(columns=["skater_order"])
+
+        # sort skater data, too
         
-        pdf_penalty_plot =pdf_penalties_long.pivot(columns='Penalty', index='Skater', values=0)
-        pdf_penalty_plot = pdf_penalty_plot.sort_values("Skater")
-        print(pdf_penalty_plot.columns)
+        # this would be better done with a dataframe and a join. Eh.
+        pdf_skater_data["skater_order"] = [skater_penaltycount_map[skater]
+                                            for skater in pdf_skater_data.Skater]
+        pdf_skater_data = pdf_skater_data.sort_values("skater_order", ascending=False)
+        pdf_skater_data = pdf_skater_data.drop(columns=["skater_order"])
 
         penalty_plot_is_go = True
     except Exception as e:
-        logger.warn(f"Failed to make skater penalty subplot: {e}")
+        logger.warn(f"Failed to make skater penalty subplot:")
+        logger.warn(traceback.format_exc())
 
     f, dummy_axis = plt.subplots()
     dummy_axis.set_xticks([])
