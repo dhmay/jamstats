@@ -331,10 +331,10 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
                     palette=team_color_palette)
     if len(pdf_for_plot_lost) > 0:
         sns.barplot(y="prd_jam", x="Team with Lead",
-                    data=pdf_for_plot_lost, ax=ax, color="darkred")
+                    data=pdf_for_plot_lost, ax=ax, color="black")
 
     ax.set_ylabel("Jams")
-    ax.set_title("Jams with Lead\n(red=lost, gray=not called)")
+    ax.set_title("Jams with Lead\n(black=lost, gray=not called)")
 
     ax = axes[1]
     pdf_plot = pdf_jams_data_long.sort_values("team").rename(columns={
