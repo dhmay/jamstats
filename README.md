@@ -1,4 +1,4 @@
-![jamstats logo](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png)
+![jamstats logo](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_social.png)
 
 # jamstats
 Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or from a running scoreboard server. 
