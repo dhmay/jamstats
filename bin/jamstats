@@ -6,6 +6,7 @@ __author__ = "Damon May"
 import argparse
 from jamstats.io.scoreboard_json_io import (
     load_derby_game_from_json_file, load_inprogress_game_from_server)
+from jamstats.io import tsv_io
 from jamstats.plots.plot_together import save_game_plots_to_pdf
 from jamstats.plots import plot_together, jamplots, skaterplots
 from jamstats.data import json_to_pandas
@@ -20,8 +21,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('jsonfileorserver', type=str,
                     help="Scoreboard json file to read (or server:port, e.g., localhost:8000,"
                     "if --inprogress)")
-parser.add_argument('pdffile', type=argparse.FileType('w'), nargs='?',
-                    help='PDF file to write')
+parser.add_argument('outfile', type=argparse.FileType('w'), nargs='?',
+                    help='File to write. Extension determines behavior. If ".pdf" '
+                    'or if not specified, write plots to a PDF. If ".tsv" or ".txt'
+                    'write data to tab-separated values file')
 parser.add_argument('--anonymize', action="store_true",
                     help="Replace actual skater names with random pregenerated ones?")
 parser.add_argument('--debug', action="store_true",
@@ -77,7 +80,7 @@ if args.teamcolor2 is not None:
     derby_game.set_team_color_2(args.teamcolor2)
     print(f"Setting team 2 color to {args.teamcolor2}")
 
-if args.pdffile is None:
+if args.outfile is None:
     if args.inprogress:
         quit("Output filepath not provided, and connecting to an in-progress game. "
         "Don't know where to write output, quitting.")
@@ -90,9 +93,14 @@ if args.pdffile is None:
               "  Please rename your input file or specify an output filepath. Quitting.")
         quit()
 else:
-    pdf_filepath = args.pdffile.name
-    args.pdffile.close()
+    out_filepath = args.outfile.name
+    args.outfile.close()
 
-save_game_plots_to_pdf(derby_game, pdf_filepath, anonymize_names=args.anonymize,
-                       theme=args.theme)
-print(f"Wrote {pdf_filepath}")
+if out_filepath.endswith(".tsv") or out_filepath.endswith(".txt"):
+    print("Writing TSV file...")
+    tsv_io.write_game_data_tsv(derby_game, out_filepath)
+else:
+    print("Writing PDF file...")
+    save_game_plots_to_pdf(derby_game, out_filepath, anonymize_names=args.anonymize,
+                           theme=args.theme)
+print(f"Wrote {out_filepath}")
