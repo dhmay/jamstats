@@ -40,7 +40,7 @@ jobs:
         if: runner.os == 'Windows'
         #run:  pyinstaller src/jamstats-plot-pdf.spec
         #run:  python -m PyInstaller src/jamstats-plot-pdf.spec
-        run:  pyinstaller src/jamstats-plot-pdf --onefile
+        run:  pyinstaller src/jamstats-plot-pdf --onefile -i resources/jamstats_logo.ico
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
