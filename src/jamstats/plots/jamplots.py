@@ -53,7 +53,7 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
 
     ax = axes[1]
     sns.violinplot(x="team", y="jam_count", data=pdf_jammer_jamcounts, cut=0, ax=ax,
-                   palette=team_color_palette)
+                   palette=team_color_palette, inner="stick")
     ax.set_title("Jams per jammer")
     ax.set_ylabel("Jams per jammer")
 
@@ -307,7 +307,8 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     pdf_jams_with_lead["Team with Lead"] = [derby_game.team_1_name if team1_has_lead
                                             else derby_game.team_2_name
                                             for team1_has_lead in pdf_jams_with_lead.Lead_1]
-    f, axes = plt.subplots(1, 2)
+    f, axes = plt.subplots(1, 3)
+
     ax = axes[0]
     pdf_jams_with_lead["Lost"] = pdf_jams_with_lead.Lost_1 | pdf_jams_with_lead.Lost_2
 
@@ -344,7 +345,29 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
                    inner="stick", palette=team_color_palette)
     ax.set_ylabel("Time to Initial (s)")
     ax.set_title("Time to Initial per jam")
-    f.set_size_inches(10, 5)
+
+    ax = axes[2]
+    colors = [team_color_palette[0] if lead_team == 1
+              else team_color_palette[1] if lead_team == 2
+              else '#888888'
+              for lead_team in derby_game.pdf_jams_data.team_with_lead]
+    sns.scatterplot(data=derby_game.pdf_jams_data,
+                    x="first_scoring_pass_durations_1",
+                    y="first_scoring_pass_durations_2",
+                    color=colors, ax=ax)
+    max_tti_time = max([
+        max(derby_game.pdf_jams_data.first_scoring_pass_durations_1),
+        max(derby_game.pdf_jams_data.first_scoring_pass_durations_2)])
+    # 1:1 line
+    sns.lineplot(x="x", y="y", data=pd.DataFrame({
+        "x": [0, max_tti_time],
+        "y": [0, max_tti_time]}),
+        ax=ax)
+    ax.set_xlabel(derby_game.team_1_name)
+    ax.set_ylabel(derby_game.team_2_name)
+    ax.set_title("Time to Initial,\nTeam vs. Team (color = lead)")
+
+    f.set_size_inches(15, 6)
     f.tight_layout()
 
     return f
