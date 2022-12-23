@@ -22,7 +22,7 @@ If you like these plots, you might like this set of tools
 
 #### Option 1: Windows executable
 
-Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-plot-pdf.exe`.
+Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats.exe`.
 
 #### Option 2: On any platform, with Python 3.7 or later
 
@@ -32,19 +32,17 @@ Go to the [latest release](https://github.com/dhmay/jamstats/releases) and downl
 
 ### No-commandline option
 
-On Windows, to generate a plots .pdf, you can simply drag your game JSON file onto the jamstats-plot-pdf.exe file. That will generate a .pdf file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
+On Windows, to generate a plots .pdf, you can simply drag your game JSON file onto the jamstats.exe file. That will generate a .pdf file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
 
 ### Commandline
 
 Installation gives you two commands. Get full help for either command by running it with the `--help` argument.
 
-`jamstats-plot-pdf [-h] [--anonymize] [--debug] [--inprogress] jsonfileorserver [pdffile]`
+`jamstats [-h] [--anonymize] [--debug] [--inprogress] jsonfileorserver [outfile]`
 
 Makes plots describing a game and writes them to a PDF. If output PDF file isn't specified, uses the input filepath and changes .json to .pdf. If `--inprogress` is specified, instead of reading an input JSON file, connects to a running scoreboard server and downloads the current game state. In that case, the first unnamed argument should be a string of the format `server:port`, e.g., `localhost:8000`. 
 
-`jamstats-convert-tsv [-h] jsonfile [tsvfile]`
-
-Coverts a derby game json file to a TSV (tab-separated value) file that can be loaded into Excel, R, etc.:
+If `outfile` has a `.txt` or `.tsv` extension, will write tab-delimited game data. Otherwise, will write a PDF with plots.
 
 ### Using jamstats from Python
 
