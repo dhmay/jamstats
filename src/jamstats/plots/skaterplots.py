@@ -46,7 +46,7 @@ def plot_jammer_stats(derby_game: DerbyGame, team_number: int,
         name_dict = build_anonymizer_map(set(pdf_jammer_data.Jammer))
         pdf_jammer_data["Jammer"] = [name_dict[jammer] for jammer in pdf_jammer_data.Jammer]
 
-    pdf_jammer_data = pdf_jammer_data.sort_values("Jams", ascending=False)
+    pdf_jammer_data = pdf_jammer_data.sort_values(["Jams", "Total Score"], ascending=False)
 
     f, (ax0, ax1, ax2, ax3, ax4) = plt.subplots(1, 5)
 
