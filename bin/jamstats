@@ -35,7 +35,7 @@ parser.add_argument('--inprogress', action="store_true",
 parser.add_argument('--theme', type=str,
                     default=DEFAULT_THEME,
                     choices=VALID_THEMES,
-                    help=f"Plot theme. This is how you make the plots dark.")
+                    help="Plot theme. This is how you make the plots dark.")
 parser.add_argument('--teamcolor1', type=str,
                     help="Set the color for team 1. Can be of the form 'green' or of the form '#00FF00'")
 parser.add_argument('--teamcolor2', type=str,
@@ -87,7 +87,7 @@ if args.outfile is None:
     elif args.jsonfileorserver.lower().endswith(".json"):
         print(f"Output filepath not provided. "
               f"Using input filepath with extension .pdf instead of {args.jsonfileorserver[-5:]}")
-        pdf_filepath = args.jsonfileorserver[:-len(".json")] + ".pdf"
+        out_filepath = args.jsonfileorserver[:-len(".json")] + ".pdf"
     else:
         print("Input file doesn't end with .json, so refusing to guess what output file you want."
               "  Please rename your input file or specify an output filepath. Quitting.")
