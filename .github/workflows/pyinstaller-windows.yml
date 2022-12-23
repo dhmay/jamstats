@@ -38,14 +38,14 @@ jobs:
       
       - name: Package Application (windows)
         if: runner.os == 'Windows'
-        run:  pyinstaller bin/jamstats --onefile -i resources/jamstats_icon.ico
+        run:  cd src; pyinstaller ../bin/jamstats --onefile -i resources/jamstats_icon.ico; cd ..
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
-        run:  python -m PyInstaller src/jamstats.spec
+        run:  python -m PyInstaller jamstats.spec
  
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: jamstats-${{ runner.os }}   
-          path: dist/jamstats.exe
+          path: src/dist/jamstats.exe
