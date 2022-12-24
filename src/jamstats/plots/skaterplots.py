@@ -206,8 +206,13 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
     ax.set_ylabel("")
 
     if penalty_plot_is_go:
+        # color penalties
+        penalty_color_map = dict(zip(*[pdf_team_penalties.Penalty,
+                                       pdf_team_penalties.penalty_color]))
+
         ax = f.add_subplot(spec[1])
-        pdf_penalty_plot.plot(kind="barh", stacked=True, ax=ax)
+        pdf_penalty_plot.plot(kind="barh", stacked=True, ax=ax,
+            color=penalty_color_map)
         plt.gca().invert_yaxis()
         ax.set_title(f"Penalties by skater")
         ax.set_ylabel("")
