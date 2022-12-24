@@ -201,7 +201,7 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     
     # add column labels up top
     for i in range(len(pdf_jambools.columns)):
-        ax.text(i + 0.25, -.5, pdf_jambools.columns[i], rotation=90, size="x-large")
+        ax.text(i + 0.25, -.5, pdf_jambools.columns[i], rotation=90, size="large")
 
     ax.get_legend().remove()
     ax.set_xlabel("")
