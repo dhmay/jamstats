@@ -434,6 +434,18 @@ def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
     ax.set_title(f"Penalty counts") 
     ax.set_ylabel("")
 
+    # add lines separating penalties
+    for i in range(len(set(pdf_penalty_counts.Penalty)) - 1):
+        sns.lineplot(x="x", y="y", data=pd.DataFrame({
+            "x": [0, max(pdf_penalty_counts.Count)],
+            "y": [i + 0.5, i + 0.5]
+        }), color="black", ax=ax, size=0.5)
+
+    # legend got screwed up by lines. Rebuild the legend
+    patch_team_1 = mpatches.Patch(color=team_color_palette[0], label=derby_game.team_1_name)
+    patch_team_2 = mpatches.Patch(color=team_color_palette[1], label=derby_game.team_2_name)
+    ax.legend(handles=[patch_team_1, patch_team_2])
+
     f.set_size_inches(8, 11)
     f.tight_layout()
     return f
