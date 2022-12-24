@@ -198,7 +198,7 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
     dummy_axis.set_yticks([])
     # create grid for different subplots
     spec = gridspec.GridSpec(ncols=3, nrows=1,
-                             width_ratios=[1, 4, 1], wspace=0)
+                             width_ratios=[1, 3, 1], wspace=0)
 
     ax = f.add_subplot(spec[0])
     sns.barplot(y="Skater", x="Jams", data=pdf_skater_data, ax=ax, color="black")
@@ -221,7 +221,7 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
         ax.set_xlabel("Penalties/Jam")
         ax.set_yticks([])
 
-    f.set_size_inches(15, min(2 + len(pdf_skater_data), 11))
+    f.set_size_inches(13, min(2 + len(pdf_skater_data), 11))
     f.suptitle(f"Skater Stats: {team_name}")
     f.tight_layout()
     return f
