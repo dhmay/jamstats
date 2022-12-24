@@ -182,6 +182,12 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
         pdf_skater_data = pdf_skater_data.sort_values("skater_order", ascending=False)
         pdf_skater_data = pdf_skater_data.drop(columns=["skater_order"])
 
+        # add penalties per jam
+        pdf_skater_data["penalty_count"] = [skater_penaltycount_map[skater]
+                                            for skater in pdf_skater_data.Skater]
+        pdf_skater_data["penalties_per_jam"] = (
+            pdf_skater_data["penalty_count"] / pdf_skater_data["Jams"])
+
         penalty_plot_is_go = True
     except Exception as e:
         logger.warn(f"Failed to make skater penalty subplot:")
@@ -191,8 +197,8 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
     dummy_axis.set_xticks([])
     dummy_axis.set_yticks([])
     # create grid for different subplots
-    spec = gridspec.GridSpec(ncols=2, nrows=1,
-                             width_ratios=[1, 3], wspace=0)
+    spec = gridspec.GridSpec(ncols=3, nrows=1,
+                             width_ratios=[1, 4, 1], wspace=0)
 
     ax = f.add_subplot(spec[0])
     sns.barplot(y="Skater", x="Jams", data=pdf_skater_data, ax=ax, color="black")
@@ -208,7 +214,14 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
         ax.set_xlabel("Penalties")
         ax.set_yticks([])
 
-    f.set_size_inches(12, min(2 + len(pdf_skater_data), 11))
+        ax = f.add_subplot(spec[2])
+        sns.barplot(y="Skater", x="penalties_per_jam", data=pdf_skater_data, ax=ax, color="black")
+        ax.set_title("Penalties/Jam") 
+        ax.set_ylabel("")
+        ax.set_xlabel("Penalties/Jam")
+        ax.set_yticks([])
+
+    f.set_size_inches(15, min(2 + len(pdf_skater_data), 11))
     f.suptitle(f"Skater Stats: {team_name}")
     f.tight_layout()
     return f
