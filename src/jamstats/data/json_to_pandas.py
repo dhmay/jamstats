@@ -603,6 +603,10 @@ def build_penalty_code_name_map(pdf_game_state: pd.DataFrame,
     # some of the penalty codes are quite long. Truncate at first comma
     pdf_penalty_codes["penalty_name"] = [penalty.split(",")[0]
                                          for penalty in pdf_penalty_codes.penalty_name]
+    # add a color for each code
+    penalty_palette = sns.color_palette("tab20", n_colors=len(pdf_penalty_codes))
+    pdf_penalty_codes["penalty_color"] = [penalty_palette[i]
+                                          for i in range(len(pdf_penalty_codes))]
     return pdf_penalty_codes
     
 
