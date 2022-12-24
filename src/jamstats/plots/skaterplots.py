@@ -50,30 +50,35 @@ def plot_jammer_stats(derby_game: DerbyGame, team_number: int,
 
     f, (ax0, ax1, ax2, ax3, ax4) = plt.subplots(1, 5)
 
+    # build a palette that'll be the same for both teams
+    max_n_jammers = max([len(set(derby_game.pdf_jams_data.jammer_name_1)),
+                         len(set(derby_game.pdf_jams_data.jammer_name_2))])
+    mypalette = sns.color_palette("rainbow", n_colors=max_n_jammers)
+
     ax = ax0
-    sns.barplot(y="Jammer", x="Jams", data=pdf_jammer_data, ax=ax)
+    sns.barplot(y="Jammer", x="Jams", data=pdf_jammer_data, ax=ax, palette=mypalette)
     ax.set_ylabel("")
 
     ax = ax1
-    sns.barplot(y="Jammer", x="Total Score", data=pdf_jammer_data, ax=ax)
+    sns.barplot(y="Jammer", x="Total Score", data=pdf_jammer_data, ax=ax, palette=mypalette)
     ax.set_yticks([])
     ax.set_ylabel("")
 
     ax = ax2
     sns.barplot(y="Jammer", x="Mean Net Points",
-            data=pdf_jammer_data, ax=ax)
+            data=pdf_jammer_data, ax=ax, palette=mypalette)
     ax.set_xlabel("Mean Net Points/Jam\n(own - opposing)")
     ax.set_yticks([])
     ax.set_ylabel("")
 
     ax = ax3
-    sns.barplot(y="Jammer", x="Proportion Lead", data=pdf_jammer_data, ax=ax)
+    sns.barplot(y="Jammer", x="Proportion Lead", data=pdf_jammer_data, ax=ax, palette=mypalette)
     ax.set_xlim(0,1)
     ax.set_yticks([])
     ax.set_ylabel("")
 
     ax = ax4
-    sns.barplot(y="Jammer", x="Mean Time to Initial", data=pdf_jammer_data, ax=ax)
+    sns.barplot(y="Jammer", x="Mean Time to Initial", data=pdf_jammer_data, ax=ax, palette=mypalette)
     ax.set_yticks([])
     ax.set_ylabel("")
 
