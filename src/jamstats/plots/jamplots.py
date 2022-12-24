@@ -24,16 +24,13 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
         Figure: figure
     """
     pdf_jams_data = derby_game.pdf_jams_data
-    game_data_dict = derby_game.game_data_dict
-    team_1 = game_data_dict["team_1"]
-    team_2 = game_data_dict["team_2"]
 
     jammer_jamcounts_1 = list(pdf_jams_data.value_counts("jammer_name_1"))
     jammer_jamcounts_2 = list(pdf_jams_data.value_counts("jammer_name_2"))
 
     jammer_jamcounts = jammer_jamcounts_1 + jammer_jamcounts_2
-    team_names_for_jamcounts = ([team_1] * len(jammer_jamcounts_1) +
-                                [team_2] * len(jammer_jamcounts_2))
+    team_names_for_jamcounts = ([derby_game.team_1_name] * len(jammer_jamcounts_1) +
+                                [derby_game.team_2_name] * len(jammer_jamcounts_2))
     pdf_jammer_jamcounts = pd.DataFrame({
         "team": team_names_for_jamcounts,
         "jam_count": jammer_jamcounts
@@ -45,9 +42,9 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     ax = axes[0]
     sns.barplot(x="team", y="jammers",
                 data=pd.DataFrame({
-                    "team": [team_1, team_2],
-                    "jammers": [sum(pdf_jammer_jamcounts.team == team_1),
-                                sum(pdf_jammer_jamcounts.team == team_2)]
+                    "team": [derby_game.team_1_name, derby_game.team_2_name],
+                    "jammers": [sum(pdf_jammer_jamcounts.team == derby_game.team_1_name),
+                                sum(pdf_jammer_jamcounts.team == derby_game.team_2_name)]
                 }),
                 ax=ax, palette=team_color_palette)
     ax.set_title("Jammers per team")
@@ -68,10 +65,10 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     pdf_jammer_summary_2.index = range(len(pdf_jammer_summary_2))
 
     ax =axes[2]
-    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_1, label=team_1,
-                    color=team_color_palette[0])
-    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_2, label=team_2,
-                    color=team_color_palette[1])
+    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_1,
+                    label=derby_game.team_2_name, color=team_color_palette[0])
+    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_2,
+                    label=derby_game.team_2_name, color=team_color_palette[1])
     ax.set_title("Mean jam score vs.\n# jams per jammer")
     ax.set_ylabel("Mean jam score")
     ax.set_xlabel("# jams")
@@ -204,7 +201,7 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
     
     # add column labels up top
     for i in range(len(pdf_jambools.columns)):
-        ax.text(i + 0.25, -.5, pdf_jambools.columns[i], rotation=90, size="xx-large")
+        ax.text(i + 0.25, -.5, pdf_jambools.columns[i], rotation=90, size="x-large")
 
     ax.get_legend().remove()
     ax.set_xlabel("")
@@ -271,19 +268,18 @@ def plot_cumulative_score_by_jam(derby_game: DerbyGame) -> Figure:
     Returns:
         Figure: figure with cumulative score by jam
     """
-    game_data_dict = derby_game.game_data_dict
     pdf_jam_data_long = derby_game.build_jams_dataframe_long()
-    team_1 = game_data_dict["team_1"]
-    team_2 = game_data_dict["team_2"]
 
     team_color_palette = make_team_color_palette(derby_game)
 
     f, ax = plt.subplots()
     sns.lineplot(x="prd_jam", y="TotalScore",
-                 data=pdf_jam_data_long[pdf_jam_data_long.team == team_1], label=team_1,
+                 data=pdf_jam_data_long[pdf_jam_data_long.team == derby_game.team_1_name],
+                                        label=derby_game.team_1_name,
                  estimator=None, color=team_color_palette[0])
     sns.lineplot(x="prd_jam", y="TotalScore",
-                 data=pdf_jam_data_long[pdf_jam_data_long.team == team_2], label=team_2,
+                 data=pdf_jam_data_long[pdf_jam_data_long.team == derby_game.team_2_name],
+                                        label=derby_game.team_2_name,
                  estimator=None, color=team_color_palette[1])
 
     # determine break betwen periods, if any. Draw a line there.

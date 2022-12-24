@@ -27,6 +27,8 @@ parser.add_argument('outfile', type=argparse.FileType('w'), nargs='?',
                     'write data to tab-separated values file')
 parser.add_argument('--anonymize', action="store_true",
                     help="Replace actual skater names with random pregenerated ones?")
+parser.add_argument('--anonymizeteams', action="store_true",
+                    help="Replace team names with 'Team 1' and 'Team 2'?")
 parser.add_argument('--debug', action="store_true",
                     help="enable debug logging")
 parser.add_argument('--inprogress', action="store_true",
@@ -102,5 +104,6 @@ if out_filepath.endswith(".tsv") or out_filepath.endswith(".txt"):
 else:
     print("Writing PDF file...")
     save_game_plots_to_pdf(derby_game, out_filepath, anonymize_names=args.anonymize,
+                           anonymize_teams=args.anonymizeteams
                            theme=args.theme)
 print(f"Wrote {out_filepath}")
