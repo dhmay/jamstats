@@ -36,6 +36,22 @@ class DerbyGame:
                 self.team_color_1 = sns.color_palette()[0]
                 self.team_color_2 = sns.color_palette()[1]
 
+    def anonymize_team_names(self) -> None:
+        """Replace team names with "Team 1" and "Team 2"
+        """
+        self.game_data_dict["team_1"] = "Team 1"
+        self.game_data_dict["team_2"] = "Team 2"
+        name_replace_dict = {
+            self.team_1_name: "Team 1",
+            self.team_2_name: "Team 2",
+        }
+        self.pdf_jams_data = self.pdf_jams_data.replace(name_replace_dict)
+        self.pdf_penalties = self.pdf_penalties.replace(name_replace_dict)
+        self.pdf_team_colors = self.pdf_team_colors.replace(name_replace_dict)
+        self.team_1_name = "Team 1"
+        self.team_2_name = "Team 2"
+
+
     def set_team_color_1(self, acolor: str) -> None:
         if not is_color_like(acolor):
             raise ValueError(f"Invalid color specified: {acolor}")

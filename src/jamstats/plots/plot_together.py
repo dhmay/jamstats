@@ -23,6 +23,7 @@ from jamstats.plots.skaterplots import (
 )
 from jamstats.plots.plot_util import prepare_to_plot, DEFAULT_THEME
 from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.patches as mpatches
 
 
 logger = logging.Logger(__name__)

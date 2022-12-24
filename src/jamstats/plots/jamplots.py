@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 from jamstats.data.game_data import DerbyGame
 import logging
 from jamstats.plots.plot_util import make_team_color_palette
+import matplotlib.patches as mpatches
 
 
 logger = logging.Logger(__name__)
@@ -23,16 +24,13 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
         Figure: figure
     """
     pdf_jams_data = derby_game.pdf_jams_data
-    game_data_dict = derby_game.game_data_dict
-    team_1 = game_data_dict["team_1"]
-    team_2 = game_data_dict["team_2"]
 
     jammer_jamcounts_1 = list(pdf_jams_data.value_counts("jammer_name_1"))
     jammer_jamcounts_2 = list(pdf_jams_data.value_counts("jammer_name_2"))
 
     jammer_jamcounts = jammer_jamcounts_1 + jammer_jamcounts_2
-    team_names_for_jamcounts = ([team_1] * len(jammer_jamcounts_1) +
-                                [team_2] * len(jammer_jamcounts_2))
+    team_names_for_jamcounts = ([derby_game.team_1_name] * len(jammer_jamcounts_1) +
+                                [derby_game.team_2_name] * len(jammer_jamcounts_2))
     pdf_jammer_jamcounts = pd.DataFrame({
         "team": team_names_for_jamcounts,
         "jam_count": jammer_jamcounts
@@ -44,9 +42,9 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     ax = axes[0]
     sns.barplot(x="team", y="jammers",
                 data=pd.DataFrame({
-                    "team": [team_1, team_2],
-                    "jammers": [sum(pdf_jammer_jamcounts.team == team_1),
-                                sum(pdf_jammer_jamcounts.team == team_2)]
+                    "team": [derby_game.team_1_name, derby_game.team_2_name],
+                    "jammers": [sum(pdf_jammer_jamcounts.team == derby_game.team_1_name),
+                                sum(pdf_jammer_jamcounts.team == derby_game.team_2_name)]
                 }),
                 ax=ax, palette=team_color_palette)
     ax.set_title("Jammers per team")
@@ -67,10 +65,10 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     pdf_jammer_summary_2.index = range(len(pdf_jammer_summary_2))
 
     ax =axes[2]
-    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_1, label=team_1,
-                    color=team_color_palette[0])
-    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_2, label=team_2,
-                    color=team_color_palette[1])
+    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_1,
+                    label=derby_game.team_2_name, color=team_color_palette[0])
+    sns.scatterplot(x="n_jams", y="mean_jam_score", data=pdf_jammer_summary_2,
+                    label=derby_game.team_2_name, color=team_color_palette[1])
     ax.set_title("Mean jam score vs.\n# jams per jammer")
     ax.set_ylabel("Mean jam score")
     ax.set_xlabel("# jams")
@@ -183,8 +181,9 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
                 "x": [0, len(pdf_jambools.columns)],
                 "y": [i, i],
             }
-            sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax)
-    # add letter indicators of attributes
+            sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax, size=0.5)
+
+    # add letter indicators of attributes and lines separating attributes
     for i in range(len(pdf_jambools.columns)):
         col = pdf_jambools.columns[i]
         vals = list(pdf_jambools[col])
@@ -193,12 +192,23 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
                 ax.text(i + .5, j + .5, column_lettercode_map[col], size="small",
                         horizontalalignment="center",
                         verticalalignment="center")
+        # add line
+        if 0 < i < len(pdf_jambools.columns):
+            sns.lineplot(x="x", y="y", data=pd.DataFrame({
+                "x": [i, i],
+                "y": [0, len(pdf_jambools)]
+            }), ax=ax, color="black")
+    
+    # add column labels up top
+    for i in range(len(pdf_jambools.columns)):
+        ax.text(i + 0.25, -.5, pdf_jambools.columns[i], rotation=90, size="x-large")
+
+    ax.get_legend().remove()
     ax.set_xlabel("")
     ax.set_ylabel("")
     ax.set_xticks([x+.5 for x in range(len(pdf_jambool_heatmap.columns))])
     ax.set_yticklabels([])
-    ax.set_xticklabels(pdf_jambool_heatmap.columns, rotation=90)
-    ax.set_title("Attributes")
+    ax.set_xticklabels([])
 
     ax = ax1
     sns.barplot(x="JamScore", y="prd_jam", data=pdf_jam_data_long, hue="team", ax=ax,
@@ -212,15 +222,36 @@ def plot_jam_lead_and_scores(derby_game: DerbyGame,
             "x": [0, highscore],
             "y": [i + 0.5, i + 0.5],
         }
-        sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax)
+        sns.lineplot(x="x", y="y", data=pdf_linedata, color="black", ax=ax, size=0.5)
+
+    # add lines indicating lead
+    for team_name in [derby_game.team_1_name, derby_game.team_2_name]:
+        pdf_jamdata_thisteam = pdf_jam_data_long[pdf_jam_data_long.team == team_name].sort_values(
+            "prd_jam")
+        lead_indicators = list(pdf_jamdata_thisteam.Lead)
+        scores = list(pdf_jamdata_thisteam.JamScore)
+        for i in range(n_period_jams):
+            if lead_indicators[i] and (scores[i] > 0):
+                y_val = i - 0.22 if team_name == derby_game.team_1_name else i + 0.18
+                sns.lineplot(x="x", y="y", data=pd.DataFrame({
+                    "x": [0.23, scores[i] - 0.28],
+                    "y": [y_val, y_val]
+                }), color="#FFFFFF55", size=0.5)
+
     ax.set_xlim((0, highscore))
     ax.set_ylim((n_period_jams - 0.5, -0.5))
     title = "Points per jam by team"
     if period is not None:
         title = title + f" (period {period})"
+    title = title + "\n(line indicates lead)"
     ax.set_title(title)
-    ax.set_xlabel("Points")
+    ax.set_xlabel(None)
     ax.set_ylabel(None)
+
+    # legend got screwed up by lines. Rebuild the legend
+    patch_team_1 = mpatches.Patch(color=team_color_palette[0], label=derby_game.team_1_name)
+    patch_team_2 = mpatches.Patch(color=team_color_palette[1], label=derby_game.team_2_name)
+    ax.legend(handles=[patch_team_1, patch_team_2])
 
     f.set_size_inches(8, 11)
     f.tight_layout()
@@ -237,19 +268,18 @@ def plot_cumulative_score_by_jam(derby_game: DerbyGame) -> Figure:
     Returns:
         Figure: figure with cumulative score by jam
     """
-    game_data_dict = derby_game.game_data_dict
     pdf_jam_data_long = derby_game.build_jams_dataframe_long()
-    team_1 = game_data_dict["team_1"]
-    team_2 = game_data_dict["team_2"]
 
     team_color_palette = make_team_color_palette(derby_game)
 
     f, ax = plt.subplots()
     sns.lineplot(x="prd_jam", y="TotalScore",
-                 data=pdf_jam_data_long[pdf_jam_data_long.team == team_1], label=team_1,
+                 data=pdf_jam_data_long[pdf_jam_data_long.team == derby_game.team_1_name],
+                                        label=derby_game.team_1_name,
                  estimator=None, color=team_color_palette[0])
     sns.lineplot(x="prd_jam", y="TotalScore",
-                 data=pdf_jam_data_long[pdf_jam_data_long.team == team_2], label=team_2,
+                 data=pdf_jam_data_long[pdf_jam_data_long.team == derby_game.team_2_name],
+                                        label=derby_game.team_2_name,
                  estimator=None, color=team_color_palette[1])
 
     # determine break betwen periods, if any. Draw a line there.
