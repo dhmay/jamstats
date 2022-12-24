@@ -1,4 +1,6 @@
-<img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300" align="center">
+<p align="center">
+    <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
+</p>
 
 Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or from a running scoreboard server. 
 
