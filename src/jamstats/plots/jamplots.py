@@ -445,6 +445,7 @@ def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
     patch_team_1 = mpatches.Patch(color=team_color_palette[0], label=derby_game.team_1_name)
     patch_team_2 = mpatches.Patch(color=team_color_palette[1], label=derby_game.team_2_name)
     ax.legend(handles=[patch_team_1, patch_team_2])
+    ax.set_ylabel("")
 
     f.set_size_inches(8, 11)
     f.tight_layout()
