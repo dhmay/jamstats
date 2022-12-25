@@ -109,7 +109,7 @@ def make_all_plots(derby_game: DerbyGame,
     with importlib.resources.path("jamstats.resources", "jamstats_logo.png") as template_file:
         im = plt.imread(template_file)
     for f in figures[:2]:
-        newax = f.add_axes([0.4,0.95,0.2,0.2], anchor='SE', zorder=1)
+        newax = f.add_axes([0.425,0.9,0.15,0.15], anchor='SE', zorder=1)
         newax.axis('off')
         newax.imshow(im)
     return figures
