@@ -349,8 +349,8 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
         ["Team with Lead", "prd_jam"]].groupby(
             ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
     pdf_for_plot_called_or_lost = pdf_jams_with_lead[pdf_jams_with_lead.Lost |
-                                                     pdf_jams_with_lead.Calloff_1 |
-                                                     pdf_jams_with_lead.Calloff_2][
+                                                    pdf_jams_with_lead.Calloff_1 |
+                                                    pdf_jams_with_lead.Calloff_2][
         ["Team with Lead", "prd_jam"]].groupby(
             ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
     if len(pdf_for_plot_all) > 0:
@@ -371,20 +371,21 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
         "team": "Team"
     })
     sns.violinplot(y="first_scoring_pass_durations", x="Team",
-                   data=pdf_plot, cut=0, ax=ax,
-                   inner="stick", palette=team_color_palette)
+                data=pdf_plot, cut=0, ax=ax,
+                inner="stick", palette=team_color_palette)
     ax.set_ylabel("Time to Initial (s)")
     ax.set_title("Time to Initial per jam")
 
     ax = axes[2]
     colors = [team_color_palette[0] if lead_team == 1
               else team_color_palette[1] if lead_team == 2
-              else '#888888'
+              else (.5, .5, .5)
               for lead_team in derby_game.pdf_jams_data.team_with_lead]
     sns.scatterplot(data=derby_game.pdf_jams_data,
                     x="first_scoring_pass_durations_1",
                     y="first_scoring_pass_durations_2",
-                    color=colors, ax=ax)
+                    color=colors,
+                    ax=ax)
     max_tti_time = max([
         max(derby_game.pdf_jams_data.first_scoring_pass_durations_1),
         max(derby_game.pdf_jams_data.first_scoring_pass_durations_2)])
