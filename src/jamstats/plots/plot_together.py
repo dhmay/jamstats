@@ -23,7 +23,8 @@ from jamstats.plots.skaterplots import (
 )
 from jamstats.plots.plot_util import prepare_to_plot, DEFAULT_THEME
 from matplotlib.backends.backend_pdf import PdfPages
-import matplotlib.patches as mpatches
+import importlib.resources
+from matplotlib import pyplot as plt
 
 
 logger = logging.Logger(__name__)
@@ -76,12 +77,14 @@ def make_all_plots(derby_game: DerbyGame,
 
     for plot_func in plots_to_run:
         try:
+            logger.info(f"Plotting {plot_func.__name__}")
             f = plot_func(derby_game)
             figures.append(f)
         except Exception as e:
             logger.warn(f"Failed to make jam plot {plot_func.__name__}: {e}")
 
-    try:
+    try: 
+        logger.info("Plotting plot_team_penalty_counts")
         f = plot_team_penalty_counts(derby_game)
         figures.append(f)
     except Exception as e:
@@ -91,8 +94,18 @@ def make_all_plots(derby_game: DerbyGame,
         for plot_func in [plot_jammer_stats_team1, plot_jammer_stats_team2,
                           plot_skater_stats_team1, plot_skater_stats_team2]:
             try:
+                logger.info(f"Plotting {plot_func.__name__}")
                 f = plot_func(derby_game, anonymize_names=anonymize_names)
                 figures.append(f)
             except Exception as e:
                 logger.warn(f"Failed to make skater plot {plot_func.__name__}: {e}")
+    
+    with importlib.resources.path("jamstats.resources", "jamstats_logo.png") as template_file:
+        im = plt.imread(template_file)
+    for f in figures[:2]:
+        f.axes[0].annotate(text=f"jamstats version {derby_game.game_data_dict['jamstats_version']}",
+                           xy=[5, 5], xytext=[5, 5], textcoords="figure pixels", size="x-small")
+        newax = f.add_axes([0.4,0.95,0.2,0.2], anchor='SE', zorder=1)
+        newax.axis('off')
+        newax.imshow(im)
     return figures

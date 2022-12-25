@@ -7,6 +7,7 @@ from typing import Dict, Any
 from jamstats.data.game_data import DerbyGame
 import logging
 import seaborn as sns
+import pkg_resources
 
 logger = logging.Logger(__name__)
 
@@ -23,9 +24,15 @@ def load_json_derby_game(game_json) -> DerbyGame:
     Returns:
         DerbyGame: derby game
     """
+    # this combo is inefficient
     json_major_version = get_json_major_version(game_json["state"])
+    json_version = get_json_version(game_json["state"])
+
     pdf_game_state = json_to_game_dataframe(game_json)
     game_data_dict = extract_game_data_dict(pdf_game_state)
+    game_data_dict["scoreboard_version"] = json_version
+    game_data_dict["jamstats_version"] = pkg_resources.require("jamstats")[0].version
+
     pdf_roster = extract_roster(pdf_game_state,
                                 game_data_dict["team_1"],
                                 game_data_dict["team_2"])
@@ -107,16 +114,28 @@ def get_json_major_version(game_dict: Dict[str, Any]) -> int:
     """Get the major version of CRG used to generate the file
 
     Args:
-        pdf_game_state (pd.DataFrame): pandas representation of the whole game json
+        game_dict (Dict[str, Any]): game dictionary
 
     Returns:
         int: major version
     """
-    version_str = game_dict["ScoreBoard.Version(release)"]
+    version_str = get_json_version(game_dict)
     major_version = version_str.split(".")[0]
     assert(major_version.startswith("v"))
     logger.debug(f"JSON major version string: {major_version}")
     return int(major_version[1:])
+
+
+def get_json_version(game_dict: Dict[str, Any]) -> str:
+    """Get the full scoreboard version
+
+    Args:
+        game_dict (Dict[str, Any]): game dictionary
+
+    Returns:
+        str: Scoreboard version
+    """
+    return game_dict["ScoreBoard.Version(release)"]
 
 
 def get_json_major_version_from_pdf(pdf_game_data: pd.DataFrame) -> int:
