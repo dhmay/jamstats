@@ -13,9 +13,12 @@ from jamstats.data import json_to_pandas
 from jamstats.plots.plot_util import DEFAULT_THEME, VALID_THEMES
 import logging
 import sys
+import pkg_resources
 
 logger = logging.Logger(__name__)
 
+jamstats_version = pkg_resources.require("jamstats")[0].version
+print(f"Jamstats version {jamstats_version}")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('jsonfileorserver', type=str,
