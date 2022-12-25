@@ -13,14 +13,16 @@ from jamstats.data import json_to_pandas
 from jamstats.plots.plot_util import DEFAULT_THEME, VALID_THEMES
 import logging
 import sys
+import pkg_resources
 
 logger = logging.Logger(__name__)
 
+jamstats_version = pkg_resources.require("jamstats")[0].version
+print(f"jamstats version {jamstats_version}")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('jsonfileorserver', type=str,
-                    help="Scoreboard json file to read (or server:port, e.g., localhost:8000,"
-                    "if --inprogress)")
+                    help="Scoreboard json file to read (or server:port, e.g., localhost:8000")
 parser.add_argument('outfile', type=argparse.FileType('w'), nargs='?',
                     help='File to write. Extension determines behavior. If ".pdf" '
                     'or if not specified, write plots to a PDF. If ".tsv" or ".txt'
@@ -31,9 +33,6 @@ parser.add_argument('--anonymizeteams', action="store_true",
                     help="Replace team names with 'Team 1' and 'Team 2'?")
 parser.add_argument('--debug', action="store_true",
                     help="enable debug logging")
-parser.add_argument('--inprogress', action="store_true",
-                    help="If true, treats unnamed argument as the server and port"
-                    "of an in-progress game, connects to it and grabs the current json.")
 parser.add_argument('--theme', type=str,
                     default=DEFAULT_THEME,
                     choices=VALID_THEMES,
@@ -58,13 +57,17 @@ if args.debug:
 
 print(f"Loading game from {args.jsonfileorserver}...")
 
-if args.inprogress:
-    print("Connecting to server...")
+connect_to_server = False
+if args.jsonfileorserver.count(":") == 1:
     try:
         server, port = args.jsonfileorserver.split(":")
         port = int(port)
-    except Exception:
-        quit(f"Tried to parse {args.jsonfileorserver} as server:port, failed. Quitting.")
+        connect_to_server = True
+    except Exception as e:
+        print(f"Tried to interpret {args.jsonfileorserver} as server:port but failed: {e}")
+
+if connect_to_server:
+    print(f"Connecting to server {server}, port {port}...")
     try:
         derby_game = load_inprogress_game_from_server(server, port)
     except Exception as e:
@@ -87,7 +90,7 @@ if args.teamcolor2 is not None:
     print(f"Setting team 2 color to {args.teamcolor2}")
 
 if args.outfile is None:
-    if args.inprogress:
+    if connect_to_server:
         quit("Output filepath not provided, and connecting to an in-progress game. "
         "Don't know where to write output, quitting.")
     elif args.jsonfileorserver.lower().endswith(".json"):
