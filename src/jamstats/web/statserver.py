@@ -25,6 +25,7 @@ import matplotlib
 from datetime import datetime
 import io
 import logging
+import pkg_resources
 
 logger = logging.Logger(__name__)
 
@@ -72,6 +73,7 @@ def index():
     plot_name = args["plot_name"] if "plot_name" in args else "Game Summary"
 
     game_update_time_str = app.game_update_time.strftime("%Y-%m-%d, %H:%M:%S")
+    jamstats_version = pkg_resources.require("jamstats")[0].version
 
     return render_template_string(f'''<!doctype html>
     <html>
@@ -80,20 +82,28 @@ def index():
         <body>
             <table>
                 <tr>
-                    <th colspan="2" align="center">
-                        <p><img src="logo" width=300></p>
-                    </th>
-                </tr>
-                <tr>
-                    <th align="left" valign="top" bgcolor="lightgray" width="200">
-                        <p>Updated {game_update_time_str}</p>
-                        <p>{plot_link_html}</p>
+                    <th align="left" valign="top" width="200">
+                        <table>
+                            <tr>
+                                <th>
+                                    <img src="logo" width="200">
+                                    <br>
+                                    version {jamstats_version}
+                                </th>
+                            </tr>
+                            <tr>
+                                <th align="left" valign="top" bgcolor="lightgray" width="200">
+                                    <p>Updated {game_update_time_str}</p>
+                                    <p>{plot_link_html}</p>
+                                </th>
+                            </tr>
+                        </table>
                     </th>
                     <th>
                         <p><img src="fig/{plot_name}" width="1000"/></p>
                     </th>
                 </tr>
-            </div>
+            </table>
         </body>
     </html>
     ''')
