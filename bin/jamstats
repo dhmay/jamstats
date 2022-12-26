@@ -11,6 +11,7 @@ from jamstats.plots.plot_together import save_game_plots_to_pdf
 from jamstats.plots import plot_together, jamplots, skaterplots
 from jamstats.data import json_to_pandas
 from jamstats.plots.plot_util import DEFAULT_THEME, VALID_THEMES
+from jamstats.web import statserver
 import logging
 import sys
 import pkg_resources
@@ -23,8 +24,9 @@ print(f"jamstats version {jamstats_version}")
 parser = argparse.ArgumentParser()
 parser.add_argument('jsonfileorserver', type=str,
                     help="Scoreboard json file to read (or server:port, e.g., localhost:8000")
-parser.add_argument('outfile', type=argparse.FileType('w'), nargs='?',
-                    help='File to write. Extension determines behavior. If ".pdf" '
+parser.add_argument('outfileorport', type=str, nargs='?',
+                    help='File to write, or server to serve to. If an integer, gets treated '
+                    'as a port number, and a webserver is started on that port. If ends with ".pdf" '
                     'or if not specified, write plots to a PDF. If ".tsv" or ".txt'
                     'write data to tab-separated values file')
 parser.add_argument('--anonymize', action="store_true",
@@ -89,27 +91,35 @@ if args.teamcolor2 is not None:
     derby_game.set_team_color_2(args.teamcolor2)
     print(f"Setting team 2 color to {args.teamcolor2}")
 
-if args.outfile is None:
-    if connect_to_server:
-        quit("Output filepath not provided, and connecting to an in-progress game. "
-        "Don't know where to write output, quitting.")
-    elif args.jsonfileorserver.lower().endswith(".json"):
-        print(f"Output filepath not provided. "
-              f"Using input filepath with extension .pdf instead of {args.jsonfileorserver[-5:]}")
-        out_filepath = args.jsonfileorserver[:-len(".json")] + ".pdf"
+if args.outfileorport is not None and args.outfileorport.isnumeric():
+    # start a webserver
+    jamstats_port = int(args.outfileorport)
+    print(f"Starting jamstats server on port {jamstats_port}")
+    statserver.set_game(derby_game)
+    statserver.start(jamstats_port)
+else:
+    # write a file
+    if args.outfile is None:
+        if connect_to_server:
+            quit("Output filepath not provided, and connecting to an in-progress game. "
+            "Don't know where to write output, quitting.")
+        elif args.jsonfileorserver.lower().endswith(".json"):
+            print(f"Output filepath not provided. "
+                f"Using input filepath with extension .pdf instead of {args.jsonfileorserver[-5:]}")
+            out_filepath = args.jsonfileorserver[:-len(".json")] + ".pdf"
+        else:
+            print("Input file doesn't end with .json, so refusing to guess what output file you want."
+                "  Please rename your input file or specify an output filepath. Quitting.")
+            quit()
     else:
-        print("Input file doesn't end with .json, so refusing to guess what output file you want."
-              "  Please rename your input file or specify an output filepath. Quitting.")
-        quit()
-else:
-    out_filepath = args.outfile.name
-    args.outfile.close()
+        out_filepath = args.outfile.name
+        args.outfile.close()
 
-if out_filepath.endswith(".tsv") or out_filepath.endswith(".txt"):
-    print("Writing TSV file...")
-    tsv_io.write_game_data_tsv(derby_game, out_filepath)
-else:
-    print("Writing PDF file...")
-    save_game_plots_to_pdf(derby_game, out_filepath, anonymize_names=args.anonymize,
-                           theme=args.theme)
-print(f"Wrote {out_filepath}")
+        if out_filepath.endswith(".tsv") or out_filepath.endswith(".txt"):
+            print("Writing TSV file...")
+            tsv_io.write_game_data_tsv(derby_game, out_filepath)
+        else:
+            print("Writing PDF file...")
+            save_game_plots_to_pdf(derby_game, out_filepath, anonymize_names=args.anonymize,
+                                theme=args.theme)
+        print(f"Wrote {out_filepath}")
