@@ -15,14 +15,19 @@ class DerbyGame:
     """
     def __init__(self, pdf_jams_data: pd.DataFrame, game_data_dict: Dict[str, str],
                  pdf_penalties: pd.DataFrame, pdf_team_colors: pd.DataFrame):
+        logger.debug("DerbyGame init")
         self.pdf_jams_data = pdf_jams_data
         self.game_data_dict = game_data_dict
         self.team_1_name = game_data_dict["team_1"]
         self.team_2_name = game_data_dict["team_2"]
+
+        logger.debug("Extracting game summary dict")
         self.game_summary_dict = self.extract_game_summary_dict()
         self.n_jams = self.game_summary_dict["Jams"]
         self.pdf_penalties = pdf_penalties
         self.pdf_team_colors = pdf_team_colors
+
+        logger.debug("Handling team colors")
         if pdf_team_colors is None:
             self.team_color_1 = sns.color_palette()[0]
             self.team_color_2 = sns.color_palette()[1]
@@ -81,16 +86,22 @@ class DerbyGame:
         Returns:
             pd.DataFrame: game summary dataframe
         """
+        logger.debug("extract_game_summary_dict 1")
         n_periods = len(set([x for x in self.pdf_jams_data.PeriodNumber if x > 0]))
+        logger.debug(f"Periods: {n_periods}")
+
         n_jams = len(self.pdf_jams_data.prd_jam)  # is this correct? Is jam 0 a real jam?
+        logger.debug(f"Jams: {n_jams}")
 
         game_duration_s = 0
         for period in sorted(list(set(self.pdf_jams_data.PeriodNumber))):
+            logger.debug("Extracting jam data for period {period}")
             pdf_per = self.pdf_jams_data[self.pdf_jams_data.PeriodNumber == period]
             period_duration_s = (max(pdf_per.jam_endtime_seconds) -
                                  min(pdf_per.jam_starttime_seconds))
             game_duration_s += period_duration_s
     
+        logger.debug("Calculating final scores")
         final_score_team_1 = max(self.pdf_jams_data.TotalScore_1)
         final_score_team_2 = max(self.pdf_jams_data.TotalScore_2)
 

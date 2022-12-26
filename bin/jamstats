@@ -9,7 +9,7 @@ from jamstats.io.scoreboard_json_io import (
 from jamstats.io import tsv_io
 from jamstats.plots.plot_together import save_game_plots_to_pdf
 from jamstats.plots import plot_together, jamplots, skaterplots
-from jamstats.data import json_to_pandas
+from jamstats.data import json_to_pandas, game_data
 from jamstats.plots.plot_util import DEFAULT_THEME, VALID_THEMES
 from jamstats.web import statserver
 import logging
@@ -53,7 +53,7 @@ if args.debug:
     stream_handler.setStream(sys.stdout)
 
     logger.warning("Enabling debug logging.")
-    for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas]:
+    for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data]:
         mymodule.logger.setLevel(logging.DEBUG)
         mymodule.logger.addHandler(stream_handler)
 
@@ -103,7 +103,7 @@ if args.outfileorport is not None and args.outfileorport.isnumeric():
         statserver.start(jamstats_port)
 else:
     # write a file
-    if args.outfile is None:
+    if args.outfileorport is None:
         if connect_to_server:
             quit("Output filepath not provided, and connecting to an in-progress game. "
             "Don't know where to write output, quitting.")
@@ -116,14 +116,13 @@ else:
                 "  Please rename your input file or specify an output filepath. Quitting.")
             quit()
     else:
-        out_filepath = args.outfile.name
-        args.outfile.close()
+        out_filepath = args.outfileorport
 
-        if out_filepath.endswith(".tsv") or out_filepath.endswith(".txt"):
-            print("Writing TSV file...")
-            tsv_io.write_game_data_tsv(derby_game, out_filepath)
-        else:
-            print("Writing PDF file...")
-            save_game_plots_to_pdf(derby_game, out_filepath, anonymize_names=args.anonymize,
-                                theme=args.theme)
-        print(f"Wrote {out_filepath}")
+    if out_filepath.endswith(".tsv") or out_filepath.endswith(".txt"):
+        print("Writing TSV file...")
+        tsv_io.write_game_data_tsv(derby_game, out_filepath)
+    else:
+        print("Writing PDF file...")
+        save_game_plots_to_pdf(derby_game, out_filepath, anonymize_names=args.anonymize,
+                            theme=args.theme)
+    print(f"Wrote {out_filepath}")

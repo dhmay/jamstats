@@ -24,26 +24,30 @@ def load_json_derby_game(game_json) -> DerbyGame:
     Returns:
         DerbyGame: derby game
     """
+    logger.debug("load_json_derby_game start.")
     # this combo is inefficient
     json_major_version = get_json_major_version(game_json["state"])
     json_version = get_json_version(game_json["state"])
 
+    logger.debug("Loading game data")
     pdf_game_state = json_to_game_dataframe(game_json)
     game_data_dict = extract_game_data_dict(pdf_game_state)
     game_data_dict["scoreboard_version"] = json_version
     game_data_dict["jamstats_version"] = pkg_resources.require("jamstats")[0].version
 
+    logger.debug("Extracting roster")
     pdf_roster = extract_roster(pdf_game_state,
                                 game_data_dict["team_1"],
                                 game_data_dict["team_2"])
+    logger.debug("Extracting jam data")
     pdf_game_data = extract_jam_data(pdf_game_state, pdf_roster)
+    logger.debug("Extracting penalties")
     pdf_penalties = extract_penalties(pdf_game_state, pdf_roster,
                                       json_major_version)
     try:
         pdf_team_colors = extract_team_colors(pdf_game_state)
     except Exception as e:
         logger.warn(f"Failed to extract team colors. Exception: {e}")
-
     return DerbyGame(pdf_game_data, game_data_dict, pdf_penalties, pdf_team_colors)
 
 
@@ -69,8 +73,7 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
         # In-process games have both "CurrentGame" fields and fields
         # annotated with a game identifier. Complete games don't have
         # "CurrentGame" fields.
-        # I believe the "CurrentGame" fields are the ones I want,
-        # for in-process games. Strip out the others.
+        # I think the "CurrentGame" fields are junk. Get rid of them.
         logger.debug(f"Found version 5. Checking for in-progress game...")
         is_in_progress_game = False
         for key in game_dict:
@@ -79,11 +82,11 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
                break
         if is_in_progress_game:
             logger.debug(f"Found in-progress game. Stripping rows. Before: {len(game_dict)} keys")
-            game_dict_new = {}
-            for key in game_dict:
-                if not key.split(".")[1].startswith("Game("):
-                    game_dict_new[key.replace("CurrentGame", "Game(dummy)")] = game_dict[key]
-            game_dict = game_dict_new
+            game_dict_new = {
+                key: game_dict[key]
+                for key in game_dict
+                if not key.split(".")[1] == "CurrentGame"
+            }
             logger.debug(f"After: {len(game_dict)} keys.")
         game_dict_new = {
             ".".join([chunk for chunk in key.split(".") if not chunk.startswith("Game(")]):
@@ -492,14 +495,14 @@ def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
     pdf_ateamjams_data_fielding["keychunk_5"] = [
         chunks[5] for chunks in pdf_ateamjams_data_fielding.key_chunks]
     pdf_ateamjams_data_skaters = pdf_ateamjams_data_fielding[
-        pdf_ateamjams_data_fielding.keychunk_5 == "Skater"]
+        pdf_ateamjams_data_fielding.keychunk_5 == "Id"]
     pdf_ateamjams_data_skaters = pdf_ateamjams_data_skaters.rename(columns={
         "value": "Id"
     })
 
     logger.debug(f"    Before roster merge, team jam skater data: {len(pdf_ateamjams_data_skaters)}")
     pdf_ateamjams_data_skaters_withname = pdf_ateamjams_data_skaters.merge(
-        pdf_roster, on="Id")
+        pdf_roster, on="Id", how="left")
     logger.debug(f"    After roster merge, team jam skater data: {len(pdf_ateamjams_data_skaters_withname)}")
 
     pdf_jam_skater_lists = pdf_ateamjams_data_skaters_withname.groupby(
