@@ -42,7 +42,7 @@ PLOT_NAME_FUNC_MAP = {
     "Cumulative Score by Jam": plot_cumulative_score_by_jam,
     "Lead and Scores (Period 1)": plot_jam_lead_and_scores_period1,
     "Lead and Scores (Period 2)": plot_jam_lead_and_scores_period2,
-    "Jammer Summery": plot_jammers_by_team,
+    "Jammer Summary": plot_jammers_by_team,
     "Lead Summary": plot_lead_summary,
     "Jam Duration": histogram_jam_duration,
     "Team Penalty Counts": plot_team_penalty_counts,
