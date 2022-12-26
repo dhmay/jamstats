@@ -72,7 +72,8 @@ def set_game(derby_game: DerbyGame):
 def index():
     if app.scoreboard_server is not None:
         # check and see if it's been long enough to requery the server
-        if (datetime.now() - app.game_update_time).total_seconds() >= MIN_REQUERY_SERVER_SECONDS:
+        seconds_since_update = (datetime.now() - app.game_update_time).total_seconds()
+        if  seconds_since_update >= MIN_REQUERY_SERVER_SECONDS:
             logger.debug(f"Connecting to server {app.scoreboard_server}, "
                          "port {app.scoreboard_port}...")
             try:
@@ -120,6 +121,7 @@ def index():
                         </table>
                     </th>
                     <th>
+                        <p><H2>{plot_name}</H2></p>
                         <p><img src="fig/{plot_name}" width="1000"/></p>
                     </th>
                 </tr>
