@@ -96,7 +96,11 @@ if args.outfileorport is not None and args.outfileorport.isnumeric():
     jamstats_port = int(args.outfileorport)
     print(f"Starting jamstats server on port {jamstats_port}")
     statserver.set_game(derby_game)
-    statserver.start(jamstats_port)
+    if connect_to_server:
+        statserver.start(jamstats_port, scoreboard_server=server,
+                         scoreboard_port = port)
+    else:
+        statserver.start(jamstats_port)
 else:
     # write a file
     if args.outfile is None:

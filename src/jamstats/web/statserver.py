@@ -21,11 +21,15 @@ from jamstats.plots.skaterplots import (
     plot_skater_stats_team1,
     plot_skater_stats_team2,
 )
+from jamstats.io.scoreboard_json_io import load_inprogress_game_from_server
 import matplotlib
 from datetime import datetime
 import io
 import logging
 import pkg_resources
+
+
+MIN_REQUERY_SERVER_SECONDS = 30
 
 logger = logging.Logger(__name__)
 
@@ -48,11 +52,14 @@ PLOT_NAME_FUNC_MAP = {
     "Team 2 Skaters": plot_skater_stats_team2,
 }
 
-def start(port: int, debug: bool = True) -> None:
+def start(port: int, debug: bool = True, scoreboard_server: str = None,
+          scoreboard_port: int = None) -> None:
     matplotlib.use('Agg')
     app.plotname_image_map = {}
     app.plotname_time_map = {}
     prepare_to_plot()
+    app.scoreboard_server = scoreboard_server
+    app.scoreboard_port = scoreboard_port
     app.run(host="127.0.0.1", port=port, debug=debug)
 
 
@@ -63,6 +70,19 @@ def set_game(derby_game: DerbyGame):
 
 @app.route("/")
 def index():
+    if app.scoreboard_server is not None:
+        # check and see if it's been long enough to requery the server
+        if (datetime.now() - app.game_update_time).total_seconds() >= MIN_REQUERY_SERVER_SECONDS:
+            logger.debug(f"Connecting to server {app.scoreboard_server}, "
+                         "port {app.scoreboard_port}...")
+            try:
+                derby_game = load_inprogress_game_from_server(
+                    app.scoreboard_server, app.scoreboard_port)
+                set_game(derby_game)
+            except Exception as e:
+                logger.error("Failed to download in-game data from server "
+                            f"{app.scoreboard_server}:{app.scoreboard_port}: {e}")
+
     args = request.args
     
     plotlink_html_chunks = [
