@@ -2,12 +2,17 @@
     <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
 </p>
 
-Tools for doing statistics and making plots on data from the [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard). Read in JSON files from completed games or connect to a running scoreboard. Write plots out as PDF files, or start a webserver that anyone on the network can connect to to view plots.
+Tools for doing statistics and making plots on data from the [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard).
 
-On **Windows**, build PDFs with **drag-and-drop**. On Mac or Windows, lots more capability on the command line. Supports both v5.x and v4.x scoreboard versions. 
+* Read in JSON files from completed games or connect to a running scoreboard.
+* Write plots out as PDF files, or start a webserver that anyone on the network can browse to to view plots.
+* On **Windows**, build PDFs with **drag-and-drop**.
+    * On Mac, Linux or Windows, lots more capability on the command line.
+* Supports both v5.x and v4.x scoreboard versions. 
 
-* [Installation](#installation)
-* [Usage](#usage)
+[Installation](#installation)
+
+[Usage](#usage)
 
 ## Let's see some plots!
 
