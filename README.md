@@ -16,7 +16,7 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 #### Instructions
 
 * **[Installation](#installation)**
-* **[Usage instructions](#usage)**
+* **[Usage](#usage)**
 
 ## Sample plots
 
