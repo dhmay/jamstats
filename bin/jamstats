@@ -73,12 +73,12 @@ if connect_to_server:
     try:
         derby_game = load_inprogress_game_from_server(server, port)
     except Exception as e:
-        quit(f"Failed to download in-game data from server {server}:{port}: {e}")
+        sys.exit(f"Failed to download in-game data from server {server}:{port}: {e}")
 else:
     try:
         derby_game = load_derby_game_from_json_file(args.jsonfileorserver)
     except Exception as e:
-        quit(f"Failed to open file {args.jsonfileorserver}: {e}")
+        sys.exit(f"Failed to open file {args.jsonfileorserver}: {e}")
 
 if args.anonymizeteams:
     print("Anonymizing teams.")
@@ -105,16 +105,15 @@ else:
     # write a file
     if args.outfileorport is None:
         if connect_to_server:
-            quit("Output filepath not provided, and connecting to an in-progress game. "
+            sys.exit("Output filepath not provided, and connecting to an in-progress game. "
             "Don't know where to write output, quitting.")
         elif args.jsonfileorserver.lower().endswith(".json"):
             print(f"Output filepath not provided. "
                 f"Using input filepath with extension .pdf instead of {args.jsonfileorserver[-5:]}")
             out_filepath = args.jsonfileorserver[:-len(".json")] + ".pdf"
         else:
-            print("Input file doesn't end with .json, so refusing to guess what output file you want."
+            sys.exit("Input file doesn't end with .json, so refusing to guess what output file you want."
                 "  Please rename your input file or specify an output filepath. Quitting.")
-            quit()
     else:
         out_filepath = args.outfileorport
 
