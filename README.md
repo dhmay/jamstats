@@ -14,10 +14,6 @@ Tools for doing statistics and making plots on data from the [CRG roller derby s
 
 **[Usage instructions](#usage)**
 
-## Let's see some plots!
-
-If you like these plots, you might like this set of tools
-
 ![Cumulative points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png)
 ![Barplot of points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png)
 ![Plots summarizign lead by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png)
