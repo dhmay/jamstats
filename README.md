@@ -8,11 +8,13 @@ Tools for doing statistics and making plots on data from the [CRG roller derby s
 * Write plots out as PDF files, or start a webserver that anyone on the network can browse to to view plots.
 * On **Windows**, build PDFs with **drag-and-drop**.
     * On Mac, Linux or Windows, lots more capability on the command line.
-* Supports both v5.x and v4.x scoreboard versions. 
+* Supports both v5.x and v4.x scoreboard versions.
 
 **[Installation instructions](#installation)**
 
 **[Usage instructions](#usage)**
+
+## Sample plots:
 
 ![Cumulative points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png)
 ![Barplot of points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png)
