@@ -101,10 +101,10 @@ def make_all_plots(derby_game: DerbyGame,
                 logger.warn(f"Failed to make skater plot {plot_func.__name__}: {e}")
     
     # add logo to table plots
-    with importlib.resources.path("jamstats.resources", "jamstats_logo.png") as template_file:
-        im = plt.imread(template_file)
-    for f in figures[:2]:
-        newax = f.add_axes([0.425,0.9,0.15,0.15], anchor='SE', zorder=1)
-        newax.axis('off')
-        newax.imshow(im)
+    #with importlib.resources.path("jamstats.resources", "jamstats_logo.png") as template_file:
+    #    im = plt.imread(template_file)
+    #for f in figures[:2]:
+    #    newax = f.add_axes([0.425,0.9,0.15,0.15], anchor='SE', zorder=1)
+    #    newax.axis('off')
+    #    newax.imshow(im)
     return figures
