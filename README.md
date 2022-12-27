@@ -32,7 +32,7 @@ Go to the [latest release](https://github.com/dhmay/jamstats/releases) and downl
 
 ## Usage
 
-### No-commandline option
+### Drag-and-drop (Windows only)
 
 On Windows, to generate a plots PDF, you can simply drag your game JSON file onto the jamstats.exe file. That will generate a .pdf file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
 
