@@ -104,11 +104,6 @@ def index():
                     <th align="left" valign="top" width="200">
                         <table>
                             <tr>
-                                <th>
-                                    <img src="logo" width="200">
-                                </th>
-                            </tr>
-                            <tr>
                                 <th align="left" valign="top" bgcolor="lightgray" width="200">
                                     <p>Updated {game_update_time_str}</p>
                                     <p>{plot_link_html}</p>
