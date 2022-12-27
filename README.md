@@ -50,6 +50,7 @@ Basic usage is:
     * jamstats will build the plots representing that game
 * the server and port number (e.g., `127.0.0.1:8000`) of a running scoreboard
     * jamstats will connect to the scoreboard and download the latest game state
+        * if `[output]` is to a webserver, jamstats will poll the scoreboard every 30 seconds, keeping your plots up to date
 
 `[output]` is optional.
 
