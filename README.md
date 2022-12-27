@@ -2,7 +2,7 @@
     <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
 </p>
 
-Tools for doing statistics and making plots on data from [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard) JSON files, or from a running scoreboard server. 
+Tools for doing statistics and making plots on data from the [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard). Read in completed game files or connect to a running scoreboard. Write plots out PDF files or start a webserver that anyone on the network can connect to to view plots.
 
 Various installation options, including a Windows executable that can build plots without using the command line. Supports both v4.x and v5.x scoreboard versions. 
 
@@ -38,13 +38,26 @@ On Windows, to generate a plots .pdf, you can simply drag your game JSON file on
 
 ### Commandline
 
-Get full help for the `jamstats` command by running it with the `--help` argument.
+Get full help for the `jamstats` (or `jamstats.exe` on Windows) command by running it with the `--help` argument.
 
-`jamstats [-h] [--anonymize] [--debug] [--inprogress] jsonfileorserver [outfile]`
+Basic usage is:
 
-Makes plots describing a game and writes them to a PDF. If output PDF file isn't specified, uses the input filepath and changes .json to .pdf. If `--inprogress` is specified, instead of reading an input JSON file, connects to a running scoreboard server and downloads the current game state. In that case, the first unnamed argument should be a string of the format `server:port`, e.g., `localhost:8000`. 
+`jamstats <input> [output]`
 
-If `outfile` has a `.txt` or `.tsv` extension, will instead write tab-delimited game data.
+`<input>` can be:
+
+* a JSON file from a completed or in-progress game
+    * jamstats will build the plots representing that game
+* the server and port number (e.g., `127.0.0.1:8000`) of a running scoreboard
+    * jamstats will connect to the scoreboard and download the latest game state
+
+`[output]` is optional.
+
+* If omitted, plots will be written to a PDF file with the same name as the JSON input file but with extension `.json` instead of `.pdf`
+* If provided:
+    * if it is an integer (e.g., `8080`), jamstats will start a webserver on that port number. Browse to, e.g., `http://locoalhost:8080` to view plots in your browser
+    * if it has a `.txt` or `.tsv` extension, jamstats will write tab-delimited game data file that can be loaded in Excel or R
+    * otherwise, jamstats will write plots to a PDF file with that name
 
 ### Using jamstats from Python
 
