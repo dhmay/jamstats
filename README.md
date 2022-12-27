@@ -2,7 +2,7 @@
     <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
 </p>
 
-Tools for doing statistics and making plots on data from the [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard).
+Tools for making plots on data from the [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard). Visualizes points per jam, lead, calloffs, time to initial pass, penalties and lots more.
 
 * Read in JSON files from completed games or connect to a running scoreboard.
 * Write plots out as PDF files, or start a webserver that anyone on the network can browse to to view plots.
