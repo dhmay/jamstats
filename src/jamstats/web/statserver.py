@@ -26,7 +26,6 @@ import matplotlib
 from datetime import datetime
 import io
 import logging
-import pkg_resources
 
 
 MIN_REQUERY_SERVER_SECONDS = 30
@@ -94,7 +93,6 @@ def index():
     plot_name = args["plot_name"] if "plot_name" in args else "Game Summary"
 
     game_update_time_str = app.game_update_time.strftime("%Y-%m-%d, %H:%M:%S")
-    jamstats_version = pkg_resources.require("jamstats")[0].version
 
     return render_template_string(f'''<!doctype html>
     <html>
@@ -108,8 +106,6 @@ def index():
                             <tr>
                                 <th>
                                     <img src="logo" width="200">
-                                    <br>
-                                    version {jamstats_version}
                                 </th>
                             </tr>
                             <tr>

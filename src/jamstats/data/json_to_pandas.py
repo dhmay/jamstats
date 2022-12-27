@@ -7,7 +7,6 @@ from typing import Dict, Any
 from jamstats.data.game_data import DerbyGame
 import logging
 import seaborn as sns
-import pkg_resources
 
 logger = logging.Logger(__name__)
 
@@ -33,7 +32,6 @@ def load_json_derby_game(game_json) -> DerbyGame:
     pdf_game_state = json_to_game_dataframe(game_json)
     game_data_dict = extract_game_data_dict(pdf_game_state)
     game_data_dict["scoreboard_version"] = json_version
-    game_data_dict["jamstats_version"] = pkg_resources.require("jamstats")[0].version
 
     logger.debug("Extracting roster")
     pdf_roster = extract_roster(pdf_game_state,
