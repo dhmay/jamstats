@@ -4,7 +4,7 @@
 
 Tools for doing statistics and making plots on data from the [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard). Read in completed game files or connect to a running scoreboard. Write plots out as PDF files, or start a webserver that anyone on the network can connect to to view plots.
 
-Installation options include a Windows executable that can build PDFs via drag-and-drop. Supports both v4.x and v5.x scoreboard versions. 
+Installation options include a **Windows executable** that can build PDFs via **drag-and-drop**. Supports both v5.x and v4.x scoreboard versions. 
 
 * [Installation](#installation)
 * [Usage](#usage)
