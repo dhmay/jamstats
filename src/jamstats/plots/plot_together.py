@@ -100,11 +100,6 @@ def make_all_plots(derby_game: DerbyGame,
             except Exception as e:
                 logger.warn(f"Failed to make skater plot {plot_func.__name__}: {e}")
     
-    # add jamstats version annotation
-    for f in figures:
-        f.axes[0].annotate(text=f"jamstats version {derby_game.game_data_dict['jamstats_version']}",
-                           xy=[5, 5], xytext=[5, 5], textcoords="figure pixels", size="x-small")
-        
     # add logo to table plots
     with importlib.resources.path("jamstats.resources", "jamstats_logo.png") as template_file:
         im = plt.imread(template_file)
