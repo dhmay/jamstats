@@ -18,8 +18,8 @@ import pkg_resources
 
 logger = logging.Logger(__name__)
 
-jamstats_version = pkg_resources.require("jamstats")[0].version
-print(f"jamstats version {jamstats_version}")
+#jamstats_version = pkg_resources.require("jamstats")[0].version
+print(f"jamstats, by Damon May")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('jsonfileorserver', type=str,
