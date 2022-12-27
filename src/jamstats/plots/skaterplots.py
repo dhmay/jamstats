@@ -164,6 +164,8 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
             "penalty_count": list(pdf_penalties_long["penalty_count"]) + [0] * len(skaters_no_penalties)
         })
 
+        pdf_penalties_long = pdf_penalties_long[~pdf_penalties_long.Skater.isna()]
+
         # calculate number of penalties per skater. Again, there must be a better way,
         # probably with groupby. Eh.
         skater_penaltycount_map = {

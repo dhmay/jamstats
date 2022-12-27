@@ -495,14 +495,22 @@ def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
     pdf_ateamjams_data_fielding["keychunk_5"] = [
         chunks[5] for chunks in pdf_ateamjams_data_fielding.key_chunks]
     pdf_ateamjams_data_skaters = pdf_ateamjams_data_fielding[
-        pdf_ateamjams_data_fielding.keychunk_5 == "Id"]
+        pdf_ateamjams_data_fielding.keychunk_5 == "Skater"]
     pdf_ateamjams_data_skaters = pdf_ateamjams_data_skaters.rename(columns={
         "value": "Id"
     })
 
     logger.debug(f"    Before roster merge, team jam skater data: {len(pdf_ateamjams_data_skaters)}")
     pdf_ateamjams_data_skaters_withname = pdf_ateamjams_data_skaters.merge(
-        pdf_roster, on="Id", how="left")
+        pdf_roster, on="Id")
+    # Sometimes, we're unable to get proper roster data, e.g., for an in-progress game.
+    # In that case, merging back to the roster gives us nothing.
+    # Let's limp along with a left join so we can show most of the plots.
+    if len(pdf_ateamjams_data_skaters_withname) == 0:
+        pdf_ateamjams_data_skaters_withname = pdf_ateamjams_data_skaters.merge(
+            pdf_roster, on="Id", how="left")
+        logger.warn("Failed to join skater data with roster. Merged with left join, "
+                    f"rows {len(pdf_ateamjams_data_skaters_withname)}")
     logger.debug(f"    After roster merge, team jam skater data: {len(pdf_ateamjams_data_skaters_withname)}")
 
     pdf_jam_skater_lists = pdf_ateamjams_data_skaters_withname.groupby(
