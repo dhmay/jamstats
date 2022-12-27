@@ -10,9 +10,9 @@ Tools for doing statistics and making plots on data from the [CRG roller derby s
     * On Mac, Linux or Windows, lots more capability on the command line.
 * Supports both v5.x and v4.x scoreboard versions. 
 
-[Installation](#installation)
+**[Installation instructions](#installation)**
 
-[Usage](#usage)
+**[Usage instructions](#usage)**
 
 ## Let's see some plots!
 
