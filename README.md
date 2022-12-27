@@ -2,17 +2,21 @@
     <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
 </p>
 
-Tools for making plots on data from the [CRG roller derby scoreboard](https://github.com/rollerderby/scoreboard). Visualizes points per jam, lead, calloffs, time to initial pass, penalties and lots more.
+Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard).
 
-* Read in JSON files from completed games or connect to a running scoreboard.
-* Write plots out as PDF files, or start a webserver that anyone on the network can browse to to view plots.
-* On **Windows**, build PDFs with **drag-and-drop**.
-    * On Mac, Linux or Windows, lots more capability on the command line.
-* Supports both v5.x and v4.x scoreboard versions.
+#### Features
 
-**[Installation instructions](#installation)**
+* Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and lots more
+* Read in JSON files from completed games or connect to a running scoreboard
+* Save plots as PDF files, or start a webserver that anyone on the network can browse to
+* On **Windows**, build PDFs with **drag-and-drop**
+    * On Mac, Linux or Windows, lots of other options on the command line
+* Supports both v5.x and v4.x scoreboard versions
 
-**[Usage instructions](#usage)**
+#### Instructions
+
+* **[Installation](#installation)**
+* **[Usage instructions](#usage)**
 
 ## Sample plots
 
