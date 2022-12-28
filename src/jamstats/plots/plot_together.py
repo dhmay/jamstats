@@ -1,5 +1,6 @@
 __author__ = "Damon May"
 
+import os, sys
 from typing import List
 from matplotlib.figure import Figure
 from jamstats.data.game_data import DerbyGame
@@ -21,10 +22,11 @@ from jamstats.plots.skaterplots import (
     plot_skater_stats_team1,
     plot_skater_stats_team2,
 )
-from jamstats.plots.plot_util import prepare_to_plot, DEFAULT_THEME
+from jamstats.plots.plot_util import prepare_to_plot, DEFAULT_THEME, get_jamstats_logo_image 
 from matplotlib.backends.backend_pdf import PdfPages
-import importlib.resources
 from matplotlib import pyplot as plt
+from PIL import Image
+import io
 
 
 logger = logging.Logger(__name__)
@@ -101,11 +103,11 @@ def make_all_plots(derby_game: DerbyGame,
                 logger.warn(f"Failed to make skater plot {plot_func.__name__}: {e}")
     
     # add logo to table plots.
-    # This doesn't work in Windows executable because importlib can't find jamstats.resources
-    #with importlib.resources.path("jamstats.resources", "jamstats_logo.png") as template_file:
-    #    im = plt.imread(template_file)
-    #for f in figures[:2]:
-    #    newax = f.add_axes([0.425,0.9,0.15,0.15], anchor='SE', zorder=1)
-    #    newax.axis('off')
-    #    newax.imshow(im)
+    im_bytes = get_jamstats_logo_image()
+    #im = plt.imread(im_bytes)
+    im = Image.open(io.BytesIO(im_bytes))
+    for f in figures[:2]:
+        newax = f.add_axes([0.425,0.9,0.15,0.15], anchor='SE', zorder=1)
+        newax.axis('off')
+        newax.imshow(im)
     return figures

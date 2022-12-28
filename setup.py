@@ -6,6 +6,7 @@ setup(
     description='Data processing, stats and plots on roller derby scoreboard JSON files',
     author='Damon May',
     package_dir={"":"src"},
+    include_package_data=True,
     packages=find_packages('src', exclude=['test']),
     scripts=['bin/jamstats'],
     install_requires=['pandas>=1.3.4', 'seaborn>=0.11.2'],
