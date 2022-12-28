@@ -79,6 +79,6 @@ def get_resource_binary(resource_filename: str) -> Image:
         else:
             # we appear to be running from source
             logger.debug("Loading image from source")
-            resource_file_dict[resource_filename] = importlib.resources.path(
-                'jamstats.resources', resource_filename).read_bytes()
+            with importlib.resources.path('jamstats.resources', resource_filename) as path:
+                resource_file_dict[resource_filename] = path.read_bytes()
     return resource_file_dict[resource_filename]
