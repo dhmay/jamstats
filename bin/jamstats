@@ -9,17 +9,17 @@ from jamstats.io.scoreboard_json_io import (
 from jamstats.io import tsv_io
 from jamstats.plots.plot_together import save_game_plots_to_pdf
 from jamstats.plots import plot_together, jamplots, skaterplots, plot_util
+from jamstats.util import resources
 from jamstats.data import json_to_pandas, game_data
 from jamstats.plots.plot_util import DEFAULT_THEME, VALID_THEMES
+from jamstats.util.resources import get_jamstats_version
 from jamstats.web import statserver
 import logging
 import sys
-import pkg_resources
 
 logger = logging.Logger(__name__)
 
-#jamstats_version = pkg_resources.require("jamstats")[0].version
-print(f"jamstats, by Damon May")
+print(f"jamstats version {get_jamstats_version()}, by Damon May")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('jsonfileorserver', type=str,
@@ -54,7 +54,7 @@ if args.debug:
 
     logger.warning("Enabling debug logging.")
     for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data,
-                     plot_util]:
+                     plot_util, resources]:
         mymodule.logger.setLevel(logging.DEBUG)
         mymodule.logger.addHandler(stream_handler)
 

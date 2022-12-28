@@ -22,7 +22,11 @@ from jamstats.plots.skaterplots import (
     plot_skater_stats_team1,
     plot_skater_stats_team2,
 )
-from jamstats.plots.plot_util import prepare_to_plot, DEFAULT_THEME, get_jamstats_logo_image 
+from jamstats.plots.plot_util import prepare_to_plot, DEFAULT_THEME
+from jamstats.util.resources import (
+    get_jamstats_logo_image,
+    get_jamstats_version
+)
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from PIL import Image
@@ -102,6 +106,11 @@ def make_all_plots(derby_game: DerbyGame,
             except Exception as e:
                 logger.warn(f"Failed to make skater plot {plot_func.__name__}: {e}")
     
+    # add jamstats version annotation
+    for f in figures:
+        f.axes[0].annotate(text=f"jamstats version {get_jamstats_version()}",
+                           xy=[5, 5], xytext=[5, 5], textcoords="figure pixels", size="x-small")
+
     # add logo to table plots.
     im_bytes = get_jamstats_logo_image()
     #im = plt.imread(im_bytes)
