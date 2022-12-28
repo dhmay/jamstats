@@ -3,7 +3,7 @@ __author__ = "Damon May"
 from flask import (Flask, request, render_template_string, send_file)
 from jamstats.data.game_data import DerbyGame
 import importlib.resources
-from jamstats.plots.plot_util import prepare_to_plot
+from jamstats.plots.plot_util import prepare_to_plot, get_jamstats_logo_image
 from jamstats.plots.jamplots import (
         plot_game_summary_table,
         plot_game_teams_summary_table,
@@ -104,6 +104,11 @@ def index():
                     <th align="left" valign="top" width="200">
                         <table>
                             <tr>
+                                <th>
+                                    <img src="logo" width="200">
+                                </th>
+                            </tr>
+                            <tr>
                                 <th align="left" valign="top" bgcolor="lightgray" width="200">
                                     <p>Updated {game_update_time_str}</p>
                                     <p>{plot_link_html}</p>
@@ -124,8 +129,8 @@ def index():
 @app.route("/logo")
 def show_logo():
     # add logo to table plots
-    with importlib.resources.path("jamstats.resources", "jamstats_logo.png") as template_file:
-        return send_file(open(template_file, "rb"), mimetype='image/png')
+    print("HI!!!!")
+    return send_file(io.BytesIO(get_jamstats_logo_image()), mimetype='image/png')
 
 @app.route("/fig/<plot_name>")
 def plot_figure(plot_name: str):
