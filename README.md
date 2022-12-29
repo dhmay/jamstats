@@ -6,12 +6,14 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 #### Features
 
-* Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and lots more
+* Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and much more
 * Read in JSON files from completed games or connect to a running scoreboard
-* Save plots as PDF files, or start a webserver that anyone on the network can browse to
-* Executables provided for both Windows and Mac
-* On **Windows**, build PDFs with **drag-and-drop**
-    * On Mac, Linux or Windows, lots of other options on the command line
+* Save plots as PDF files, or start a webserver that anyone on your network can browse to
+
+#### Compatibility
+
+* Executables for both Windows and Mac
+* On Windows, build PDFs with drag-and-drop
 * Supports both v5.x and v4.x scoreboard versions
 
 #### Instructions
