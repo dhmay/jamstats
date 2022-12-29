@@ -81,10 +81,12 @@ Basic usage is:
 
 * If omitted, plots will be written to a PDF file with the same name as the JSON input file but with extension `.json` instead of `.pdf`
 * If provided:
-    * if it is an integer (e.g., `8080`), jamstats will start a webserver on that port number. Browse to, e.g., `http://locoalhost:8080` to view plots in your browser
+    * if it is an integer (e.g., `8080`), jamstats will start a webserver\* on that port number. Browse to, e.g., `http://locoalhost:8080` to view plots in your browser
         * to update a plot with the latest game state, refresh your browser or click the link to the plot you want in the left sidebar
     * if it has a `.txt` or `.tsv` extension, jamstats will write tab-delimited game data file that can be loaded in Excel or R
     * otherwise, jamstats will write plots to a PDF file with that name
+    
+\* *I am not a web security expert, and I make no guarantees whatsoever about webserver security. If you're concerned and can help make it more secure, please open an issue!*
 
 ### Using jamstats from Python
 
