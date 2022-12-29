@@ -19,11 +19,23 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 ## Sample plots
 
 ![Cumulative points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png)
+
+Key attributes of every jam.
+
 ![Barplot of points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png)
+
+Use the colors defined for each team in the scoreboard file, or provide your own on the command line.
+
 ![Plots summarizign lead by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png)
+
 ![Plots with individual anonymized jammer stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png)
+
+What penalties dragged you down the most?
+
 ![Plots with individual anonymized skater stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png)
+
 ![Plots summarizing jammers by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png)
+
 
 ## Installation
 
