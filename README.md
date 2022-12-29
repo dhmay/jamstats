@@ -59,7 +59,9 @@ On Windows, to generate a plots PDF, you can simply drag your game JSON file ont
 
 ### Commandline
 
-The command you'll use is the same as the name of the file you downloaded (e.g., `jamstats-v0.3.4-alpha.exe` on Windows, or `jamstats-mac-v0.3.4-alpha` on Mac). In the usage below, I'm replacing that with simply `jamstats`. If you want the command to be `jamstats`, rename your file to `jamstats`.
+The command you'll use is the same as the name of the file you downloaded (e.g., `jamstats-v0.3.4-alpha.exe` on Windows, or `jamstats-mac-v0.3.4-alpha` on Mac).
+
+*In the usage below, I'm replacing that with simply `jamstats`. If you want the command to be `jamstats`, rename your file to `jamstats`.*
 
 Get full commandline help running the command with the `--help` argument.
 
@@ -73,13 +75,14 @@ Basic usage is:
     * jamstats will build the plots representing that game
 * the server and port number (e.g., `127.0.0.1:8000`) of a running scoreboard
     * jamstats will connect to the scoreboard and download the latest game state
-        * if `[output]` is to a webserver, jamstats will poll the scoreboard every 30 seconds, keeping your plots up to date
+        * if `[output]` is to a webserver, jamstats will throttle itself to downloading the latest game state no more often than every 30 seconds
 
 `[output]` is optional.
 
 * If omitted, plots will be written to a PDF file with the same name as the JSON input file but with extension `.json` instead of `.pdf`
 * If provided:
     * if it is an integer (e.g., `8080`), jamstats will start a webserver on that port number. Browse to, e.g., `http://locoalhost:8080` to view plots in your browser
+        * to update a plot with the latest game state, refresh your browser or click the link to the plot you want in the left sidebar
     * if it has a `.txt` or `.tsv` extension, jamstats will write tab-delimited game data file that can be loaded in Excel or R
     * otherwise, jamstats will write plots to a PDF file with that name
 
