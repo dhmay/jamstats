@@ -31,7 +31,11 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 #### Option 1: Windows executable
 
-Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats.exe`.
+Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-<version>.exe`.
+
+#### Option 2: Mac executable
+
+Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-mac-<version>`.
 
 #### Option 2: On any platform, with Python 3.7 or later
 
@@ -45,7 +49,9 @@ On Windows, to generate a plots PDF, you can simply drag your game JSON file ont
 
 ### Commandline
 
-Get full help for the `jamstats` (or `jamstats.exe` on Windows) command by running it with the `--help` argument.
+The command you'll use is the same as the name of the file you downloaded (e.g., `jamstats-v0.3.4-alpha.exe` on Windows, or `jamstats-mac-v0.3.4-alpha` on Mac). In the usage below, I'm replacing that with simply `jamstats`. If you want the command to be `jamstats`, rename your file to `jamstats`.
+
+Get full commandline help running the command with the `--help` argument.
 
 Basic usage is:
 
