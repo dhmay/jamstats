@@ -2,23 +2,18 @@
     <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
 </p>
 
-Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard).
+Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and 5.x).
 
 #### Features
 
 * Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and much more
 * Read in JSON files from completed games or connect to a running scoreboard
 * Save plots as PDF files, or start a webserver that anyone on your network can browse to
-
-#### Compatibility
-
-* Executables for both Windows and Mac
 * On Windows, build PDFs with drag-and-drop
-* Supports both v5.x and v4.x scoreboard versions
 
 #### Instructions
 
-* **[Installation](#installation)**
+* **[Installation](#installation)** (Windows and Mac)
 * **[Usage](#usage)**
 
 ## Sample plots
@@ -32,17 +27,17 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 ## Installation
 
-#### Option 1: Windows executable
+#### Option 1: executable file
 
-Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-<version>.exe`.
-
-#### Option 2: Mac executable
-
-Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the file `jamstats-mac-<version>`.
+Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the appropriate file for your operating system:
+* Windows: `jamstats-<version>.exe`
+* Mac: `jamstats-mac-<version>`
 
 #### Option 2: On any platform, with Python 3.7 or later
 
 `pip install jamstats`
+
+This will put the `jamstats` executable on your path.
 
 ## Usage
 
