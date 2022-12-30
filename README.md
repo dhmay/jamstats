@@ -18,27 +18,27 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 ## Sample plots
 
-<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png" width="800"></p>
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png" width="500"></p>
 
 Key attributes of every jam.
 
-<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png" width="800"></p>
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png" width="500"></p>
 
 Use the colors defined for each team in the scoreboard file, or provide your own on the command line.
 
-<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png" width="800"></p>
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png" width="500"></p>
 
-<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png" width="800"></p>
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png" width="500"></p>
 
 What penalties got you down the most?
 
-<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png" width="800"></p>
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png" width="500"></p>
 
-<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png" width="800"></p>
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png" width="500"></p>
 
 Want to do your own analytics? Save down a spreadsheet and do your own thing with it!
 
-<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/tsv_output_screenshot.png" width="800"></p>
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/tsv_output_screenshot.png" width="500"></p>
 
 
 ## Installation
