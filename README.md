@@ -18,23 +18,27 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 ## Sample plots
 
-![Cumulative points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png)
+<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png" width="800"></p>
 
 Key attributes of every jam.
 
-![Barplot of points per jam, by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png)
+<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png" width="800"></p>
 
 Use the colors defined for each team in the scoreboard file, or provide your own on the command line.
 
-![Plots summarizign lead by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png)
+<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png" width="800"></p>
 
-![Plots with individual anonymized jammer stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png)
+<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png" width="800"></p>
 
 What penalties got you down the most?
 
-![Plots with individual anonymized skater stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png)
+<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png" width="800"></p>
 
-![Plots summarizing jammers by team, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png)
+<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png" width="800"></p>
+
+Want to do your own analytics? Save down a spreadsheet and do your own thing with it!
+
+<p align="center"><img src="https://github.com/dhmay/jamstats/blob/main/resources/tsv_output_screenshot.png" width="800"></p>
 
 
 ## Installation
