@@ -30,8 +30,7 @@ Use the colors defined for each team in the scoreboard file, or provide your own
 
 ![Plots with individual anonymized jammer stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png)
 
-What penalties 
-ged you down the most?
+What penalties got you down the most?
 
 ![Plots with individual anonymized skater stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png)
 
