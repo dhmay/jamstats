@@ -9,7 +9,7 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 * Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and much more
 * Read in JSON files from completed games or connect to a running scoreboard
 * Save plots as PDF files, or start a webserver that anyone on your network can browse to
-* On Windows, build PDFs with drag-and-drop
+* On Windows, build PDFs with **drag-and-drop**
 
 #### Instructions
 
@@ -30,7 +30,8 @@ Use the colors defined for each team in the scoreboard file, or provide your own
 
 ![Plots with individual anonymized jammer stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png)
 
-What penalties dragged you down the most?
+What penalties 
+ged you down the most?
 
 ![Plots with individual anonymized skater stats, in a derby game](https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png)
 
@@ -55,7 +56,7 @@ This will put the `jamstats` executable on your path.
 
 ### Drag-and-drop (Windows only)
 
-On Windows, to generate a plots PDF, you can simply drag your game JSON file onto the jamstats.exe file. That will generate a .pdf file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
+On Windows, to generate a plots PDF, you can simply **drag and drop** your game JSON file onto the jamstats.exe file. That will generate a .pdf file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
 
 ### Commandline
 
