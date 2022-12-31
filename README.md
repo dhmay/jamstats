@@ -4,7 +4,7 @@
 
 Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and 5.x). **Testimonials:**
 
-*Looks awesome!* --our Head SO
+*Looks awesome!* --our league's head ref
 
 *BLESS YOUUUUU* --somebody on Reddit
 
