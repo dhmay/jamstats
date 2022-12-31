@@ -8,6 +8,8 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 *BLESS YOUUUUU* --somebody on Reddit
 
+*Go you! This is great!* --somebody on Facebook
+
 #### Features
 
 * Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and much more
