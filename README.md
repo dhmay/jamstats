@@ -2,7 +2,7 @@
     <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
 </p>
 
-Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and 5.x).
+Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and 5.x). 
 
 #### Features
 
@@ -15,6 +15,12 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 * **[Installation](#installation)** (Windows and Mac)
 * **[Usage](#usage)**
+
+#### Testimonials
+
+* *"Looks awesome!"* --our league's head ref
+* *"BLESS YOUUUUU"* --somebody on Reddit
+* *"Go you! This is great!"* --somebody on the Facebook scoreboard group
 
 ## Sample plots
 
