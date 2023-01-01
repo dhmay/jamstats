@@ -10,7 +10,6 @@ import random
 import string
 import pandas as pd
 from matplotlib import gridspec
-from jamstats.plots.plot_util import make_team_color_palette
 import traceback
 
 
