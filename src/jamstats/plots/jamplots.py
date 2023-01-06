@@ -7,7 +7,10 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from jamstats.data.game_data import DerbyGame
 import logging
-from jamstats.plots.plot_util import make_team_color_palette
+from jamstats.plots.plot_util import (
+    make_team_color_palette,
+    wordwrap_x_labels
+)
 import matplotlib.patches as mpatches
 
 
@@ -47,6 +50,8 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
                                 sum(pdf_jammer_jamcounts.team == derby_game.team_2_name)]
                 }),
                 ax=ax, palette=team_color_palette)
+    # word-wrap too-long team names
+    wordwrap_x_labels(ax)
     ax.set_title("Jammers per team")
 
     ax = axes[1]
@@ -54,6 +59,8 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
                    palette=team_color_palette, inner="stick")
     ax.set_title("Jams per jammer")
     ax.set_ylabel("Jams per jammer")
+    # word-wrap too-long team names
+    wordwrap_x_labels(ax)
 
     pdf_jammer_summary_1 = pdf_jams_data.groupby(
         "jammer_name_1").agg({"JamScore_1": "mean", "Number": "count"}).rename(
@@ -72,6 +79,8 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     ax.set_title("Mean jam score vs.\n# jams per jammer")
     ax.set_ylabel("Mean jam score")
     ax.set_xlabel("# jams")
+    # word-wrap too-long team names
+    wordwrap_x_labels(ax)
     ax.legend().remove()
 
     f.set_size_inches(14,6)
@@ -365,6 +374,8 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
 
     ax.set_ylabel("Jams")
     ax.set_title("Jams with Lead\n(black=lost, gray=not called)")
+    # word-wrap too-long team names
+    wordwrap_x_labels(ax)
 
     ax = axes[1]
     pdf_plot = pdf_jams_data_long.sort_values("team").rename(columns={
@@ -375,6 +386,8 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
                 inner="stick", palette=team_color_palette)
     ax.set_ylabel("Time to Initial (s)")
     ax.set_title("Time to Initial per jam")
+    # word-wrap too-long team names
+    wordwrap_x_labels(ax)
 
     ax = axes[2]
     colors = [team_color_palette[0] if lead_team == 1
