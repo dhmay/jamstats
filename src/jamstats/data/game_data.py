@@ -3,6 +3,7 @@ __author__ = "Damon May"
 from typing import Dict
 import pandas as pd
 import time
+from datetime import timedelta
 import seaborn as sns
 import logging
 from matplotlib.colors import is_color_like
@@ -95,11 +96,13 @@ class DerbyGame:
 
         game_duration_s = 0
         for period in sorted(list(set(self.pdf_jams_data.PeriodNumber))):
-            logger.debug("Extracting jam data for period {period}")
+            logger.debug(f"Extracting jam data for period {period}")
             pdf_per = self.pdf_jams_data[self.pdf_jams_data.PeriodNumber == period]
             period_duration_s = (max(pdf_per.jam_endtime_seconds) -
                                  min(pdf_per.jam_starttime_seconds))
+            logger.debug(f"Period {period} duration: {period_duration_s} seconds")
             game_duration_s += period_duration_s
+        logger.debug(f"Game duration: {game_duration_s} seconds")
     
         logger.debug("Calculating final scores")
         final_score_team_1 = max(self.pdf_jams_data.TotalScore_1)
@@ -112,7 +115,7 @@ class DerbyGame:
         gross_summary_dict = {
             "Periods": n_periods,
             "Jams": n_jams,
-            "Total Game Time (min:sec)": time.strftime('%M:%S', time.gmtime(game_duration_s)),
+            "Total Game Time": str(timedelta(seconds = game_duration_s)),
             f"{self.team_1_name} Final Score": final_score_team_1,
             f"{self.team_2_name} Final Score": final_score_team_2,
             "Injury Jams": n_jams_with_injury,
