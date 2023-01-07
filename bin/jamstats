@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.WARNING,
 
 print(f"jamstats version {get_jamstats_version()}, by Damon May")
 
-@Gooey(program_name="jamstats", program_description="Plot stats from a WFTDA scoreboard json file")
+@Gooey(program_name="jamstats", program_description="Plot stats from a WFTDA scoreboard json file or server")
 def gui_args():
     parser = argparse.ArgumentParser()
     add_args(parser)
@@ -38,16 +38,16 @@ def cmdline_args():
 
 def add_args(parser):
     parser.add_argument('--jsonfile', type=argparse.FileType('r'),
-                        help="Scoreboard JSON file to read. If this argument is specified, will read from a file.")
+                        help="Scoreboard JSON file to read. If this argument is specified, will read from a file. Either this or scoreboardserver must be specified.")
     parser.add_argument('--scoreboardserver', type=str,
-                        help="server:port to connect to, e.g., localhost:8000. If this argument is specified, will connect to a server.")
+                        help="server:port to connect to, e.g., localhost:8000. If this argument is specified, will connect to a server. Either this or jsonfile must be specified")
     parser.add_argument('--outfile', type=argparse.FileType('w'),
                         help='File to write. If this argument is specified, will write output to a file. '
                         'If ends with ".pdf", write plots to a PDF. If ".tsv" or ".txt" '
-                        'write data to tab-separated values file')
+                        'write data to tab-separated values file. Either this or jamstatsport must be specified.')
     parser.add_argument('--jamstatsport', type=int,
                         help='Port to serve to. If this argument is specified, will serve output to a webserver '
-                        'on the specified port.')
+                        'on the specified port. Either this or outfile must be specified unless input is jsonfile.')
     parser.add_argument('--anonymize', action="store_true",
                         help="Replace actual skater names with random pregenerated ones?")
     parser.add_argument('--anonymizeteams', action="store_true",
