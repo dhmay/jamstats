@@ -16,7 +16,7 @@ from jamstats.util.resources import get_jamstats_version
 from jamstats.web import statserver
 import logging
 import sys
-from gooey import Gooey, GooeyParser
+from gooey import Gooey
 
 logger = logging.Logger(__name__)
 
@@ -45,7 +45,7 @@ def add_args(parser):
                         help='File to write. If this argument is specified, will write output to a file. '
                         'If ends with ".pdf", write plots to a PDF. If ".tsv" or ".txt" '
                         'write data to tab-separated values file')
-    parser.add_argument('--serverport', type=int,
+    parser.add_argument('--jamstatsport', type=int,
                         help='Port to serve to. If this argument is specified, will serve output to a webserver '
                         'on the specified port.')
     parser.add_argument('--anonymize', action="store_true",
@@ -68,10 +68,10 @@ def add_args(parser):
         sys.exit("Must specify either --jsonfile or --scoreboardserver")
     if args.jsonfile is not None and args.scoreboardserver is not None:
         sys.exit("Must specify either --jsonfile or --scoreboardserver, but not both")
-    if args.outfile is None and args.serverport is None and args.jsonfile is None:
-        sys.exit("Must specify either --outfile or --serverport if connecting to a server")
-    if args.outfile is not None and args.serverport is not None:
-        sys.exit("Cannot specify both --outfile and --serverport")
+    if args.outfile is None and args.jamstatsport is None and args.jsonfile is None:
+        sys.exit("Must specify either --outfile or --jamstatsport if connecting to a server")
+    if args.outfile is not None and args.jamstatsport is not None:
+        sys.exit("Cannot specify both --outfile and --jamstatsport")
     return args
 
 if len(sys.argv) == 1:
@@ -122,15 +122,15 @@ if args.teamcolor2 is not None:
     derby_game.set_team_color_2(args.teamcolor2)
     print(f"Setting team 2 color to {args.teamcolor2}")
 
-if args.serverport is not None:
+if args.jamstatsport is not None:
     # start a webserver
-    print(f"Starting jamstats server on port {args.serverport}")
+    print(f"Starting jamstats server on port {args.jamstatsport}")
     statserver.set_game(derby_game)
     if connect_to_server:
-        statserver.start(args.serverport, scoreboard_server=server,
+        statserver.start(args.jamstatsport, scoreboard_server=server,
                          scoreboard_port = port)
     else:
-        statserver.start(args.serverport)
+        statserver.start(args.jamstatsport)
 else:
     # write a file
     if args.outfile is None:
