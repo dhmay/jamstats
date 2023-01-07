@@ -37,7 +37,7 @@ class DerbyGame:
                 self.team_color_1 = team_color_dict[self.team_1_name]
                 self.team_color_2 = team_color_dict[self.team_2_name]
             except Exception as e:
-                logger.warn("Failed to find teams in color definitions. Dummying.")
+                logger.warn("Failed to find teams in color definitions. Using default colors.")
                 self.team_color_1 = sns.color_palette()[0]
                 self.team_color_2 = sns.color_palette()[1]
 
