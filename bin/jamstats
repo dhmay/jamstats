@@ -113,7 +113,7 @@ else:
 
 if args.anonymizeteams:
     print("Anonymizing teams.")
-    derby_game.anonymize_teams()
+    derby_game.anonymize_team_names()
 
 if args.teamcolor1 is not None:
     derby_game.set_team_color_1(args.teamcolor1)
