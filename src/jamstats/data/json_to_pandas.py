@@ -70,8 +70,8 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
 
         # In-process games have both "CurrentGame" fields and fields
         # annotated with a game identifier. Complete games don't have
-        # "CurrentGame" fields.
-        # I think the "CurrentGame" fields are junk. Get rid of them.
+        # "CurrentGame" fields. So, if we find a "CurrentGame" field,
+        # use those and strip out all the fields with a game identifier.
         logger.debug(f"Found version 5. Checking for in-progress game...")
         is_in_progress_game = False
         for key in game_dict:
@@ -79,18 +79,19 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
                is_in_progress_game = True
                break
         if is_in_progress_game:
-            logger.debug(f"Found in-progress game. Stripping rows. Before: {len(game_dict)} keys")
+            logger.debug(f"Found in-progress game. Stripping rows with 'Scoreboard.Game('. Before: {len(game_dict)} keys")
             game_dict_new = {
-                key: game_dict[key]
+                ".".join([chunk for chunk in key.split(".") if "CurrentGame" != chunk]):
+                game_dict[key]
                 for key in game_dict
-                if not key.split(".")[1] == "CurrentGame"
+                if not key.startswith("Scoreboard.Game(")
             }
-            logger.debug(f"After: {len(game_dict)} keys.")
-        game_dict_new = {
-            ".".join([chunk for chunk in key.split(".") if not chunk.startswith("Game(")]):
-            game_dict[key]
-            for key in game_dict
-        }
+        else:
+            game_dict_new = {
+                ".".join([chunk for chunk in key.split(".") if not chunk.startswith("Game(")]):
+                game_dict[key]
+                for key in game_dict
+            }
         game_dict = game_dict_new
         
 
