@@ -37,13 +37,17 @@ def cmdline_args():
     return parser.parse_args()
 
 def add_args(parser):
-    parser.add_argument('jsonfileorserver', type=str,
-                        help="Scoreboard json file to read (or server:port, e.g., localhost:8000)")
-    parser.add_argument('outfileorport', type=str, nargs='?',
-                        help='File to write, or server to serve to. If an integer, gets treated '
-                        'as a port number, and a webserver is started on that port. If ends with ".pdf" '
-                        'or if not specified, write plots to a PDF. If ".tsv" or ".txt'
+    parser.add_argument('--jsonfile', type=argparse.FileType('r'),
+                        help="Scoreboard JSON file to read. If this argument is specified, will read from a file.")
+    parser.add_argument('--scoreboardserver', type=str,
+                        help="server:port to connect to, e.g., localhost:8000. If this argument is specified, will connect to a server.")
+    parser.add_argument('--outfile', type=argparse.FileType('w'),
+                        help='File to write. If this argument is specified, will write output to a file. '
+                        'If ends with ".pdf", write plots to a PDF. If ".tsv" or ".txt" '
                         'write data to tab-separated values file')
+    parser.add_argument('--serverport', type=int,
+                        help='Port to serve to. If this argument is specified, will serve output to a webserver '
+                        'on the specified port.')
     parser.add_argument('--anonymize', action="store_true",
                         help="Replace actual skater names with random pregenerated ones?")
     parser.add_argument('--anonymizeteams', action="store_true",
@@ -59,6 +63,15 @@ def add_args(parser):
     parser.add_argument('--teamcolor2', type=str,
                         help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
     args = parser.parse_args()
+
+    if args.jsonfile is None and args.scoreboardserver is None:
+        sys.exit("Must specify either --jsonfile or --scoreboardserver")
+    if args.jsonfile is not None and args.scoreboardserver is not None:
+        sys.exit("Must specify either --jsonfile or --scoreboardserver, but not both")
+    if args.outfile is None and args.serverport is None and args.jsonfile is None:
+        sys.exit("Must specify either --outfile or --serverport if connecting to a server")
+    if args.outfile is not None and args.serverport is not None:
+        sys.exit("Cannot specify both --outfile and --serverport")
     return args
 
 if len(sys.argv) == 1:
@@ -77,16 +90,14 @@ if args.debug:
         mymodule.logger.setLevel(logging.DEBUG)
         mymodule.logger.addHandler(stream_handler)
 
-print(f"Loading game from {args.jsonfileorserver}...")
-
 connect_to_server = False
-if args.jsonfileorserver.count(":") == 1:
+if args.scoreboardserver:
     try:
-        server, port = args.jsonfileorserver.split(":")
+        server, port = args.scoreboardserver.split(":")
         port = int(port)
         connect_to_server = True
     except Exception as e:
-        print(f"Tried to interpret {args.jsonfileorserver} as server:port but failed: {e}")
+        print(f"Tried to interpret {args.scoreboardserver} as server:port but failed: {e}")
 
 if connect_to_server:
     print(f"Connecting to server {server}, port {port}...")
@@ -96,9 +107,9 @@ if connect_to_server:
         sys.exit(f"Failed to download in-game data from server {server}:{port}: {e}")
 else:
     try:
-        derby_game = load_derby_game_from_json_file(args.jsonfileorserver)
+        derby_game = load_derby_game_from_json_file(args.jsonfile.name)
     except Exception as e:
-        sys.exit(f"Failed to open file {args.jsonfileorserver}: {e}")
+        sys.exit(f"Failed to open file {args.jsonfile.name}: {e}")
 
 if args.anonymizeteams:
     print("Anonymizing teams.")
@@ -111,31 +122,29 @@ if args.teamcolor2 is not None:
     derby_game.set_team_color_2(args.teamcolor2)
     print(f"Setting team 2 color to {args.teamcolor2}")
 
-if args.outfileorport is not None and args.outfileorport.isnumeric():
+if args.serverport is not None:
     # start a webserver
-    jamstats_port = int(args.outfileorport)
-    print(f"Starting jamstats server on port {jamstats_port}")
+    print(f"Starting jamstats server on port {args.serverport}")
     statserver.set_game(derby_game)
     if connect_to_server:
-        statserver.start(jamstats_port, scoreboard_server=server,
+        statserver.start(args.serverport, scoreboard_server=server,
                          scoreboard_port = port)
     else:
-        statserver.start(jamstats_port)
+        statserver.start(args.serverport)
 else:
     # write a file
-    if args.outfileorport is None:
-        if connect_to_server:
-            sys.exit("Output filepath not provided, and connecting to an in-progress game. "
-            "Don't know where to write output, quitting.")
-        elif args.jsonfileorserver.lower().endswith(".json"):
+    if args.outfile is None:
+        in_filename = args.jsonfile.name
+        if in_filename.lower().endswith(".json"):
             print(f"Output filepath not provided. "
-                f"Using input filepath with extension .pdf instead of {args.jsonfileorserver[-5:]}")
-            out_filepath = args.jsonfileorserver[:-len(".json")] + ".pdf"
+                f"Using input filepath with extension .pdf instead of {in_filename[-5:]}")
+            out_filepath = in_filename[:-len(".json")] + ".pdf"
         else:
             sys.exit("Input file doesn't end with .json, so refusing to guess what output file you want."
                 "  Please rename your input file or specify an output filepath. Quitting.")
     else:
-        out_filepath = args.outfileorport
+        args.outfile.close()
+        out_filepath = args.outfile.name
 
     if out_filepath.endswith(".tsv") or out_filepath.endswith(".txt"):
         print("Writing TSV file...")
