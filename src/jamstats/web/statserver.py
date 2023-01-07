@@ -29,6 +29,7 @@ import matplotlib
 from datetime import datetime
 import io
 import logging
+import socket
 
 
 MIN_REQUERY_SERVER_SECONDS = 30
@@ -62,7 +63,10 @@ def start(port: int, debug: bool = True, scoreboard_server: str = None,
     prepare_to_plot()
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
-    app.run(host="127.0.0.1", port=port, debug=debug)
+    app.ip = socket.gethostbyname(socket.gethostname())
+    app.port = port
+    print(f"Starting jamstats server at http://{app.ip}:{app.port}")
+    app.run(host=app.ip, port=port, debug=debug)
 
 
 def set_game(derby_game: DerbyGame):
@@ -117,6 +121,12 @@ def index():
                                 <th align="left" valign="top" bgcolor="lightgray" width="200">
                                     <p>Updated {game_update_time_str}</p>
                                     <p>{plot_link_html}</p>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th align="left" valign="top" bgcolor="gray" width="200">
+                                    <p>jamstats server:port :</p>
+                                    <p>{app.ip}:{app.port}</p>
                                 </th>
                             </tr>
                         </table>

@@ -124,7 +124,6 @@ if args.teamcolor2 is not None:
 
 if args.jamstatsport is not None:
     # start a webserver
-    print(f"Starting jamstats server on port {args.jamstatsport}")
     statserver.set_game(derby_game)
     if connect_to_server:
         statserver.start(args.jamstatsport, scoreboard_server=server,
