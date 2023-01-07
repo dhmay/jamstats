@@ -6,6 +6,8 @@ from jamstats.plots.plot_util import prepare_to_plot
 from jamstats.util.resources import (
     get_jamstats_logo_image, get_jamstats_version
 )
+import inspect
+
 
 from jamstats.plots.jamplots import (
         plot_game_summary_table,
@@ -56,15 +58,17 @@ PLOT_NAME_FUNC_MAP = {
 }
 
 def start(port: int, debug: bool = True, scoreboard_server: str = None,
-          scoreboard_port: int = None) -> None:
+          scoreboard_port: int = None, anonymize_names=False,
+          theme="white") -> None:
     matplotlib.use('Agg')
     app.plotname_image_map = {}
     app.plotname_time_map = {}
-    prepare_to_plot()
+    prepare_to_plot(theme=theme)
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
     app.ip = socket.gethostbyname(socket.gethostname())
     app.port = port
+    app.anonymize_names=anonymize_names
     print(f"Starting jamstats server at http://{app.ip}:{app.port}")
     app.run(host=app.ip, port=port, debug=debug)
 
@@ -169,7 +173,17 @@ def plot_figure(plot_name: str):
             should_rebuild = False
     if should_rebuild: 
         logger.debug(f"Rebuilding {plot_name}")
-        f = PLOT_NAME_FUNC_MAP[plot_name](app.derby_game)
+
+        plotfunc = PLOT_NAME_FUNC_MAP[plot_name]
+
+        # add anonymize arg if the function has it
+        kwargs = {}
+        sig = inspect.signature(plotfunc)
+        if "anonymize_names" in sig.parameters:
+            kwargs["anonymize_names"] = app.anonymize_names
+
+        f = plotfunc(app.derby_game, **kwargs)
+
         app.plotname_image_map[plot_name] = f
         app.plotname_time_map[plot_name] = datetime.now() 
     f = app.plotname_image_map[plot_name]
