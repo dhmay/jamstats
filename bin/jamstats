@@ -16,37 +16,56 @@ from jamstats.util.resources import get_jamstats_version
 from jamstats.web import statserver
 import logging
 import sys
+from gooey import Gooey, GooeyParser
 
 logger = logging.Logger(__name__)
 
-print(f"jamstats version {get_jamstats_version()}, by Damon May")
-
-parser = argparse.ArgumentParser()
-parser.add_argument('jsonfileorserver', type=str,
-                    help="Scoreboard json file to read (or server:port, e.g., localhost:8000")
-parser.add_argument('outfileorport', type=str, nargs='?',
-                    help='File to write, or server to serve to. If an integer, gets treated '
-                    'as a port number, and a webserver is started on that port. If ends with ".pdf" '
-                    'or if not specified, write plots to a PDF. If ".tsv" or ".txt'
-                    'write data to tab-separated values file')
-parser.add_argument('--anonymize', action="store_true",
-                    help="Replace actual skater names with random pregenerated ones?")
-parser.add_argument('--anonymizeteams', action="store_true",
-                    help="Replace team names with 'Team 1' and 'Team 2'?")
-parser.add_argument('--debug', action="store_true",
-                    help="enable debug logging")
-parser.add_argument('--theme', type=str,
-                    default=DEFAULT_THEME,
-                    choices=VALID_THEMES,
-                    help="Plot theme. This is how you make the plots dark.")
-parser.add_argument('--teamcolor1', type=str,
-                    help="Set the color for team 1. Can be of the form 'green' or of the form '#00FF00'")
-parser.add_argument('--teamcolor2', type=str,
-                    help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
-args = parser.parse_args()
-
 logging.basicConfig(level=logging.WARNING,
                     format='%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
+
+print(f"jamstats version {get_jamstats_version()}, by Damon May")
+
+@Gooey(program_name="jamstats", program_description="Plot stats from a WFTDA scoreboard json file")
+def gui_args():
+    parser = argparse.ArgumentParser()
+    add_args(parser)
+    return parser.parse_args()
+
+def cmdline_args():
+    parser = argparse.ArgumentParser()
+    add_args(parser)
+    return parser.parse_args()
+
+def add_args(parser):
+    parser.add_argument('jsonfileorserver', type=str,
+                        help="Scoreboard json file to read (or server:port, e.g., localhost:8000)")
+    parser.add_argument('outfileorport', type=str, nargs='?',
+                        help='File to write, or server to serve to. If an integer, gets treated '
+                        'as a port number, and a webserver is started on that port. If ends with ".pdf" '
+                        'or if not specified, write plots to a PDF. If ".tsv" or ".txt'
+                        'write data to tab-separated values file')
+    parser.add_argument('--anonymize', action="store_true",
+                        help="Replace actual skater names with random pregenerated ones?")
+    parser.add_argument('--anonymizeteams', action="store_true",
+                        help="Replace team names with 'Team 1' and 'Team 2'?")
+    parser.add_argument('--debug', action="store_true",
+                        help="enable debug logging")
+    parser.add_argument('--theme', type=str,
+                        default=DEFAULT_THEME,
+                        choices=VALID_THEMES,
+                        help="Plot theme. This is how you make the plots dark.")
+    parser.add_argument('--teamcolor1', type=str,
+                        help="Set the color for team 1. Can be of the form 'green' or of the form '#00FF00'")
+    parser.add_argument('--teamcolor2', type=str,
+                        help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
+    args = parser.parse_args()
+    return args
+
+if len(sys.argv) == 1:
+    args = gui_args()
+else:
+    args = cmdline_args()
+
 if args.debug:
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.DEBUG)
