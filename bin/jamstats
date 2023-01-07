@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.WARNING,
 
 print(f"jamstats version {get_jamstats_version()}, by Damon May")
 
-@Gooey(program_name="jamstats", program_description="Plot stats from a WFTDA scoreboard json file or server")
+@Gooey(program_name="jamstats", program_description="Plot stats from a CRG v4 or greater scoreboard json file or server")
 def gui_args():
     parser = argparse.ArgumentParser()
     add_args(parser)
