@@ -164,13 +164,24 @@ def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: key-value pairs of game-level info
     """
-    team1_key = "ScoreBoard.Team(1).Name"
-    team2_key = "ScoreBoard.Team(2).Name"
 
     team_name_1 = list(pdf_game_state[
-        pdf_game_state.key == team1_key].value)[0]
+        pdf_game_state.key == "ScoreBoard.Team(1).Name"].value)[0]
     team_name_2 = list(pdf_game_state[
-        pdf_game_state.key == team2_key].value)[0]
+        pdf_game_state.key == "ScoreBoard.Team(2).Name"].value)[0]
+
+    # Address an issue where both teams can have the same Name but different FullName
+    if team_name_1 == team_name_2:
+        logger.info("Teams have the same name. Using FullName instead.")
+        try:
+            team_name_1 = list(pdf_game_state[
+                pdf_game_state.key == "ScoreBoard.Team(1).FullName"].value)[0]
+            team_name_2 = list(pdf_game_state[
+                pdf_game_state.key == "ScoreBoard.Team(2).FullName"].value)[0]
+        except Exception as e:
+            logger.error("Could not find FullName for both teams. Using Name instead but adding a suffix to differentiate.")
+            team_name_1 = team_name_1 + " (1)"
+            team_name_2 = team_name_2 + " (1)"
 
     # Get rid of weird characters in team names
     team_name_1 = cleanup_team_name(team_name_1)

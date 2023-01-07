@@ -1,6 +1,5 @@
 __author__ = "Damon May"
 
-import os, sys
 from typing import List
 from matplotlib.figure import Figure
 from jamstats.data.game_data import DerbyGame
@@ -46,6 +45,8 @@ def save_game_plots_to_pdf(derby_game: DerbyGame,
         out_filepath (str): output .pdf filepath
         anonymize_names (bool): anonymize skater names
     """
+    print("***")
+    print(theme)
     prepare_to_plot(theme=theme)
     figures = make_all_plots(derby_game, anonymize_names=anonymize_names)
     pdfout = PdfPages(out_filepath)

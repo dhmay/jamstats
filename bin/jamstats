@@ -130,11 +130,15 @@ if args.teamcolor2 is not None:
 if args.jamstatsport is not None:
     # start a webserver
     statserver.set_game(derby_game)
+    kwargs = {
+        "scoreboard_port": args.jamstatsport,
+        "anonymize_names": args.anonymize,
+        "theme": args.theme
+    }
     if connect_to_server:
-        statserver.start(args.jamstatsport, scoreboard_server=server,
-                         scoreboard_port = port)
-    else:
-        statserver.start(args.jamstatsport)
+        kwargs["scoreboard_server"] = server
+    
+    statserver.start(args.jamstatsport, **kwargs)
 else:
     # write a file
     if args.outfile is None:
@@ -156,5 +160,5 @@ else:
     else:
         print("Writing PDF file...")
         save_game_plots_to_pdf(derby_game, out_filepath, anonymize_names=args.anonymize,
-                            theme=args.theme)
+                               theme=args.theme)
     print(f"Wrote {out_filepath}")
