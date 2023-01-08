@@ -131,7 +131,7 @@ if args.jamstatsport is not None:
     # start a webserver
     statserver.set_game(derby_game)
     kwargs = {
-        "scoreboard_port": args.jamstatsport,
+        "scoreboard_port": port,
         "anonymize_names": args.anonymize,
         "theme": args.theme
     }
