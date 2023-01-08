@@ -26,8 +26,6 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png" width="500"></p>
 
-Key attributes of every jam.
-
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png" width="500"></p>
 
 Use the colors defined for each team in the scoreboard file, or provide your own on the command line.
