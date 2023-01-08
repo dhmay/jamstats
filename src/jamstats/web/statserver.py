@@ -69,7 +69,7 @@ def start(port: int, debug: bool = True, scoreboard_server: str = None,
     app.ip = socket.gethostbyname(socket.gethostname())
     app.port = port
     app.anonymize_names=anonymize_names
-    print(f"Starting jamstats server at http://{app.ip}:{app.port}")
+    print(f"Starting jamstats server at http://{app.ip}:{app.port}  ;  Scoreboard port is '{app.scoreboard_port}'")
     app.run(host=app.ip, port=port, debug=debug)
 
 
@@ -86,6 +86,7 @@ def index():
         if  seconds_since_update >= MIN_REQUERY_SERVER_SECONDS:
             logger.debug(f"Connecting to server {app.scoreboard_server}, "
                          "port {app.scoreboard_port}...")
+            print(f"connecting to scoreboard server at http://{app.scoreboard_server}:{app.scoreboard_port} ")
             try:
                 derby_game = load_inprogress_game_from_server(
                     app.scoreboard_server, app.scoreboard_port)
