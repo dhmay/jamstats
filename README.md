@@ -28,8 +28,6 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png" width="500"></p>
 
-
-
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png" width="500"></p>
 
 What penalties got you down the most?
@@ -46,6 +44,7 @@ Want to do your own analytics? Save down a spreadsheet and do your own thing wit
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/tsv_output_screenshot.png" width="500"></p>
 
+[Full guide to plot interpretation (PDF)](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_plot_interpretation.pdf)
 
 ## Installation
 
