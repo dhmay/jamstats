@@ -70,7 +70,7 @@ def start(js_port: int, debug: bool = True, scoreboard_server: str = None,
     app.port = js_port
     app.anonymize_names=anonymize_names
     print(f"Starting jamstats server at http://{app.ip}:{app.port}  ;  Scoreboard port is '{app.scoreboard_port}'")
-    app.run(host=app.ip, port=port, debug=debug)
+    app.run(host=app.ip, port=js_port, debug=debug)
 
 
 def set_game(derby_game: DerbyGame):
