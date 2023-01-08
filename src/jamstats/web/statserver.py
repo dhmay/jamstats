@@ -57,7 +57,7 @@ PLOT_NAME_FUNC_MAP = {
     "Team 2 Skaters": plot_skater_stats_team2,
 }
 
-def start(port: int, debug: bool = True, scoreboard_server: str = None,
+def start(js_port: int, debug: bool = True, scoreboard_server: str = None,
           scoreboard_port: int = None, anonymize_names=False,
           theme="white") -> None:
     matplotlib.use('Agg')
@@ -67,10 +67,10 @@ def start(port: int, debug: bool = True, scoreboard_server: str = None,
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
     app.ip = socket.gethostbyname(socket.gethostname())
-    app.port = port
+    app.port = js_port
     app.anonymize_names=anonymize_names
-    print(f"Starting jamstats server at http://{app.ip}:{app.port}  ;  Scoreboard port is '{app.scoreboard_port}'")
-    app.run(host=app.ip, port=port, debug=debug)
+    print(f"Starting jamstats server at http://{app.ip}:{app.js_port}  ;  Scoreboard port is '{app.scoreboard_port}'")
+    app.run(host=app.ip, port=app.js_port, debug=debug)
 
 
 def set_game(derby_game: DerbyGame):
