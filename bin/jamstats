@@ -98,18 +98,18 @@ if args.debug:
 connect_to_server = False
 if args.scoreboardserver:
     try:
-        server, port = args.scoreboardserver.split(":")
-        port = int(port)
+        sb_server, sb_port = args.scoreboardserver.split(":")
+        sb_port = int(sb_port)
         connect_to_server = True
     except Exception as e:
         print(f"Tried to interpret {args.scoreboardserver} as server:port but failed: {e}")
 
 if connect_to_server:
-    print(f"Connecting to server {server}, port {port}...")
+    print(f"Connecting to server {sb_server}, port {sb_port}...")
     try:
-        derby_game = load_inprogress_game_from_server(server, port)
+        derby_game = load_inprogress_game_from_server(sb_server, sb_port)
     except Exception as e:
-        sys.exit(f"Failed to download in-game data from server {server}:{port}: {e}")
+        sys.exit(f"Failed to download in-game data from server {sb_server}:{sb_port}: {e}")
 else:
     try:
         derby_game = load_derby_game_from_json_file(args.jsonfile.name)
@@ -131,12 +131,12 @@ if args.jamstatsport is not None:
     # start a webserver
     statserver.set_game(derby_game)
     kwargs = {
-        "scoreboard_port": port,
+        "scoreboard_port": sb_port,
         "anonymize_names": args.anonymize,
         "theme": args.theme
     }
     if connect_to_server:
-        kwargs["scoreboard_server"] = server
+        kwargs["scoreboard_server"] = sb_server
     
     statserver.start(args.jamstatsport, **kwargs)
 else:
