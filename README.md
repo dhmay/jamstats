@@ -28,15 +28,17 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jam_points_barplot.png" width="500"></p>
 
-Use the colors defined for each team in the scoreboard file, or provide your own on the command line.
 
-<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png" width="500"></p>
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_stats.png" width="500"></p>
 
 What penalties got you down the most?
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/skater_stats.png" width="500"></p>
+
+Use the colors defined for each team in the scoreboard file, or provide your own on the command line.
+
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png" width="500"></p>
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png" width="500"></p>
 
