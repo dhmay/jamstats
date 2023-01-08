@@ -131,11 +131,11 @@ if args.jamstatsport is not None:
     # start a webserver
     statserver.set_game(derby_game)
     kwargs = {
-        "scoreboard_port": port,
         "anonymize_names": args.anonymize,
         "theme": args.theme
     }
     if connect_to_server:
+        kwargs["scoreboard_port"] = port
         kwargs["scoreboard_server"] = server
     
     statserver.start(args.jamstatsport, **kwargs)
