@@ -57,16 +57,30 @@ PLOT_NAME_FUNC_MAP = {
     "Team 2 Skaters": plot_skater_stats_team2,
 }
 
-def start(port: int, debug: bool = True, scoreboard_server: str = None,
+def start(port: int, jamstats_ip: str = None, debug: bool = True, scoreboard_server: str = None,
           scoreboard_port: int = None, anonymize_names=False,
           theme="white") -> None:
+    """
+
+    Args:
+        port (int): port to start the jamstats server on
+        jamstats_ip (str, optional): IP address to start on. Defaults to None. If None, will infer
+        debug (bool, optional): _description_. Defaults to True.
+        scoreboard_server (str, optional): _description_. Defaults to None.
+        scoreboard_port (int, optional): _description_. Defaults to None.
+        anonymize_names (bool, optional): _description_. Defaults to False.
+        theme (str, optional): _description_. Defaults to "white".
+    """
     matplotlib.use('Agg')
     app.plotname_image_map = {}
     app.plotname_time_map = {}
     prepare_to_plot(theme=theme)
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
-    app.ip = socket.gethostbyname(socket.gethostname())
+    if jamstats_ip:
+        app.ip = jamstats_ip
+    else:
+        app.ip = socket.gethostbyname(socket.gethostname())
     app.port = port
     app.anonymize_names=anonymize_names
     print(f"Starting jamstats server at http://{app.ip}:{app.port}")
@@ -85,7 +99,7 @@ def index():
         seconds_since_update = (datetime.now() - app.game_update_time).total_seconds()
         if  seconds_since_update >= MIN_REQUERY_SERVER_SECONDS:
             logger.debug(f"Connecting to server {app.scoreboard_server}, "
-                         "port {app.scoreboard_port}...")
+                         f"port {app.scoreboard_port}...")
             try:
                 derby_game = load_inprogress_game_from_server(
                     app.scoreboard_server, app.scoreboard_port)
