@@ -104,20 +104,21 @@ class DerbyGame:
             game_duration_s += period_duration_s
         logger.debug(f"Game duration: {game_duration_s} seconds")
     
-        logger.debug("Calculating final scores")
-        final_score_team_1 = max(self.pdf_jams_data.TotalScore_1)
-        final_score_team_2 = max(self.pdf_jams_data.TotalScore_2)
+        logger.debug("Calculating scores")
+        score_team_1 = max(self.pdf_jams_data.TotalScore_1)
+        score_team_2 = max(self.pdf_jams_data.TotalScore_2)
 
         # Per @erevrav, injuries accrue to jams, not teams, so the proper quantity
         # to represent at the game level is the number of jams that ended in injury.
         n_jams_with_injury = sum(self.pdf_jams_data.Injury_1 |
                                  self.pdf_jams_data.Injury_2)
         gross_summary_dict = {
+            "Game Status": self.game_data_dict["game_status"],
             "Periods": n_periods,
             "Jams": n_jams,
             "Total Game Time": str(timedelta(seconds = game_duration_s)),
-            f"{self.team_1_name} Final Score": final_score_team_1,
-            f"{self.team_2_name} Final Score": final_score_team_2,
+            f"{self.team_1_name} Score": score_team_1,
+            f"{self.team_2_name} Score": score_team_2,
             "Injury Jams": n_jams_with_injury,
             "Scoreboard Version": self.game_data_dict["scoreboard_version"]
         }

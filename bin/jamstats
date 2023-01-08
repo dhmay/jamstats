@@ -102,6 +102,7 @@ elif len(sys.argv) == 2:
         args.teamcolor2 = None
         args.jamstatsport = None
         args.outfile = None
+        args.theme = None
     else:
         sys.exit(f"File {sys.argv[1]} does not exist")
 else:

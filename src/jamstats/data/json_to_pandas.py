@@ -165,6 +165,11 @@ def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: key-value pairs of game-level info
     """
+    try:
+        game_status = pdf_game_state[pdf_game_state.key == "ScoreBoard.State"].value.iloc[0]
+    except Exception as e:
+        logger.warn(f"Failed to extract game status. Exception: {e}")
+        game_status = "Unknown"
 
     team_name_1 = list(pdf_game_state[
         pdf_game_state.key == "ScoreBoard.Team(1).Name"].value)[0]
@@ -189,6 +194,7 @@ def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
     team_name_2 = cleanup_team_name(team_name_2)
 
     return {
+        "game_status": game_status,
         "team_1": team_name_1,
         "team_2": team_name_2
     }
