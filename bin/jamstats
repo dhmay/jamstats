@@ -88,7 +88,7 @@ def add_args(parser, is_gooey):
 if len(sys.argv) == 1:
     # no args, so run the GUI
     args = gui_args()
-elif len(sys.argv) == 2:
+elif len(sys.argv) == 2 and sys.argv[1] != "-h" and sys.argv[1] != "--help":
     # one arg, so try to treat it as a json file, and fail if it's not.
     # This option makes it possible to drag-and-drop on Windows.
     if exists(sys.argv[1]):
