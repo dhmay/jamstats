@@ -34,7 +34,9 @@ import logging
 import socket
 
 
-MIN_REQUERY_SERVER_SECONDS = 30
+MIN_REQUERY_SERVER_SECONDS = 29
+
+DEFAULT_AUTOREFRESH_SECONDS = 30
 
 logger = logging.Logger(__name__)
 
@@ -77,6 +79,7 @@ def start(port: int, jamstats_ip: str = None, debug: bool = True, scoreboard_ser
     prepare_to_plot(theme=theme)
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
+    app.autorefresh_seconds = DEFAULT_AUTOREFRESH_SECONDS
     if jamstats_ip:
         app.ip = jamstats_ip
     else:
@@ -119,9 +122,17 @@ def index():
 
     game_update_time_str = app.game_update_time.strftime("%Y-%m-%d, %H:%M:%S")
 
-    return render_template_string(f'''<!doctype html>
+    return render_template_string(f'''<!DOCTYPE html>
     <html>
         <head title="Jamstats">
+<script type="text/javascript">
+setTimeout(function () {{
+      location.reload();
+    }}, {1000 * app.autorefresh_seconds});
+</script>
+<noscript>
+	<meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
+</noscript>
         </head>
         <body>
             <table>
@@ -145,6 +156,11 @@ def index():
                                 <th align="left" valign="top" bgcolor="gray" width="200">
                                     <p>jamstats server:port :</p>
                                     <p>{app.ip}:{app.port}</p>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th align="left" valign="top" bgcolor="gray" width="200">
+                                    <p>Page will refresh every {app.autorefresh_seconds} seconds</p>
                                 </th>
                             </tr>
                         </table>
