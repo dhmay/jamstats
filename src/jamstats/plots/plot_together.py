@@ -58,7 +58,9 @@ def save_game_plots_to_pdf(derby_game: DerbyGame,
 def make_all_plots(derby_game: DerbyGame,
                    plot_skaterplots: bool = True,
                    anonymize_names: bool = True) -> List[Figure]:
-    """Build all plots, suitable for exporting to a .pdf
+    """Build all plots, suitable for exporting to a .pdf.
+
+    Plot the simplest summary plots first, then the skater plots, then the advanced plots.
 
     Args:
         derby_game (DerbyGame): a derby game
@@ -67,20 +69,16 @@ def make_all_plots(derby_game: DerbyGame,
         List[Figure]: figures
     """
     figures = []
-    plots_to_run = [
+
+    # plot basic plots
+    basic_plots = [
         plot_game_summary_table,
         plot_game_teams_summary_table,
         plot_cumulative_score_by_jam,
-        plot_jam_lead_and_scores_period1,
+        plot_team_penalty_counts
     ]
-    if max(derby_game.pdf_jams_data.PeriodNumber) >= 2:
-        plots_to_run.append(plot_jam_lead_and_scores_period2)
-    plots_to_run.extend([
-        plot_jammers_by_team,
-        plot_lead_summary])
-    plots_to_run.append(histogram_jam_duration)
 
-    for plot_func in plots_to_run:
+    for plot_func in basic_plots:
         try:
             logger.info(f"Plotting {plot_func.__name__}")
             f = plot_func(derby_game)
@@ -88,13 +86,7 @@ def make_all_plots(derby_game: DerbyGame,
         except Exception as e:
             logger.warn(f"Failed to make jam plot {plot_func.__name__}: {e}")
 
-    try: 
-        logger.info("Plotting plot_team_penalty_counts")
-        f = plot_team_penalty_counts(derby_game)
-        figures.append(f)
-    except Exception as e:
-            logger.warn(f"Failed to make penalty plots: {e}")
-
+    # plot skater plots
     if plot_skaterplots:
         for plot_func in [plot_jammer_stats_team1, plot_jammer_stats_team2,
                           plot_skater_stats_team1, plot_skater_stats_team2]:
@@ -104,6 +96,25 @@ def make_all_plots(derby_game: DerbyGame,
                 figures.append(f)
             except Exception as e:
                 logger.warn(f"Failed to make skater plot {plot_func.__name__}: {e}")
+
+    # plot advanced plots
+    advanced_plots = []
+    advanced_plots.append(plot_jam_lead_and_scores_period1)
+    if max(derby_game.pdf_jams_data.PeriodNumber) >= 2:
+        advanced_plots.append(plot_jam_lead_and_scores_period2)
+    advanced_plots.extend([
+        plot_jammers_by_team,
+        plot_lead_summary,
+        histogram_jam_duration
+        ])
+
+    for plot_func in advanced_plots:
+        try:
+            logger.info(f"Plotting {plot_func.__name__}")
+            f = plot_func(derby_game)
+            figures.append(f)
+        except Exception as e:
+            logger.warn(f"Failed to make jam plot {plot_func.__name__}: {e}")
     
     # add jamstats version annotation
     for f in figures:
