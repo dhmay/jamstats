@@ -129,25 +129,26 @@ if args.scoreboardserver:
         print(f"Tried to interpret {args.scoreboardserver} as server:port but failed: {e}")
 
 if connect_to_server:
+    derby_game = None
     print(f"Connecting to server {scoreboardserver}, port {scoreboardport}...")
     try:
         derby_game = load_inprogress_game_from_server(scoreboardserver, scoreboardport)
     except Exception as e:
-        sys.exit(f"Failed to download in-game data from server {scoreboardserver}:{scoreboardport}: {e}")
+        logger.warn(f"Failed to download in-game data from server {scoreboardserver}:{scoreboardport}: {e}")
 else:
     try:
         derby_game = load_derby_game_from_json_file(args.jsonfile.name)
     except Exception as e:
         sys.exit(f"Failed to open file {args.jsonfile.name}: {e}")
 
-if args.anonymizeteams:
+if args.anonymizeteams and derby_game is not None:
     print("Anonymizing teams.")
     derby_game.anonymize_team_names()
 
-if args.teamcolor1 is not None:
+if args.teamcolor1 is not None and derby_game is not None:
     derby_game.set_team_color_1(args.teamcolor1)
     print(f"Setting team 1 color to {args.teamcolor1}")
-if args.teamcolor2 is not None:
+if args.teamcolor2 is not None and derby_game is not None:
     derby_game.set_team_color_2(args.teamcolor2)
     print(f"Setting team 2 color to {args.teamcolor2}")
 

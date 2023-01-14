@@ -7,6 +7,7 @@ from jamstats.util.resources import (
     get_jamstats_logo_image, get_jamstats_version
 )
 import inspect
+import os
 
 
 from jamstats.plots.jamplots import (
@@ -125,14 +126,14 @@ def index():
     return render_template_string(f'''<!DOCTYPE html>
     <html>
         <head title="Jamstats">
-<script type="text/javascript">
-setTimeout(function () {{
-      location.reload();
-    }}, {1000 * app.autorefresh_seconds});
-</script>
-<noscript>
-	<meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
-</noscript>
+            <script type="text/javascript">
+            setTimeout(function () {{
+                  location.reload();
+                }}, {1000 * app.autorefresh_seconds});
+            </script>
+            <noscript>
+                <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
+            </noscript>
         </head>
         <body>
             <table>
@@ -154,8 +155,12 @@ setTimeout(function () {{
                             </tr>
                             <tr>
                                 <th align="left" valign="top" bgcolor="gray" width="200">
-                                    <p>jamstats server:port :</p>
-                                    <p>{app.ip}:{app.port}</p>
+                                    <p>jamstats server/port:
+                                    <br/>
+                                    {app.ip}:{app.port}</p>
+                                    <p>
+                                    {make_game_info_html(app)}
+                                    </p>
                                 </th>
                             </tr>
                             <tr>
@@ -166,8 +171,7 @@ setTimeout(function () {{
                         </table>
                     </th>
                     <th>
-                        <p><H2>{plot_name}</H2></p>
-                        <p><img src="fig/{plot_name}" width="1000"/></p>
+                        {generate_figure_html(app, plot_name)}
                     </th>
                 </tr>
             </table>
@@ -175,10 +179,38 @@ setTimeout(function () {{
     </html>
     ''')
 
+def make_game_info_html(app):
+    header_line = "Scoreboard server:" if app.scoreboard_server is not None else 'Game file:'
+    if app.scoreboard_server is not None:
+        info_line = f"{app.scoreboard_server}:{app.scoreboard_port}"
+    else:
+        info_line = os.path.basename(app.derby_game.game_data_dict["source_filepath"])
+    return f'''{header_line}<br/>{info_line}'''
+
 @app.route("/logo")
 def show_logo():
     # add logo to table plots
     return send_file(io.BytesIO(get_jamstats_logo_image()), mimetype='image/png')
+
+
+def generate_figure_html(app, plot_name: str) -> str:
+    """Generate HTML for a figure.
+
+    If a derby game isn't loaded, return a message saying so.
+
+    Args:
+        app: server app
+        plot_name (str): name of plot to generate
+
+    Returns:
+        str: HTML for the plot
+    """
+    if app.derby_game is None:
+        return "No derby game available..."
+
+    return (f"<p><H2>{plot_name}</H2></p>\n" +
+            f'<p><img src="fig/{plot_name}" width="1000"/></p>\n')
+
 
 @app.route("/fig/<plot_name>")
 def plot_figure(plot_name: str):
