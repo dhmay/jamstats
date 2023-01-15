@@ -18,7 +18,7 @@ Tools for making plots with roller derby game data from the [CRG scoreboard](htt
 
 #### Testimonials
 
-* *"Looks awesome!"* --our league's head ref
+* *"I really appreciate this data, and it's where I pulled my practice plans"* -- a coach in our league
 * *"BLESS YOUUUUU"* --somebody on Reddit
 * *"Go you! This is great!"* --somebody on the Facebook scoreboard group
 
