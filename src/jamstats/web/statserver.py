@@ -158,9 +158,6 @@ def index():
                                     <p>jamstats server/port:
                                     <br/>
                                     {app.ip}:{app.port}</p>
-                                    <p>
-                                    {make_game_info_html(app)}
-                                    </p>
                                 </th>
                             </tr>
                             <tr>
@@ -179,13 +176,6 @@ def index():
     </html>
     ''')
 
-def make_game_info_html(app):
-    header_line = "Scoreboard server:" if app.scoreboard_server is not None else 'Game file:'
-    if app.scoreboard_server is not None:
-        info_line = f"{app.scoreboard_server}:{app.scoreboard_port}"
-    else:
-        info_line = os.path.basename(app.derby_game.game_data_dict["source_filepath"])
-    return f'''{header_line}<br/>{info_line}'''
 
 @app.route("/logo")
 def show_logo():
