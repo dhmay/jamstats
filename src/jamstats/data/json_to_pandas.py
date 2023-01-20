@@ -679,10 +679,29 @@ def extract_team_colors(pdf_game_data:pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: dataframe mapping team to color
     """
-    pdf_team_colors = pdf_game_data[pdf_game_data.key.str.startswith("ScoreBoard.PreparedTeam") &
-                                    pdf_game_data.key.str.endswith("Color(scoreboard_bg)")].copy()
-    pdf_team_colors["team"] = [x[len("ScoreBoard.PreparedTeam("):-len(").Color(scoreboard_bg)")]
-                            for x in pdf_team_colors.key]
+    # try to load in v5.0 format
+    succeeded = False
+    try:
+        pdf_team_colors = pdf_game_data[pdf_game_data.key.str.endswith("Color(scoreboard_bg)")].copy()
+        pdf_team_colors["team"] = [x[len("ScoreBoard.Team("):-len(").Color(scoreboard_bg)")]
+                                   for x in pdf_team_colors.key]
+        succeeded = len(pdf_team_colors) > 0
+    except Exception as e:
+        logger.debug(f"Could not load team colors in v5.0 format: {e}")
+    if not succeeded:
+        # no colors discovered in the v5 format. Try v4.0 format
+        try:
+            pdf_team_colors = pdf_game_data[pdf_game_data.key.str.startswith("ScoreBoard.PreparedTeam") &
+                                            pdf_game_data.key.str.endswith("Color(scoreboard_bg)")].copy()
+            pdf_team_colors["team"] = [x[len("ScoreBoard.PreparedTeam("):-len(").Color(scoreboard_bg)")]
+                                    for x in pdf_team_colors.key]
+            succeeded = len(pdf_team_colors) > 0
+        except Exception as e:
+            logger.debug(f"Could not load team colors in v4.0 format: {e}")
+
     pdf_team_colors = pdf_team_colors[["team", "value"]].rename(columns={"value": "color"})
-    logger.debug(f"Team colors: {pdf_team_colors}")
+    if succeeded:
+        logger.debug(f"Team colors: {pdf_team_colors}")
+    else:
+        logger.info("Could not load team colors. Team colors will be missing from plots.")
     return pdf_team_colors

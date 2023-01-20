@@ -35,8 +35,14 @@ class DerbyGame:
         else:
             try:
                 team_color_dict = dict(zip(pdf_team_colors.team, pdf_team_colors.color))
-                self.team_color_1 = team_color_dict[self.team_1_name]
-                self.team_color_2 = team_color_dict[self.team_2_name]
+                if "1" in team_color_dict and "2" in team_color_dict:
+                    # v5 format, team numbers
+                    self.team_color_1 = team_color_dict["1"]
+                    self.team_color_2 = team_color_dict["2"]
+                else:
+                    # v4 format, team names
+                    self.team_color_1 = team_color_dict[self.team_1_name]
+                    self.team_color_2 = team_color_dict[self.team_2_name]
             except Exception as e:
                 logger.warn("Failed to find teams in color definitions. Using default colors.")
                 self.team_color_1 = sns.color_palette()[0]
