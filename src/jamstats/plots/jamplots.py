@@ -346,6 +346,15 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     pdf_jams_with_lead["Team with Lead"] = [derby_game.team_1_name if team1_has_lead
                                             else derby_game.team_2_name
                                             for team1_has_lead in pdf_jams_with_lead.Lead_1]
+    # sort by team number, to match up with palette
+    pdf_jams_data_long["team_number"] = [1 if team == derby_game.team_1_name
+                                         else 2
+                                         for team in pdf_jams_data_long.team]
+    pdf_jams_with_lead["team_number"] = [1 if team == derby_game.team_1_name
+                                         else 2
+                                         for team in pdf_jams_with_lead["Team with Lead"]]
+    pdf_jams_with_lead = pdf_jams_with_lead.sort_values("team_number")
+    
     f, axes = plt.subplots(1, 3)
 
     ax = axes[0]
@@ -353,10 +362,10 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
 
     pdf_for_plot_all = pdf_jams_with_lead[
         ["Team with Lead", "prd_jam"]].groupby(
-            ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
+            ["Team with Lead"]).agg("count").reset_index()
     pdf_for_plot_lost = pdf_jams_with_lead[pdf_jams_with_lead.Lost][
         ["Team with Lead", "prd_jam"]].groupby(
-            ["Team with Lead"]).agg("count").reset_index().sort_values("Team with Lead")
+            ["Team with Lead"]).agg("count").reset_index()
     pdf_for_plot_called_or_lost = pdf_jams_with_lead[pdf_jams_with_lead.Lost |
                                                     pdf_jams_with_lead.Calloff_1 |
                                                     pdf_jams_with_lead.Calloff_2][
@@ -377,8 +386,10 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     # word-wrap too-long team names
     wordwrap_x_labels(ax)
 
+
+
     ax = axes[1]
-    pdf_plot = pdf_jams_data_long.sort_values("team").rename(columns={
+    pdf_plot = pdf_jams_data_long.sort_values("team_number").rename(columns={
         "team": "Team"
     })
     sns.violinplot(y="first_scoring_pass_durations", x="Team",
