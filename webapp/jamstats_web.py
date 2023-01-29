@@ -1,0 +1,145 @@
+__author__ = "Damon May"
+
+from flask import (Flask, render_template, request, send_file)
+from jamstats.data.game_data import DerbyGame
+from jamstats.plots.plot_util import prepare_to_plot
+from jamstats.util.resources import (
+    get_jamstats_logo_image, get_jamstats_version
+)
+import inspect
+import os
+from jamstats.io.scoreboard_json_io import load_json_derby_game
+import json
+
+
+from jamstats.plots.jamplots import (
+        plot_game_summary_table,
+        plot_game_teams_summary_table,
+        plot_cumulative_score_by_jam,
+        plot_jam_lead_and_scores_period1,    
+        plot_jam_lead_and_scores_period2,
+        plot_jammers_by_team,
+        plot_lead_summary,
+        histogram_jam_duration,
+        plot_team_penalty_counts,
+)
+from jamstats.plots.skaterplots import (
+    plot_jammer_stats_team1,
+    plot_jammer_stats_team2,
+    plot_skater_stats_team1,
+    plot_skater_stats_team2,
+)
+import matplotlib
+from datetime import datetime
+import io
+import logging
+import socket
+
+
+logger = logging.Logger(__name__)
+
+app = Flask(__name__.split('.')[0])
+app.jamstats_plots = None
+
+PLOT_NAME_FUNC_MAP = {
+    "Game Summary": plot_game_summary_table,
+    "Teams Summary": plot_game_teams_summary_table,
+    "Cumulative Score by Jam": plot_cumulative_score_by_jam,
+    "Lead and Scores (Period 1)": plot_jam_lead_and_scores_period1,
+    "Lead and Scores (Period 2)": plot_jam_lead_and_scores_period2,
+    "Jammer Summary": plot_jammers_by_team,
+    "Lead Summary": plot_lead_summary,
+    "Jam Duration": histogram_jam_duration,
+    "Team Penalty Counts": plot_team_penalty_counts,
+    "Team 1 Jammers": plot_jammer_stats_team1,
+    "Team 2 Jammers": plot_jammer_stats_team2,
+    "Team 1 Skaters": plot_skater_stats_team1,
+    "Team 2 Skaters": plot_skater_stats_team2,
+}
+
+def start(debug: bool = False) -> None:
+    """
+
+    Args:
+        port (int): port to start the jamstats server on
+        jamstats_ip (str, optional): IP address to start on. Defaults to None. If None, will infer
+        debug (bool, optional): _description_. Defaults to True.
+    """
+    matplotlib.use('Agg')
+    app.run(debug=debug)
+
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    print("hi!")
+    if request.method == 'POST':
+        print("displaying game plots")
+        print(request.files)
+        game_file_contents = request.files['game_file'].read().decode("utf-8") 
+        game_json = json.loads(game_file_contents)
+        app.derby_game = load_json_derby_game(game_json)
+        plot_html = generate_figure_html(app, "Game Summary")
+        return render_template("display_game_plots.html",
+                               plot_names=list(PLOT_NAME_FUNC_MAP.keys()))
+    else:
+        return render_template("upload_game.html")
+
+
+@app.route("/logo")
+def show_logo():
+    # add logo to table plots
+    return send_file(io.BytesIO(get_jamstats_logo_image()), mimetype='image/png')
+
+
+def generate_figure_html(app, plot_name: str) -> str:
+    """Generate HTML for a figure.
+
+    If a derby game isn't loaded, return a message saying so.
+
+    Args:
+        app: server app
+        plot_name (str): name of plot to generate
+
+    Returns:
+        str: HTML for the plot
+    """
+    if app.derby_game is None:
+        return "No derby game available..."
+
+    return (f"<p><H2>{plot_name}</H2></p>\n" +
+            f'<p><img src="fig/{plot_name}" width="1000"/></p>\n')
+
+
+@app.route("/fig/<plot_name>")
+def plot_figure(plot_name: str):
+    """Plot a figure.
+
+    Currently, very inefficient: this method makes the figure again only when necessary,
+    but it *renders* it every time. I'm doing that because earlier I tried saving it to a
+    buffer and reading the buffer every time, but somehow the buffer got closed between
+    calls (multithreading?)
+
+    Args:
+        plot_name (str): name of plot to plot
+
+    """
+    if app.derby_game is None:
+        return "No derby game set."
+
+    logger.debug(f"Rebuilding {plot_name}")
+
+    plotfunc = PLOT_NAME_FUNC_MAP[plot_name]
+
+    # add anonymize arg if the function has it
+    kwargs = {}
+    #sig = inspect.signature(plotfunc)
+    #if "anonymize_names" in sig.parameters:
+    #    kwargs["anonymize_names"] = app.anonymize_names
+
+    f = plotfunc(app.derby_game, **kwargs)
+
+    buf = io.BytesIO()
+    f.savefig(buf, format="png")
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
+

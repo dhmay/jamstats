@@ -1,0 +1,11 @@
+<html>
+    <head>
+        <title>Game plots</title>
+    </head>
+    <body>
+        {% for plot_name in plot_names %}
+        <p><H2>{{plot_name}}</H2></p>
+        <p><img src="fig/{{plot_name}}" width="1000"/></p>
+        {% endfor %}
+    </body>
+</html>
