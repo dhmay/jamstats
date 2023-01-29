@@ -35,9 +35,9 @@ import logging
 import socket
 
 
-MIN_REQUERY_SERVER_SECONDS = 29
+MIN_REQUERY_SERVER_SECONDS = 60
 
-DEFAULT_AUTOREFRESH_SECONDS = 30
+DEFAULT_AUTOREFRESH_SECONDS = 61
 
 logger = logging.Logger(__name__)
 
