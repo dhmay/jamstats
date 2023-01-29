@@ -80,7 +80,8 @@ def index():
         app.derby_game = load_json_derby_game(game_json)
         plot_html = generate_figure_html(app, "Game Summary")
         return render_template("display_game_plots.html",
-                               plot_names=list(PLOT_NAME_FUNC_MAP.keys()))
+                               plot_names=list(PLOT_NAME_FUNC_MAP.keys()),
+                               jamstats_version=get_jamstats_version())
     else:
         return render_template("upload_game.html")
 
