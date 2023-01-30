@@ -42,7 +42,7 @@ if args.debug:
 
     logger.warning("Enabling debug logging.")
     for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data,
-                     plot_util, resources]:
+                     plot_util, resources, jamstats_web]:
         mymodule.logger.setLevel(logging.DEBUG)
         mymodule.logger.addHandler(stream_handler)
 

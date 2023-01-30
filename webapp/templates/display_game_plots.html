@@ -6,10 +6,10 @@
         <p><img src="logo" width="200"><br>
             Jamstats version {{jamstats_version}}
         </p>
-        {% for plot_name in plot_names %}
+        {% for plot_name in plotname_image_map %}
         <details>
             <summary>{{plot_name}}</summary>
-            <p><img src="fig/{{plot_name}}" width="1000"/></p>
+            <p><img src="data:;base64,{{ plotname_image_map[plot_name] }}" width="1000"/></p>
         </details>
         {% endfor %}
     </body>

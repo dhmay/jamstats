@@ -6,10 +6,9 @@ from jamstats.plots.plot_util import prepare_to_plot
 from jamstats.util.resources import (
     get_jamstats_logo_image, get_jamstats_version
 )
-import inspect
-import os
 from jamstats.io.scoreboard_json_io import load_json_derby_game
 import json
+from base64 import b64encode
 
 
 from jamstats.plots.jamplots import (
@@ -72,15 +71,18 @@ def start(debug: bool = False) -> None:
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    print("hi!")
     if request.method == 'POST':
         print("displaying game plots")
         print(request.files)
         game_file_contents = request.files['game_file'].read().decode("utf-8") 
         game_json = json.loads(game_file_contents)
         app.derby_game = load_json_derby_game(game_json)
+        plotname_image_map = {
+            plot_name: plot_figure(plot_name)
+            for plot_name in PLOT_NAME_FUNC_MAP.keys()
+        }
         return render_template("display_game_plots.html",
-                               plot_names=list(PLOT_NAME_FUNC_MAP.keys()),
+                               plotname_image_map=plotname_image_map,
                                jamstats_version=get_jamstats_version())
     else:
         return render_template("upload_game.html")
@@ -91,7 +93,6 @@ def show_logo():
     # add logo to table plots
     return send_file(io.BytesIO(get_jamstats_logo_image()), mimetype='image/png')
 
-@app.route("/fig/<plot_name>")
 def plot_figure(plot_name: str):
     """Plot a figure.
 
@@ -117,10 +118,14 @@ def plot_figure(plot_name: str):
     #if "anonymize_names" in sig.parameters:
     #    kwargs["anonymize_names"] = app.anonymize_names
 
-    f = plotfunc(app.derby_game, **kwargs)
-
-    buf = io.BytesIO()
-    f.savefig(buf, format="png")
-    buf.seek(0)
-    return send_file(buf, mimetype='image/png')
+    try:
+        f = plotfunc(app.derby_game, **kwargs)
+        buf = io.BytesIO()
+        f.savefig(buf, format="png")
+        buf.seek(0)
+        image = b64encode(buf.getvalue()).decode("utf-8")
+        return image
+    except Exception as e:
+        print(f"Error plotting {plot_name}: {e}")
+        return None
 
