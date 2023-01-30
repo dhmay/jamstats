@@ -57,5 +57,8 @@ def wordwrap_x_labels(ax: Any, max_len: int = DEFAULT_XLABEL_MAX_LEN):
         new_text = "\n".join(wrap(orig_text, max_len))
         new_xticklabels.append(new_text)
     # this line is necessary in order to avoid a warning
-    ax.set_xticks(ax.get_xticks().tolist())
+    ticks = ax.get_xticks()
+    if type(ticks) != list:
+        ticks = ax.get_xticks().tolist()
+    ax.set_xticks(ticks)
     ax.set_xticklabels(new_xticklabels)

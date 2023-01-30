@@ -7,8 +7,10 @@
             Jamstats version {{jamstats_version}}
         </p>
         {% for plot_name in plot_names %}
-        <p><H2>{{plot_name}}</H2></p>
-        <p><img src="fig/{{plot_name}}" width="1000"/></p>
+        <details>
+            <summary>{{plot_name}}</summary>
+            <p><img src="fig/{{plot_name}}" width="1000"/></p>
+        </details>
         {% endfor %}
     </body>
 </html>

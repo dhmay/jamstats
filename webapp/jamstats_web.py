@@ -66,6 +66,7 @@ def start(debug: bool = False) -> None:
         debug (bool, optional): _description_. Defaults to True.
     """
     matplotlib.use('Agg')
+    prepare_to_plot()
     app.run(debug=debug)
 
 
@@ -78,7 +79,6 @@ def index():
         game_file_contents = request.files['game_file'].read().decode("utf-8") 
         game_json = json.loads(game_file_contents)
         app.derby_game = load_json_derby_game(game_json)
-        plot_html = generate_figure_html(app, "Game Summary")
         return render_template("display_game_plots.html",
                                plot_names=list(PLOT_NAME_FUNC_MAP.keys()),
                                jamstats_version=get_jamstats_version())
@@ -90,26 +90,6 @@ def index():
 def show_logo():
     # add logo to table plots
     return send_file(io.BytesIO(get_jamstats_logo_image()), mimetype='image/png')
-
-
-def generate_figure_html(app, plot_name: str) -> str:
-    """Generate HTML for a figure.
-
-    If a derby game isn't loaded, return a message saying so.
-
-    Args:
-        app: server app
-        plot_name (str): name of plot to generate
-
-    Returns:
-        str: HTML for the plot
-    """
-    if app.derby_game is None:
-        return "No derby game available..."
-
-    return (f"<p><H2>{plot_name}</H2></p>\n" +
-            f'<p><img src="fig/{plot_name}" width="1000"/></p>\n')
-
 
 @app.route("/fig/<plot_name>")
 def plot_figure(plot_name: str):
