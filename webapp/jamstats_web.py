@@ -85,7 +85,8 @@ def index():
                                plotname_image_map=plotname_image_map,
                                jamstats_version=get_jamstats_version())
     else:
-        return render_template("upload_game.html")
+        return render_template("upload_game.html",
+                               jamstats_version=get_jamstats_version())
 
 
 @app.route("/logo")
