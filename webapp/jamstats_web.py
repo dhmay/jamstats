@@ -107,7 +107,12 @@ def index():
                 pdfout.savefig(figure)
             pdfout.close()
             response = make_response(pdf_bytesio.getvalue())
-            response.headers.set('Content-Disposition', 'attachment', filename='jamstats.pdf')
+            # name the pdf
+            json_filename = request.files['game_file'].filename
+            pdf_filename = json_filename.replace(".json", ".pdf")
+            if not pdf_filename.endswith(".pdf"):
+                pdf_filename += ".pdf"
+            response.headers.set('Content-Disposition', 'attachment', filename=pdf_filename)
             response.headers.set('Content-Type', 'application/pdf')
             return response
     else:
