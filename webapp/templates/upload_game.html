@@ -16,10 +16,26 @@
                     <p>
                     <input type="file" id="game_file" name="game_file"/>
                     </p>
+                    <fieldset>
+                        <legend>Two ways to view your plots:</legend>
+                        <div>
+                          <input type="radio" id="web" name="mode" value="web"
+                                 checked>
+                          <label for="web">View in Browser</label>
+                        </div>
+                    
+                        <div>
+                          <input type="radio" id="pdf" name="mode" value="pdf">
+                          <label for="pdf">Download PDF</label>
+                        </div>
+                    </fieldset>
                     <p>
-                    <input id="submitButton" type="submit" value="Make Plots"/>
+                    <input id="submit" type="submit" value="Make Plots"/>
                     </p>
                 </form> 
+                <p>
+                Please be patient! It might take a few seconds to make your plots.
+                </p>
                 <p>
                 Want to report a bug or request a feature? <a href="https://github.com/dhmay/jamstats/issues">Open an issue</a> in GitHub.
                 </p>

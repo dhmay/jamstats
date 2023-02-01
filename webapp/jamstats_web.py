@@ -1,6 +1,6 @@
 __author__ = "Damon May"
 
-from flask import (Flask, render_template, request, send_file)
+from flask import (Flask, render_template, request, send_file, render_template_string)
 from jamstats.data.game_data import DerbyGame
 from jamstats.plots.plot_util import prepare_to_plot
 from jamstats.util.resources import (
@@ -9,6 +9,10 @@ from jamstats.util.resources import (
 from jamstats.io.scoreboard_json_io import load_json_derby_game
 import json
 from base64 import b64encode
+from jamstats.plots.plot_together import make_all_plots
+from matplotlib.backends.backend_pdf import PdfPages
+from io import BytesIO
+from flask import make_response
 
 
 from jamstats.plots.jamplots import (
@@ -74,16 +78,38 @@ def index():
     if request.method == 'POST':
         print("displaying game plots")
         print(request.files)
-        game_file_contents = request.files['game_file'].read().decode("utf-8") 
-        game_json = json.loads(game_file_contents)
-        app.derby_game = load_json_derby_game(game_json)
-        plotname_image_map = {
-            plot_name: plot_figure(plot_name)
-            for plot_name in PLOT_NAME_FUNC_MAP.keys()
-        }
-        return render_template("display_game_plots.html",
-                               plotname_image_map=plotname_image_map,
-                               jamstats_version=get_jamstats_version())
+        try:
+            game_file_contents = request.files['game_file'].read().decode("utf-8") 
+            game_json = json.loads(game_file_contents)
+            app.derby_game = load_json_derby_game(game_json)
+        except Exception as e:
+            print(e)
+            return render_template_string("""
+                <html>
+                <head><title>Error</title></head>
+                <body>Error loading game file. Please check that the file is a valid JSON file.
+                </body>
+                </html>
+                """)
+        if request.form.get("mode") == "web":
+            plotname_image_map = {
+                plot_name: plot_figure(plot_name)
+                for plot_name in PLOT_NAME_FUNC_MAP.keys()
+            }
+            return render_template("display_game_plots.html",
+                                plotname_image_map=plotname_image_map,
+                                jamstats_version=get_jamstats_version())
+        else:
+            figures = make_all_plots(app.derby_game)
+            pdf_bytesio = BytesIO()
+            pdfout = PdfPages(pdf_bytesio)
+            for figure in figures:
+                pdfout.savefig(figure)
+            pdfout.close()
+            response = make_response(pdf_bytesio.getvalue())
+            response.headers.set('Content-Disposition', 'attachment', filename='jamstats.pdf')
+            response.headers.set('Content-Type', 'application/pdf')
+            return response
     else:
         return render_template("upload_game.html",
                                jamstats_version=get_jamstats_version())

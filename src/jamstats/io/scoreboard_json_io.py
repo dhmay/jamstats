@@ -7,6 +7,8 @@ from jamstats.data.json_to_pandas import load_json_derby_game
 import urllib
 import logging
 import io
+from websocket import create_connection
+
 
 logger = logging.Logger(__name__)
 
@@ -74,3 +76,15 @@ def load_game_json_from_server(
         game_json = json.load(response,
             encoding=response.headers.get_content_charset())
     return game_json
+
+
+# Websockets interface
+
+WS_REGISTER_STR = json.dumps({
+  "action": "Register",
+  "paths": [
+      "ScoreBoard.Version(release)",
+      "ScoreBoard.CurrentGame",
+  ]
+})
+
