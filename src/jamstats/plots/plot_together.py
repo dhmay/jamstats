@@ -57,7 +57,7 @@ def save_game_plots_to_pdf(derby_game: DerbyGame,
 
 def make_all_plots(derby_game: DerbyGame,
                    plot_skaterplots: bool = True,
-                   anonymize_names: bool = True) -> List[Figure]:
+                   anonymize_names: bool = False) -> List[Figure]:
     """Build all plots, suitable for exporting to a .pdf.
 
     Plot the simplest summary plots first, then the skater plots, then the advanced plots.
