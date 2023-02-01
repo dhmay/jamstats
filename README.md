@@ -4,6 +4,8 @@
 
 Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and 5.x). 
 
+Build jamstats plots online! Check out [jamstats.net](https://jamstats.net).
+
 #### Features
 
 * Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and much more
