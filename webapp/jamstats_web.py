@@ -44,6 +44,9 @@ logger = logging.Logger(__name__)
 app = Flask(__name__.split('.')[0])
 app.jamstats_plots = None
 
+#protect against very large file uploads -- 10MB
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
+
 PLOT_NAME_FUNC_MAP = {
     "Game Summary": plot_game_summary_table,
     "Teams Summary": plot_game_teams_summary_table,
