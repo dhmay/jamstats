@@ -151,9 +151,9 @@ def plot_figure(plot_name: str):
     # add anonymize arg if the function has it
     kwargs = {}
     sig = inspect.signature(plotfunc)
-    if "anonymize_names" in sig.parameters:
-        kwargs["anonymize_names"] = False
-        print("****ANON FALSE")
+    #if "anonymize_names" in sig.parameters:
+    #    kwargs["anonymize_names"] = False
+    #    print("****ANON FALSE")
 
     try:
         f = plotfunc(app.derby_game, **kwargs)

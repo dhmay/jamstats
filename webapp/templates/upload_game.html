@@ -11,13 +11,14 @@
                 <p><a href="https://jamstats.net"><img src="logo" width="200"></a><br>
                     Jamstats version {{jamstats_version}} by TheDM
                 </p>
-                <p>Make plots from roller derby game data from a <a href="https://github.com/rollerderby/scoreboard">CRG scoreboard</a></p>
+                <p>Make plots from roller derby game data from the <a href="https://github.com/rollerderby/scoreboard">CRG scoreboard</a>.</p>
+                <p>Upload a JSON file:</p>
                 <form action="/" method="post" enctype="multipart/form-data">
                     <p>
                     <input type="file" id="game_file" name="game_file"/>
                     </p>
-                    <fieldset>
-                        <legend>Two ways to view your plots:</legend>
+                    <fieldset style="width:200px">
+                        <legend>Two ways to make your plots:</legend>
                         <div>
                           <input type="radio" id="web" name="mode" value="web"
                                  checked>
@@ -30,7 +31,8 @@
                         </div>
                     </fieldset>
                     <p>
-                    <input id="submit" type="submit" value="Make Plots"/>
+                    <input id="submit" type="submit" value="Make Plots"
+                           style="font-size: larger; background-color: teal"/>
                     </p>
                 </form> 
                 <p>
@@ -39,23 +41,15 @@
                 <p>
                 Want to report a bug or request a feature? <a href="https://github.com/dhmay/jamstats/issues">Open an issue</a> in GitHub.
                 </p>
-
+                <p>
+                    <br>
+                    <H4>A note on data privacy:</H4>
+                    Jamstats does not store any data from your game file or send it anywhere else.
+                    It only uses the data to make plots (which are also not retained or sent anywhere)
+                    and then discards the data.
+                </p>
             </td>
             <td width="10%"></td>
         </table>
-        <p>
-            <table>
-                <tr>
-                <td width="10%">
-                <td width="50%">
-            <br>
-            <H3>A note on data privacy:</H3>
-            Jamstats does not store any data from your game file or send it anywhere else.
-            It only uses the data to make plots (which are also not retained or sent anywhere)
-            and then discards the data.
-            </td><td width="40%"></td>
-            </tr>
-            </table>
-        </p>
     </body>
 </html>
