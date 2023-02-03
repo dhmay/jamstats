@@ -1,10 +1,19 @@
 <html>
     <head>
         <title>Jamstats</title>
+        <link rel= "stylesheet" type= "text/css"
+              href= "{{ url_for('static',filename='styles/normalize.css') }}">
+        <link rel= "stylesheet" type= "text/css"
+              href= "{{ url_for('static',filename='styles/skeleton.css') }}">
     </head>
     <body>
+        <div class="container">
+            <div style="clear: both">
         <p><a href="https://jamstats.net"><img src="logo" width="200"></a><br>
             Jamstats version {{jamstats_version}} by TheDM
+        </p>
+        <p>
+            Click the plot name to expand the plot.
         </p>
         {% for plot_name in plotname_image_map %}
         <details>
@@ -26,5 +35,8 @@
             </tr>
             </table>
         </p>
+        </div>
+
+        </div>
     </body>
 </html>
