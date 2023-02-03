@@ -1,6 +1,7 @@
 <html>
     <head>
         <title>Jamstats</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='jamstats_icon.ico') }}">
         <link rel= "stylesheet" type= "text/css"
               href= "{{ url_for('static',filename='styles/normalize.css') }}">
         <link rel= "stylesheet" type= "text/css"
@@ -9,30 +10,33 @@
     <body>
         <div class="container">
             <div style="clear: both">
+                <br/>
                 <p><a href="https://jamstats.net"><img src="logo" width="200"></a><br>
                     Jamstats version {{jamstats_version}} by TheDM
                 </p>
                 <p>Make plots from roller derby game data from the
                     <a href="https://github.com/rollerderby/scoreboard">CRG scoreboard</a>.</p>
-                <p>Upload a JSON file:</p>
-                <form action="/" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <p>Upload a JSON file:</p>
+                    <form action="/" method="post" enctype="multipart/form-data">
+                        <p>
+                        <input type="file" id="game_file" name="game_file"/>
+                        </p>
+                        <fieldset>
+                            <legend>Two ways to serve your plots:</legend>
+                            <input type="radio" id="web" name="mode" value="web"
+                                checked>
+                            <label for="web"><span></span>View in Browser</label>
+                            <input type="radio" id="pdf" name="mode" value="pdf">
+                            <label for="pdf"><span></span>Download PDF</label>
+                        </fieldset>
+                        <p>
+                        <input id="submit" type="submit" value="Make Plots"
+                        class="button-primary"/>
+                        </p>
+                    </form> 
                     <p>
-                    <input type="file" id="game_file" name="game_file"/>
-                    </p>
-                    <fieldset>
-                        <legend>Two ways to make your plots:</legend>
-                        <input type="radio" id="web" name="mode" value="web"
-                               checked>
-                        <label for="web"><span></span>View in Browser</label>
-                        <input type="radio" id="pdf" name="mode" value="pdf">
-                        <label for="pdf"><span></span>Download PDF</label>
-                    </fieldset>
-                    <p>
-                    <input id="submit" type="submit" value="Make Plots"
-                           style="font-size: larger; background-color: lightgray"/>
-                    </p>
-                </form> 
-                <p>
+                    </div>
                 Please be patient! It might take a few seconds to make your plots.
                 </p>
                 <p>
