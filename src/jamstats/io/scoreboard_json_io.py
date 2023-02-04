@@ -7,7 +7,6 @@ from jamstats.data.json_to_pandas import load_json_derby_game
 import urllib
 import logging
 import io
-from websocket import create_connection
 
 
 logger = logging.Logger(__name__)
