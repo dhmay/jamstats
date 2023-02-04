@@ -4,7 +4,7 @@
 
 Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and 5.x). 
 
-Build jamstats plots online! Check out [jamstats.net](https://jamstats.net).
+Build jamstats plots online! Check out [jamstats.net](https://jamstats.net). The main reason to run Jamstats locally is to connect to a running scoreboard.
 
 #### Features
 
