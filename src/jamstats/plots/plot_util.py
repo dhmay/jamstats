@@ -7,7 +7,6 @@ import logging
 from matplotlib import pyplot as plt
 from typing import Any
 from textwrap import wrap
-import matplotlib.ticker as mticker
 
 logger = logging.Logger(__name__)
 

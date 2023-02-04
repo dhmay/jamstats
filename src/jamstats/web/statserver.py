@@ -6,8 +6,11 @@ from jamstats.plots.plot_util import prepare_to_plot
 from jamstats.util.resources import (
     get_jamstats_logo_image, get_jamstats_version
 )
+from jamstats.data.json_to_pandas import load_json_derby_game
+from jamstats.io.scoreboard_server_io import ScoreboardClient
 import inspect
-import os
+import time
+import _thread
 
 
 from jamstats.plots.jamplots import (
@@ -35,9 +38,7 @@ import logging
 import socket
 
 
-MIN_REQUERY_SERVER_SECONDS = 60
-
-DEFAULT_AUTOREFRESH_SECONDS = 61
+DEFAULT_AUTOREFRESH_SECONDS = 30
 
 logger = logging.Logger(__name__)
 
@@ -52,21 +53,24 @@ PLOT_NAME_FUNC_MAP = {
     "Lead and Scores (Period 2)": plot_jam_lead_and_scores_period2,
     "Jammer Summary": plot_jammers_by_team,
     "Lead Summary": plot_lead_summary,
-    "Jam Duration": histogram_jam_duration,
     "Team Penalty Counts": plot_team_penalty_counts,
     "Team 1 Jammers": plot_jammer_stats_team1,
     "Team 2 Jammers": plot_jammer_stats_team2,
     "Team 1 Skaters": plot_skater_stats_team1,
     "Team 2 Skaters": plot_skater_stats_team2,
+    "Jam Duration": histogram_jam_duration,
 }
 
-def start(port: int, jamstats_ip: str = None, debug: bool = True, scoreboard_server: str = None,
-          scoreboard_port: int = None, anonymize_names=False,
+def start(port: int, scoreboard_client: ScoreboardClient = None,
+          scoreboard_server: str = None,
+          scoreboard_port: int = None,
+          jamstats_ip: str = None, debug: bool = True, anonymize_names=False,
           theme="white") -> None:
     """
 
     Args:
         port (int): port to start the jamstats server on
+        scoreboard_client: scoreboard client to use to get game data
         jamstats_ip (str, optional): IP address to start on. Defaults to None. If None, will infer
         debug (bool, optional): _description_. Defaults to True.
         scoreboard_server (str, optional): _description_. Defaults to None.
@@ -78,6 +82,7 @@ def start(port: int, jamstats_ip: str = None, debug: bool = True, scoreboard_ser
     app.plotname_image_map = {}
     app.plotname_time_map = {}
     prepare_to_plot(theme=theme)
+    app.scoreboard_client = scoreboard_client
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
     app.autorefresh_seconds = DEFAULT_AUTOREFRESH_SECONDS
@@ -100,17 +105,43 @@ def set_game(derby_game: DerbyGame):
 def index():
     if app.scoreboard_server is not None:
         # check and see if it's been long enough to requery the server
-        seconds_since_update = (datetime.now() - app.game_update_time).total_seconds()
-        if  seconds_since_update >= MIN_REQUERY_SERVER_SECONDS:
-            logger.debug(f"Connecting to server {app.scoreboard_server}, "
-                         f"port {app.scoreboard_port}...")
+        if app.scoreboard_client is None:
+            logger.debug("No scoreboard client. Creating one...")
             try:
+                app.scoreboard_client = ScoreboardClient(app.scoreboard_server, app.scoreboard_port)
+                _thread.start_new_thread(app.scoreboard_client.start, ())
+                print("Connected to server. Waiting for game data...")
+                time.sleep(2)
                 derby_game = load_inprogress_game_from_server(
                     app.scoreboard_server, app.scoreboard_port)
                 set_game(derby_game)
             except Exception as e:
                 logger.error("Failed to download in-game data from server "
                             f"{app.scoreboard_server}:{app.scoreboard_port}: {e}")
+                return render_template_string(f'''<!DOCTYPE html>
+    <html>
+        <head title="Jamstats">
+            <script type="text/javascript">
+            setTimeout(function () {{
+                  location.reload();
+                }}, {1000 * app.autorefresh_seconds});
+            </script>
+            <noscript>
+                <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
+            </noscript>
+        </head>
+        <body>
+        Error connecting to server. Will retry...
+        </body>
+    </html>
+                '''
+                )
+        else:
+            if app.scoreboard_client.game_state_dirty:
+                derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
+                app.scoreboard_client.game_state_dirty = False
+                set_game(derby_game)
+                print("Updated game data from server.")
 
     args = request.args
     
