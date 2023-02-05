@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='jamstats',
-    version='1.0.0',
+    version='1.0.1',
     description='Data processing, stats and plots on roller derby scoreboard JSON files',
     author='Damon May',
     package_dir={"":"src"},
