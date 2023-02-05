@@ -104,7 +104,6 @@ def set_game(derby_game: DerbyGame):
 @app.route("/")
 def index():
     if app.scoreboard_server is not None:
-        # check and see if it's been long enough to requery the server
         if app.scoreboard_client is None:
             logger.debug("No scoreboard client. Creating one...")
             try:
@@ -118,30 +117,16 @@ def index():
             except Exception as e:
                 logger.error("Failed to download in-game data from server "
                             f"{app.scoreboard_server}:{app.scoreboard_port}: {e}")
-                return render_template_string(f'''<!DOCTYPE html>
-    <html>
-        <head title="Jamstats">
-            <script type="text/javascript">
-            setTimeout(function () {{
-                  location.reload();
-                }}, {1000 * app.autorefresh_seconds});
-            </script>
-            <noscript>
-                <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
-            </noscript>
-        </head>
-        <body>
-        Error connecting to server. Will retry...
-        </body>
-    </html>
-                '''
-                )
+                return show_error("Error connecting to server. Will retry")
         else:
             if app.scoreboard_client.game_state_dirty:
-                derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
-                app.scoreboard_client.game_state_dirty = False
-                set_game(derby_game)
-                print("Updated game data from server.")
+                try:
+                    derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
+                    app.scoreboard_client.game_state_dirty = False
+                    set_game(derby_game)
+                    print("Updated game data from server.")
+                except Exception as e:
+                    return show_error("Error connecting to server. Will retry")
 
     args = request.args
     
@@ -206,6 +191,35 @@ def index():
         </body>
     </html>
     ''')
+
+
+def show_error(error_message: str):
+    """show an error response
+
+    Args:
+        error_message (str): error message
+
+    Returns:
+        _type_: _description_
+    """
+    return render_template_string(f'''<!DOCTYPE html>
+    <html>
+        <head title="Jamstats">
+            <script type="text/javascript">
+            setTimeout(function () {{
+                  location.reload();
+                }}, {1000 * app.autorefresh_seconds});
+            </script>
+            <noscript>
+                <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
+            </noscript>
+        </head>
+        <body>
+        {error_message}
+        </body>
+    </html>
+                '''
+                )
 
 
 @app.route("/logo")
