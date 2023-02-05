@@ -21,6 +21,7 @@ Build jamstats plots online! Check out [jamstats.net](https://jamstats.net). The
 #### Testimonials
 
 * *"I really appreciate this data, and it's where I pulled my practice plans"* -- a coach in our league
+* *"HoLy Cow! This is so stinking cool! Thank you!!!!!"* -- another coach in our league
 * *"BLESS YOUUUUU"* --somebody on Reddit
 * *"Go you! This is great!"* --somebody on the Facebook scoreboard group
 
