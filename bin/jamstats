@@ -145,8 +145,11 @@ def __main__():
             _thread.start_new_thread(scoreboard_client.start, ())
             print("Connected to server. Waiting for game data...")
             time.sleep(2)
-            derby_game = load_json_derby_game(scoreboard_client.game_json_dict)
-            print("Loaded derby game from server.")
+            if scoreboard_client.is_connected_to_server:
+                derby_game = load_json_derby_game(scoreboard_client.game_json_dict)
+                print("Loaded derby game from server.")
+            else:
+                print("Not yet connected to server.")
         except Exception as e:
             logger.warning(f"Failed to download in-game data from server {scoreboardserver}:{scoreboardport}: {e}")
             formatted_lines = traceback.format_exc().splitlines()

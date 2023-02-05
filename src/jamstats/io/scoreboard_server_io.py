@@ -19,6 +19,7 @@ class ScoreboardClient:
         self.exceptions = []
         self.scoreboard_server = scoreboard_server
         self.scoreboard_port = scoreboard_port
+        self.is_connected_to_server = False
 
         # indicator of whether the game state has changed since the last time
         # we checked
@@ -78,6 +79,7 @@ class ScoreboardClient:
 
     def on_close(self, ws, close_status_code, close_msg):
         print("### closed ###")
+        self.is_connected_to_server = False
         
     def on_ping(self, ws):
         print("on_ping")
@@ -98,6 +100,7 @@ class ScoreboardClient:
               "ScoreBoard.CurrentGame",
           ]
         })
+        self.is_connected_to_server = True
         print("Sent registration message")
 
     def send_custom_message(self, ws, msg):

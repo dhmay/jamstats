@@ -111,15 +111,18 @@ def index():
                 _thread.start_new_thread(app.scoreboard_client.start, ())
                 print("Connected to server. Waiting for game data...")
                 time.sleep(2)
-                derby_game = load_inprogress_game_from_server(
-                    app.scoreboard_server, app.scoreboard_port)
-                set_game(derby_game)
+                if app.scoreboard_client.is_connected_to_server:
+                    derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
+                    set_game(derby_game)
+                else:
+                    return show_error("Error getting game from server. Will retry")
             except Exception as e:
                 logger.error("Failed to download in-game data from server "
                             f"{app.scoreboard_server}:{app.scoreboard_port}: {e}")
-                return show_error("Error connecting to server. Will retry")
+                return show_error("Exception while connecting to server. Will retry")
         else:
             if app.scoreboard_client.game_state_dirty:
+                # there's new game data. rebuild the game
                 try:
                     derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
                     app.scoreboard_client.game_state_dirty = False
@@ -204,7 +207,7 @@ def show_error(error_message: str):
     """
     return render_template_string(f'''<!DOCTYPE html>
     <html>
-        <head title="Jamstats">
+        <head title="Jamstats -- error">
             <script type="text/javascript">
             setTimeout(function () {{
                   location.reload();
@@ -215,7 +218,14 @@ def show_error(error_message: str):
             </noscript>
         </head>
         <body>
-        {error_message}
+            <p>
+                <img src="logo" width="200">
+                <br>
+                Jamstats version {get_jamstats_version()}
+            </p>
+            <p>
+            <H2>{error_message}</H2>
+            </p>
         </body>
     </html>
                 '''
