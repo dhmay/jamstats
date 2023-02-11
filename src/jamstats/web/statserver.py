@@ -103,7 +103,9 @@ def set_game(derby_game: DerbyGame):
 
 @app.route("/")
 def index():
+    logger.debug("Index page requested")
     if app.scoreboard_server is not None:
+        logger.debug(f"Scoreboard server is {app.scoreboard_server}")
         if app.scoreboard_client is None:
             logger.debug("No scoreboard client. Creating one...")
             try:
@@ -115,12 +117,15 @@ def index():
                     derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
                     set_game(derby_game)
                 else:
+                    app.scoreboard_client = None
                     return show_error("Error getting game from server. Will retry")
             except Exception as e:
+                app.scoreboard_client = None
                 logger.error("Failed to download in-game data from server "
                             f"{app.scoreboard_server}:{app.scoreboard_port}: {e}")
                 return show_error("Exception while connecting to server. Will retry")
         else:
+            logger.debug("Scoreboard client already exists. Checking for new game data...")
             if app.scoreboard_client.game_state_dirty:
                 # there's new game data. rebuild the game
                 try:

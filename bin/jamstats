@@ -150,7 +150,9 @@ def __main__():
                 print("Loaded derby game from server.")
             else:
                 print("Not yet connected to server.")
+                scoreboard_client = None
         except Exception as e:
+            scoreboard_client = None
             logger.warning(f"Failed to download in-game data from server {scoreboardserver}:{scoreboardport}: {e}")
             formatted_lines = traceback.format_exc().splitlines()
             for line in formatted_lines:
