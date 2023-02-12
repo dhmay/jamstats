@@ -11,6 +11,7 @@ from jamstats.io.scoreboard_server_io import ScoreboardClient
 import inspect
 import time
 import _thread
+import traceback
 
 
 from jamstats.plots.jamplots import (
@@ -106,6 +107,9 @@ def index():
     logger.debug("Index page requested")
     if app.scoreboard_server is not None:
         logger.debug(f"Scoreboard server is {app.scoreboard_server}")
+        # if we've got a client but that client isn't connected, we don't have a client.
+        if app.scoreboard_client is not None and not app.scoreboard_client.is_connected_to_server:
+            app.scoreboard_client = None
         if app.scoreboard_client is None:
             logger.debug("No scoreboard client. Creating one...")
             try:
@@ -116,6 +120,7 @@ def index():
                 if app.scoreboard_client.is_connected_to_server:
                     derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
                     set_game(derby_game)
+                    logger.debug("Updated derby game.")
                 else:
                     app.scoreboard_client = None
                     return show_error("Error getting game from server. Will retry")
@@ -123,6 +128,10 @@ def index():
                 app.scoreboard_client = None
                 logger.error("Failed to download in-game data from server "
                             f"{app.scoreboard_server}:{app.scoreboard_port}: {e}")
+                try:
+                    traceback.print_stack()
+                except Exception as e:
+                    print(f"Exception while printing stack: {e}")
                 return show_error("Exception while connecting to server. Will retry")
         else:
             logger.debug("Scoreboard client already exists. Checking for new game data...")

@@ -20,6 +20,8 @@ class ScoreboardClient:
         self.scoreboard_server = scoreboard_server
         self.scoreboard_port = scoreboard_port
         self.is_connected_to_server = False
+        # keep track of the game id so we can detect when a new game starts
+        self.game_id = None
 
         # indicator of whether the game state has changed since the last time
         # we checked
@@ -56,18 +58,30 @@ class ScoreboardClient:
             #    key: message_dict[key]
             #    for key in message_dict
             #    if not key.startswith("ScoreBoard.CurrentGame.Clock")}
-            logger.debug("About to try to load game state from message...")
-            if "state" in message_dict:
-                if "state" in self.game_json_dict:
-                    for key in message_dict["state"]:
-                        self.game_json_dict["state"][key] = message_dict["state"][key]
+            #logger.debug("About to try to load game state from message...")
+            if "state" in message_dict: # we got a valid message with game state
+                message_game_state_dict = message_dict["state"]
+                if "ScoreBoard.CurrentGame.Game" in message_game_state_dict:
+                    message_game_id = message_game_state_dict["ScoreBoard.CurrentGame.Game"]
+                    if self.game_id is not None and self.game_id != message_game_id:
+                        # new game! reset the game state
+                        self.game_state_dirty = True
+                        self.game_json_dict = {}
+                        logger.debug(f"New game! {message_game_id}")
+                    self.game_id = message_game_id
+                if "state" in self.game_json_dict: # if we already have a game state...
+                    for key in message_game_state_dict:
+                        self.game_json_dict["state"][key] = message_game_state_dict[key]
                 else:
+                    logger.debug("Replacing game_json_dict with message_dict")
                     self.game_json_dict = message_dict
                 # determine whether there was a meaningful change to the game state
-                for key in message_dict["state"]:
+                for key in message_game_state_dict:
                     if not key.startswith("ScoreBoard.CurrentGame.Clock"):
                         self.game_state_dirty = True
-            logger.debug("Loaded game state from message.")
+                        logger.debug(f"Setting game state dirty because {key}.")
+                        break
+            #logger.debug("Loaded game state from message.")
         except Exception as e:
             self.exceptions.append(e)
             formatted_lines = traceback.format_exc().splitlines()
