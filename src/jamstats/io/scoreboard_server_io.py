@@ -70,6 +70,21 @@ class ScoreboardClient:
                         logger.debug(f"New game! {message_game_id}")
                     self.game_id = message_game_id
                 if "state" in self.game_json_dict: # if we already have a game state...
+                    # Update the game json.
+                    # first, remove any keys that are overwritten by null values in the message.
+                    # This gets a bit complicated. Frank says:
+                    # A key being set to null should delete
+                    # * an exact match
+                    # * anything that starts with the key followed by a . (Keys sent will not end with a .)
+                    nullvalue_message_keys = [key for key in message_game_state_dict
+                                              if message_game_state_dict[key] is None] 
+                    for key in nullvalue_message_keys:
+                        if key in self.game_json_dict["state"]:
+                            del self.game_json_dict["state"][key]
+                        for state_key in self.game_json_dict["state"]:
+                            if state_key.startswith(key + "."):
+                                del self.game_json_dict["state"][state_key]
+                    # now, add all the new data from the message.
                     for key in message_game_state_dict:
                         self.game_json_dict["state"][key] = message_game_state_dict[key]
                 else:
