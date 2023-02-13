@@ -127,8 +127,8 @@ def __main__():
 
     connect_to_server = False
     scoreboard_client = None
-    scoreboard_server = None
-    scoreboard_port = None
+    scoreboardserver = None
+    scoreboardport = None
     if args.scoreboardserver:
         try:
             scoreboardserver, scoreboardport = args.scoreboardserver.split(":")
