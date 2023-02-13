@@ -136,14 +136,21 @@ def index():
         else:
             logger.debug("Scoreboard client already exists. Checking for new game data...")
             if app.scoreboard_client.game_state_dirty:
+                logger.debug("Game state is dirty. Rebuilding game.")
                 # there's new game data. rebuild the game
                 try:
                     derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
                     app.scoreboard_client.game_state_dirty = False
                     set_game(derby_game)
-                    print("Updated game data from server.")
+                    logger.info("Updated game data from server.")
                 except Exception as e:
+                    logger.warning(f"Failed to update game data from server: {e}")
+                    formatted_lines = traceback.format_exc().splitlines()
+                    for line in formatted_lines:
+                        print("EXC: " + line)
                     return show_error("Error connecting to server. Will retry")
+            else:
+                logger.debug("No new game data. Using existing game data.")
 
     args = request.args
     
