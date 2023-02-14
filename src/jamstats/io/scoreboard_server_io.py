@@ -92,7 +92,6 @@ class ScoreboardClient:
                     nullvalue_message_keys = [key for key in message_game_state_dict
                                               if message_game_state_dict[key] is None] 
                     for key in nullvalue_message_keys:
-                        print(f"*** Nulling out {key}")
                         if key in self.game_json_dict["state"]:
                             del self.game_json_dict["state"][key]
                         for state_key in self.game_json_dict["state"]:
