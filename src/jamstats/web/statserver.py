@@ -60,6 +60,7 @@ PLOT_NAME_FUNC_MAP = {
     "Team 2 Skaters": plot_skater_stats_team2,
     "Jam Duration": histogram_jam_duration,
 }
+ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
           scoreboard_server: str = None,
@@ -153,15 +154,13 @@ def index():
 
     game_update_time_str = app.game_update_time.strftime("%Y-%m-%d, %H:%M:%S")
 
-    plotname_image_map = {
-        plot_name: plot_figure(plot_name)
-        for plot_name in PLOT_NAME_FUNC_MAP.keys()
-    }
+    plot_name = request.args["plot_name"] if "plot_name" in request.args else "Game Summary"
+
     return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
-                           plotname_image_map=plotname_image_map,
                            game_update_time_str=game_update_time_str,
                            jamstats_ip=app.ip, jamstats_port=app.port,
-                           autorefresh_seconds=app.autorefresh_seconds)
+                           autorefresh_seconds=app.autorefresh_seconds,
+                           plot_name=plot_name, all_plot_names=ALL_PLOT_NAMES)
 
 
 def show_error(error_message: str):
@@ -228,15 +227,12 @@ def generate_figure_html(app, plot_name: str) -> str:
 @app.route("/fig/<plot_name>")
 def plot_figure(plot_name: str):
     """Plot a figure.
-
     Currently, very inefficient: this method makes the figure again only when necessary,
     but it *renders* it every time. I'm doing that because earlier I tried saving it to a
     buffer and reading the buffer every time, but somehow the buffer got closed between
     calls (multithreading?)
-
     Args:
         plot_name (str): name of plot to plot
-
     """
     if app.derby_game is None:
         return "No derby game set."
@@ -257,22 +253,12 @@ def plot_figure(plot_name: str):
         if "anonymize_names" in sig.parameters:
             kwargs["anonymize_names"] = app.anonymize_names
 
-        try:
-            f = plotfunc(app.derby_game, **kwargs)
-        except Exception as e:
-            print(f"Error plotting {plot_name}: {e}")
-            return None
+        f = plotfunc(app.derby_game, **kwargs)
 
         app.plotname_image_map[plot_name] = f
         app.plotname_time_map[plot_name] = datetime.now() 
-    try:
-        buf = io.BytesIO()
-        f.savefig(buf, format="png")
-        buf.seek(0)
-        image = b64encode(buf.getvalue()).decode("utf-8")
-    except Exception as e:
-        print(f"Error plotting {plot_name}: {e}")
-        return None
-    return image
-
-
+    f = app.plotname_image_map[plot_name]
+    buf = io.BytesIO()
+    f.savefig(buf, format="png")
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
