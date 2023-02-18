@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <title>Jamstats</title>
+        <link rel= "stylesheet" type= "text/css"
+              href= "{{ url_for('static',filename='styles/normalize.css') }}">
+        <link rel= "stylesheet" type= "text/css"
+              href= "{{ url_for('static',filename='styles/skeleton.css') }}">
+        <head title="Jamstats">
+        <script type="text/javascript">
+        setTimeout(function () {
+                location.reload();
+            }, {{1000 * autorefresh_seconds}});
+        </script>
+        <noscript>
+            <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
+        </noscript>
+    </head>
+    <body>
+        <div class="container">
+            <div style="clear: both">
+                <p>
+                    <table>
+                        <tr> <th>
+                        <a href="https://jamstats.net"><img src="logo" width="200"></a><br>
+                        Jamstats version {{jamstats_version}} by TheDM
+                        </th>
+                        <th align="left" valign="top" bgcolor="gray" width="200">
+                            <p>jamstats server/port:
+                            <br/>
+                            {{jamstats_ip}}:{{jamstats_port}}</p>
+                            <p>Page will refresh every {{autorefresh_seconds}} seconds</p>
+                        </th>
+                    </tr>
+                    </table>
+                </p>
+                <p>
+                <table>
+                    <tr>
+                        <td width="30%" valign="top">
+                            {% for plot_name_forlink in all_plot_names %}
+                                {% if plot_name_forlink == plot_name %}
+                                    {{plot_name_forlink}}
+                                {% else %}
+                                    <a href='/?plot_name={{plot_name_forlink}}'>
+                                       {{plot_name_forlink}}
+                                    </a>
+                                {% endif %}
+                            <br/>
+                            {% endfor %}
+                        </td>
+                        <td width="70%" valign="top">
+                            <p><b>{{plot_name}}</b></p>
+                            <p><img src="fig/{{plot_name}}" width="100%"/>
+                        </td>
+                    </tr>
+                </table>
+                </p>
+            </div>
+
+        </div>
+    </body>
+</html>
