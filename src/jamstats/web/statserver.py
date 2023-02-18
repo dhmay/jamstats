@@ -1,6 +1,6 @@
 __author__ = "Damon May"
 
-from flask import (Flask, request, render_template_string, send_file)
+from flask import (Flask, request, render_template_string, render_template, send_file)
 from jamstats.data.game_data import DerbyGame
 from jamstats.plots.plot_util import prepare_to_plot
 from jamstats.util.resources import (
@@ -12,7 +12,7 @@ import inspect
 import time
 import _thread
 import traceback
-
+from base64 import b64encode
 
 from jamstats.plots.jamplots import (
         plot_game_summary_table,
@@ -31,7 +31,6 @@ from jamstats.plots.skaterplots import (
     plot_skater_stats_team1,
     plot_skater_stats_team2,
 )
-from jamstats.io.scoreboard_json_io import load_inprogress_game_from_server
 import matplotlib
 from datetime import datetime
 import io
@@ -152,69 +151,17 @@ def index():
             else:
                 logger.debug("No new game data. Using existing game data.")
 
-    args = request.args
-    
-    plotlink_html_chunks = [
-        f"<li><a href='/?plot_name={plot_name}'>{plot_name}</a></li>"
-        for plot_name in PLOT_NAME_FUNC_MAP
-    ]
-    plot_link_html = "<ul>\n" + "\n".join(plotlink_html_chunks) + "</ul>\n"
-    plot_name = args["plot_name"] if "plot_name" in args else "Game Summary"
-
     game_update_time_str = app.game_update_time.strftime("%Y-%m-%d, %H:%M:%S")
 
-    return render_template_string(f'''<!DOCTYPE html>
-    <html>
-        <head title="Jamstats">
-            <script type="text/javascript">
-            setTimeout(function () {{
-                  location.reload();
-                }}, {1000 * app.autorefresh_seconds});
-            </script>
-            <noscript>
-                <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
-            </noscript>
-        </head>
-        <body>
-            <table>
-                <tr>
-                    <th align="left" valign="top" width="200">
-                        <table>
-                            <tr>
-                                <th>
-                                    <img src="logo" width="200">
-                                    <br>
-                                    Jamstats version {get_jamstats_version()}
-                                </th>
-                            </tr>
-                            <tr>
-                                <th align="left" valign="top" bgcolor="lightgray" width="200">
-                                    <p>Updated {game_update_time_str}</p>
-                                    <p>{plot_link_html}</p>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th align="left" valign="top" bgcolor="gray" width="200">
-                                    <p>jamstats server/port:
-                                    <br/>
-                                    {app.ip}:{app.port}</p>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th align="left" valign="top" bgcolor="gray" width="200">
-                                    <p>Page will refresh every {app.autorefresh_seconds} seconds</p>
-                                </th>
-                            </tr>
-                        </table>
-                    </th>
-                    <th>
-                        {generate_figure_html(app, plot_name)}
-                    </th>
-                </tr>
-            </table>
-        </body>
-    </html>
-    ''')
+    plotname_image_map = {
+        plot_name: plot_figure(plot_name)
+        for plot_name in PLOT_NAME_FUNC_MAP.keys()
+    }
+    return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
+                           plotname_image_map=plotname_image_map,
+                           game_update_time_str=game_update_time_str,
+                           jamstats_ip=app.ip, jamstats_port=app.port,
+                           autorefresh_seconds=app.autorefresh_seconds)
 
 
 def show_error(error_message: str):
@@ -310,13 +257,22 @@ def plot_figure(plot_name: str):
         if "anonymize_names" in sig.parameters:
             kwargs["anonymize_names"] = app.anonymize_names
 
-        f = plotfunc(app.derby_game, **kwargs)
+        try:
+            f = plotfunc(app.derby_game, **kwargs)
+        except Exception as e:
+            print(f"Error plotting {plot_name}: {e}")
+            return None
 
         app.plotname_image_map[plot_name] = f
         app.plotname_time_map[plot_name] = datetime.now() 
-    f = app.plotname_image_map[plot_name]
-    buf = io.BytesIO()
-    f.savefig(buf, format="png")
-    buf.seek(0)
-    return send_file(buf, mimetype='image/png')
+    try:
+        buf = io.BytesIO()
+        f.savefig(buf, format="png")
+        buf.seek(0)
+        image = b64encode(buf.getvalue()).decode("utf-8")
+    except Exception as e:
+        print(f"Error plotting {plot_name}: {e}")
+        return None
+    return image
+
 
