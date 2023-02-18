@@ -123,7 +123,7 @@ def index():
                     logger.debug("Updated derby game.")
                 else:
                     app.scoreboard_client = None
-                    return show_error("Error getting game from server. Will retry")
+                    return show_error("Error getting game from server. Will retry.")
             except Exception as e:
                 app.scoreboard_client = None
                 logger.error("Failed to download in-game data from server "
@@ -168,9 +168,6 @@ def show_error(error_message: str):
 
     Args:
         error_message (str): error message
-
-    Returns:
-        _type_: _description_
     """
     return render_template_string(f'''<!DOCTYPE html>
     <html>
