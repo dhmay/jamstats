@@ -1,6 +1,6 @@
 __author__ = "Damon May"
 
-from flask import (Flask, request, render_template_string, send_file)
+from flask import (Flask, request, render_template_string, render_template, send_file)
 from jamstats.data.game_data import DerbyGame
 from jamstats.plots.plot_util import prepare_to_plot
 from jamstats.util.resources import (
@@ -12,7 +12,6 @@ import inspect
 import time
 import _thread
 import traceback
-
 
 from jamstats.plots.jamplots import (
         plot_game_summary_table,
@@ -31,19 +30,26 @@ from jamstats.plots.skaterplots import (
     plot_skater_stats_team1,
     plot_skater_stats_team2,
 )
-from jamstats.io.scoreboard_json_io import load_inprogress_game_from_server
 import matplotlib
 from datetime import datetime
 import io
 import logging
 import socket
+import sys, os
 
 
 DEFAULT_AUTOREFRESH_SECONDS = 30
 
 logger = logging.Logger(__name__)
 
-app = Flask(__name__.split('.')[0])
+# This is necessary for pyinstaller to find the templates folder
+if getattr(sys, 'frozen', False):
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
+    app = Flask(__name__.split('.')[0], template_folder=template_folder,
+                static_folder=static_folder)
+else:
+    app = Flask(__name__.split('.')[0])
 app.jamstats_plots = None
 
 PLOT_NAME_FUNC_MAP = {
@@ -61,6 +67,7 @@ PLOT_NAME_FUNC_MAP = {
     "Team 2 Skaters": plot_skater_stats_team2,
     "Jam Duration": histogram_jam_duration,
 }
+ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
           scoreboard_server: str = None,
@@ -123,7 +130,7 @@ def index():
                     logger.debug("Updated derby game.")
                 else:
                     app.scoreboard_client = None
-                    return show_error("Error getting game from server. Will retry")
+                    return show_error("Error getting game from server. Will retry.")
             except Exception as e:
                 app.scoreboard_client = None
                 logger.error("Failed to download in-game data from server "
@@ -152,69 +159,15 @@ def index():
             else:
                 logger.debug("No new game data. Using existing game data.")
 
-    args = request.args
-    
-    plotlink_html_chunks = [
-        f"<li><a href='/?plot_name={plot_name}'>{plot_name}</a></li>"
-        for plot_name in PLOT_NAME_FUNC_MAP
-    ]
-    plot_link_html = "<ul>\n" + "\n".join(plotlink_html_chunks) + "</ul>\n"
-    plot_name = args["plot_name"] if "plot_name" in args else "Game Summary"
-
     game_update_time_str = app.game_update_time.strftime("%Y-%m-%d, %H:%M:%S")
 
-    return render_template_string(f'''<!DOCTYPE html>
-    <html>
-        <head title="Jamstats">
-            <script type="text/javascript">
-            setTimeout(function () {{
-                  location.reload();
-                }}, {1000 * app.autorefresh_seconds});
-            </script>
-            <noscript>
-                <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
-            </noscript>
-        </head>
-        <body>
-            <table>
-                <tr>
-                    <th align="left" valign="top" width="200">
-                        <table>
-                            <tr>
-                                <th>
-                                    <img src="logo" width="200">
-                                    <br>
-                                    Jamstats version {get_jamstats_version()}
-                                </th>
-                            </tr>
-                            <tr>
-                                <th align="left" valign="top" bgcolor="lightgray" width="200">
-                                    <p>Updated {game_update_time_str}</p>
-                                    <p>{plot_link_html}</p>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th align="left" valign="top" bgcolor="gray" width="200">
-                                    <p>jamstats server/port:
-                                    <br/>
-                                    {app.ip}:{app.port}</p>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th align="left" valign="top" bgcolor="gray" width="200">
-                                    <p>Page will refresh every {app.autorefresh_seconds} seconds</p>
-                                </th>
-                            </tr>
-                        </table>
-                    </th>
-                    <th>
-                        {generate_figure_html(app, plot_name)}
-                    </th>
-                </tr>
-            </table>
-        </body>
-    </html>
-    ''')
+    plot_name = request.args["plot_name"] if "plot_name" in request.args else "Game Summary"
+
+    return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
+                           game_update_time_str=game_update_time_str,
+                           jamstats_ip=app.ip, jamstats_port=app.port,
+                           autorefresh_seconds=app.autorefresh_seconds,
+                           plot_name=plot_name, all_plot_names=ALL_PLOT_NAMES)
 
 
 def show_error(error_message: str):
@@ -222,9 +175,6 @@ def show_error(error_message: str):
 
     Args:
         error_message (str): error message
-
-    Returns:
-        _type_: _description_
     """
     return render_template_string(f'''<!DOCTYPE html>
     <html>
@@ -281,15 +231,12 @@ def generate_figure_html(app, plot_name: str) -> str:
 @app.route("/fig/<plot_name>")
 def plot_figure(plot_name: str):
     """Plot a figure.
-
     Currently, very inefficient: this method makes the figure again only when necessary,
     but it *renders* it every time. I'm doing that because earlier I tried saving it to a
     buffer and reading the buffer every time, but somehow the buffer got closed between
     calls (multithreading?)
-
     Args:
         plot_name (str): name of plot to plot
-
     """
     if app.derby_game is None:
         return "No derby game set."
@@ -319,4 +266,3 @@ def plot_figure(plot_name: str):
     f.savefig(buf, format="png")
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
-
