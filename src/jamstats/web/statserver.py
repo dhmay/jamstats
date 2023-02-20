@@ -45,11 +45,15 @@ logger = logging.Logger(__name__)
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
+    return os.path.join(os.path.abspath("src"), "jamstats", relative_path)
 
 # This is necessary for pyinstaller to find the templates folder
-app = Flask(__name__.split('.')[0], static_url_path="", static_folder=resource_path(
-            'static'), template_folder=resource_path("templates"))
+static_folder = resource_path('static')
+template_folder = resource_path('templates')
+print(f"static_folder={static_folder}, template_folder={template_folder}")
+
+app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_folder,
+            template_folder=template_folder)
 app.jamstats_plots = None
 
 PLOT_NAME_FUNC_MAP = {
