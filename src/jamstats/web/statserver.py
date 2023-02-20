@@ -44,8 +44,8 @@ logger = logging.Logger(__name__)
 
 # This is necessary for pyinstaller to find the templates folder
 if getattr(sys, 'frozen', False):
-    template_folder = os.path.join(sys._MEIPASS, '..', 'templates')
-    static_folder = os.path.join(sys._MEIPASS, '..', 'static')
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
     app = Flask(__name__.split('.')[0], template_folder=template_folder,
                 static_folder=static_folder)
 else:
