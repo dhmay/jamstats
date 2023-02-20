@@ -42,14 +42,14 @@ DEFAULT_AUTOREFRESH_SECONDS = 30
 
 logger = logging.Logger(__name__)
 
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 # This is necessary for pyinstaller to find the templates folder
-if getattr(sys, 'frozen', False):
-    template_folder = os.path.join(sys._MEIPASS, 'templates')
-    static_folder = os.path.join(sys._MEIPASS, 'static')
-    app = Flask(__name__.split('.')[0], template_folder=template_folder,
-                static_folder=static_folder)
-else:
-    app = Flask(__name__.split('.')[0])
+app = Flask(__name__.split('.')[0], static_url_path="", static_folder=resource_path(
+            'static'), template_folder=resource_path("templates"))
 app.jamstats_plots = None
 
 PLOT_NAME_FUNC_MAP = {
@@ -68,6 +68,8 @@ PLOT_NAME_FUNC_MAP = {
     "Jam Duration": histogram_jam_duration,
 }
 ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
+
+
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
           scoreboard_server: str = None,
