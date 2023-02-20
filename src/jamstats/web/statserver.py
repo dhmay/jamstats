@@ -12,7 +12,6 @@ import inspect
 import time
 import _thread
 import traceback
-from base64 import b64encode
 
 from jamstats.plots.jamplots import (
         plot_game_summary_table,
@@ -36,13 +35,21 @@ from datetime import datetime
 import io
 import logging
 import socket
+import sys, os
 
 
 DEFAULT_AUTOREFRESH_SECONDS = 30
 
 logger = logging.Logger(__name__)
 
-app = Flask(__name__.split('.')[0])
+# This is necessary for pyinstaller to find the templates folder
+if getattr(sys, 'frozen', False):
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
+    app = Flask(__name__.split('.')[0], template_folder=template_folder,
+                static_folder=static_folder)
+else:
+    app = Flask(__name__.split('.')[0])
 app.jamstats_plots = None
 
 PLOT_NAME_FUNC_MAP = {
