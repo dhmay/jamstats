@@ -8,7 +8,10 @@ a = Analysis(
     ['../bin/jamstats'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        ('jamstats\\static\\', 'static'),
+        ('jamstats\\templates\\', 'templates'),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
