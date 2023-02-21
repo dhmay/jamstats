@@ -599,8 +599,11 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     pdf_penalty_gamedata = pdf_game_state[(pdf_game_state.n_key_chunks == 5)].copy()
     pdf_penalty_gamedata["keychunk_2"] = [chunks[2] for chunks in pdf_penalty_gamedata.key_chunks]
     pdf_penalty_gamedata["keychunk_3"] = [chunks[3] for chunks in pdf_penalty_gamedata.key_chunks]
+    # Ignore "Penalty(0)". Those aren't regular penalties. They seem to get generated when
+    # someone fouls out.
     pdf_penalty_gamedata = pdf_penalty_gamedata[
-        pdf_penalty_gamedata.keychunk_3.str.startswith("Penalty(")]
+        pdf_penalty_gamedata.keychunk_3.str.startswith("Penalty(") &
+        ~pdf_penalty_gamedata.keychunk_3.str.startswith("Penalty(0)")]
     logger.debug(f"    Rows with `Penalty(`: {len(pdf_penalty_gamedata)}")
     pdf_penalty_gamedata["penalty_key"] = [chunks[4] for chunks in pdf_penalty_gamedata.key_chunks]
     pdf_penalty_gamedata["Id"] = [chunk[len("Skater("):-1]
