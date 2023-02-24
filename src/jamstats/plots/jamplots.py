@@ -13,6 +13,8 @@ from jamstats.plots.plot_util import (
 )
 import matplotlib.patches as mpatches
 from jamstats.plots.plot_util import convert_millis_to_min_sec_str
+from jamstats.plots.plot_util import build_anonymizer_map
+
 
 
 DEFAULT_N_RECENT_PENALTIES = 10
@@ -136,15 +138,18 @@ def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
 
 
 def get_recent_penalties_html(derby_game: DerbyGame,
-                              n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES) -> str:
+                              n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
+                              anonymize_names: bool = False) -> str:
     """Make html table out of most recent penalties"""
     pdf_recent_penalties = make_recent_penalties_dataframe(derby_game,
-                                                           n_penalties_for_table=n_penalties_for_table)
+                                                           n_penalties_for_table=n_penalties_for_table,
+                                                           anonymize_names=anonymize_names)
     return pdf_recent_penalties.to_html(index=False)
 
 
 def make_recent_penalties_dataframe(derby_game: DerbyGame,
-                                n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES) -> pd.DataFrame:
+                                n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
+                                anonymize_names: bool = False) -> pd.DataFrame:
     """Make a dataframe out of most recent penalties
 
     Args:
@@ -173,6 +178,9 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
     # restrict columns
     pdf_recent_penalties = pdf_recent_penalties[[
         "Served", "Serving", "Period", "Jam", "Time in Jam", "Team", "Skater", "Penalty"]]
+    if anonymize_names:
+        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Skater))
+        pdf_recent_penalties["Skater"] = [name_dict[skater] for skater in pdf_recent_penalties.Skater]  
 
     return pdf_recent_penalties 
 

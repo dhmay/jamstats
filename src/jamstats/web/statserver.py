@@ -176,7 +176,8 @@ def index():
                            jamstats_ip=app.ip, jamstats_port=app.port,
                            autorefresh_seconds=app.autorefresh_seconds,
                            plot_name=plot_name, all_plot_names=ALL_PLOT_NAMES,
-                           recent_penalties_html = get_recent_penalties_html(app.derby_game))
+                           recent_penalties_html = get_recent_penalties_html(
+                               app.derby_game, anonymize_names=app.anonymize_names))
 
 
 def show_error(error_message: str):
