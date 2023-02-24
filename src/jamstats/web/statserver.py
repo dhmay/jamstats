@@ -145,8 +145,8 @@ def index():
                             f"{app.scoreboard_server}:{app.scoreboard_port}: {e}")
                 try:
                     traceback.print_stack()
-                except Exception as e:
-                    print(f"Exception while printing stack: {e}")
+                except Exception as e2:
+                    print(f"Exception while printing stack: {e2}")
                 return show_error("Exception while connecting to server. Will retry")
         else:
             logger.debug("Scoreboard client already exists. Checking for new game data...")

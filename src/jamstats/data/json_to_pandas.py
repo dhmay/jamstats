@@ -613,8 +613,10 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     pdf_penalty_gamedata["SkaterId"] = [chunk[len("Skater("):-1]
                                 for chunk in pdf_penalty_gamedata.keychunk_2]
 
-    # make a unique identifier for this penalty from the combination of skater id and penalty number
-    pdf_penalty_gamedata["penalty_id"] = pdf_penalty_gamedata["SkaterId"] + "___" + pdf_penalty_gamedata["penalty_number"]
+    # make a unique identifier for this penalty from the combination of skater id and penalty number.
+    # Cast skaterid to string because if it's empty it gets float.
+    # Cast penalty number to string just in case.
+    pdf_penalty_gamedata["penalty_id"] = pdf_penalty_gamedata["SkaterId"].astype(str) + "___" + pdf_penalty_gamedata["penalty_number"].astype(str)
 
     # Drop extraneous columns
     pdf_penalties_long = pdf_penalty_gamedata[["penalty_id", "penalty_variable", "value"]]
@@ -625,6 +627,11 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
                                             values="value")
     # restore skater ID as "Id"
     pdf_penalties["Id"] = [x.split("___")[0] for x in pdf_penalties.index]
+
+    # dummy up columns if they're missing, which happens if no penalties yet
+    for col in ["PeriodNumber", "JamNumber", "Code", "Served", "Serving", "Time"]:
+        if col not in pdf_penalties:
+            pdf_penalties[col] = None
 
     # Drop extraneous columns
     pdf_penalties = pdf_penalties[["Id", "PeriodNumber", "JamNumber",
