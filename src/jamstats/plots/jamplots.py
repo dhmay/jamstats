@@ -12,6 +12,12 @@ from jamstats.plots.plot_util import (
     wordwrap_x_labels
 )
 import matplotlib.patches as mpatches
+from jamstats.plots.plot_util import convert_millis_to_min_sec_str
+from jamstats.plots.plot_util import build_anonymizer_map
+
+
+
+DEFAULT_N_RECENT_PENALTIES = 10
 
 
 logger = logging.Logger(__name__)
@@ -129,6 +135,55 @@ def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
     ax.table(cellText=pdf_game_teams_summary.values,
             colLabels=None, bbox=[0,0,1,1])
     return f
+
+
+def get_recent_penalties_html(derby_game: DerbyGame,
+                              n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
+                              anonymize_names: bool = False) -> str:
+    """Make html table out of most recent penalties"""
+    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game,
+                                                           n_penalties_for_table=n_penalties_for_table,
+                                                           anonymize_names=anonymize_names)
+    return pdf_recent_penalties.to_html(index=False)
+
+
+def make_recent_penalties_dataframe(derby_game: DerbyGame,
+                                n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
+                                anonymize_names: bool = False) -> pd.DataFrame:
+    """Make a dataframe out of most recent penalties
+
+    Args:
+        derby_game (DerbyGame): a derby game
+        n_penalties_for_table (int, optional): number of penalties to include in table.
+
+    Returns:
+        Figure: table figure
+    """    
+    # Sort penalties by time, then merge with jam data to get the time in jam
+    pdf_recent_penalties = derby_game.pdf_penalties.sort_values(
+        "Time", ascending=False)[:n_penalties_for_table].copy()
+    pdf_recent_penalties = pdf_recent_penalties.merge(derby_game.pdf_jams_data[
+        ["prd_jam", "WalltimeStart"]], on="prd_jam")
+    pdf_recent_penalties["Time in Jam"] = pdf_recent_penalties["Time"] - pdf_recent_penalties["WalltimeStart"]
+    pdf_recent_penalties["Time in Jam"] = [convert_millis_to_min_sec_str(x)
+                                           for x in pdf_recent_penalties["Time in Jam"]]
+        
+    # Make pretty names for columns
+    pdf_recent_penalties = pdf_recent_penalties.rename(columns={
+        "PeriodNumber": "Period",
+        "JamNumber": "Jam",
+        "team": "Team",
+        "Name": "Skater",
+        "penalty_name": "Penalty"})
+    # restrict columns
+    pdf_recent_penalties = pdf_recent_penalties[[
+        "Served", "Serving", "Period", "Jam", "Time in Jam", "Team", "Skater", "Penalty"]]
+    if anonymize_names:
+        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Skater))
+        pdf_recent_penalties["Skater"] = [name_dict[skater] for skater in pdf_recent_penalties.Skater]  
+
+    return pdf_recent_penalties 
+
 
 def plot_jam_lead_and_scores_period1(derby_game: DerbyGame) -> Figure:
     return plot_jam_lead_and_scores(derby_game, period=1)

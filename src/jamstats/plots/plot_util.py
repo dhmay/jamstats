@@ -5,8 +5,9 @@ import seaborn as sns
 from jamstats.data.game_data import DerbyGame
 import logging
 from matplotlib import pyplot as plt
-from typing import Any
+from typing import Any, Iterable, Dict
 from textwrap import wrap
+import random
 
 logger = logging.Logger(__name__)
 
@@ -61,3 +62,108 @@ def wordwrap_x_labels(ax: Any, max_len: int = DEFAULT_XLABEL_MAX_LEN):
         ticks = ax.get_xticks().tolist()
     ax.set_xticks(ticks)
     ax.set_xticklabels(new_xticklabels)
+
+
+def convert_millis_to_min_sec_str(millis: int) -> str:
+    """ Convert milliseconds to a string of minutes:seconds.
+
+    Args:
+        millis (int): milliseconds
+
+    Returns:
+        str: minutes:seconds
+    """
+    minutes = int(millis/(1000*60))%60
+    seconds = int(millis/1000)%60
+    seconds_str = str(seconds)
+    if seconds < 10:
+        seconds_str = "0" + seconds_str
+    
+    return f"{minutes}:{seconds_str}"
+
+
+def build_anonymizer_map(names: Iterable[str]) -> Dict[str, str]:
+    """Build a dictionary from unique passed-in names to randomly selected
+    anonymized skater names.
+
+    Will fail if you ask for more names than the list contains (about 60)
+
+    Args:
+        names (Iterable[str]): input names
+
+    Returns:
+        Dict[str, str]: map from input names to anonymized names
+    """
+    # just in case the names aren't unique
+    names_set_list = list(set(names))
+    anonymized_names = random.sample(ANONYMIZED_SKATER_NAMES, len(names_set_list))
+    return {
+        names_set_list[i]: anonymized_names[i]
+        for i in range(len(names_set_list))
+    }
+
+
+ANONYMIZED_SKATER_NAMES = [
+    "Middle Skull Crush",
+    "Magic Missile",
+    "Caffiend",
+    "Artemis Foul",
+    "Madame Fury",
+    "Rejected",
+    "Elena Traffic",
+    "Fate Skar",
+    "Bee Knighter",
+    "Hate Skar'd",
+    "Clever Bruise",
+    "Sudden Beth",
+    "Nasty, Brutish and Me",
+    "Penalty Fox",
+    "Mike Wheeler",
+    "Foe Stops",
+    "Foul Doubt",
+    "Scarlight Express",
+    "Stang 'Er Things",
+    "Strangler Things",
+    "Tragic Missile",
+    "Skate of Shock",
+    "Murder Hornet",
+    "Max May-wheeled",
+    "Boba Teen",
+    "Superscar",
+    "Elenavalanche",
+    "Scar the Grouch",
+    "Scar Wylde",
+    "Rebel Girl",
+    "Scarhawk",
+    "Sass Squatch",
+    "Stronger Than You",
+    "Scartillery",
+    "Bad Assassin",
+    "Sassassin",
+    "Ambulance",
+    "Global Harming",
+    "Seabattle",
+    "Cascade Deranged",
+    "Columbia Shiv 'Er",
+    "Scarstruck",
+    "Sneak Attrack",
+    "Duel Wheeled",
+    "Awful Good",
+    "Broad Sword",
+    "Roll for Damage",
+    "Nat Twenty",
+    "Scorehammer",
+    "Javelin",
+    "Unarmed Strike",
+    "Morning Scar",
+    "Critical Roll",
+    "Shortsword",
+    "Chaos Muppet",
+    "Scartemis",
+    "Kestrel",
+    "No Regrette",
+    "The Sparkly Cloud Killer",
+    "Ada Hatelace",
+    "Wheela Monster",
+    "Poison Dart Frog",
+]

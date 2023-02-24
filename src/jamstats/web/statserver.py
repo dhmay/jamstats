@@ -23,6 +23,7 @@ from jamstats.plots.jamplots import (
         plot_lead_summary,
         histogram_jam_duration,
         plot_team_penalty_counts,
+        get_recent_penalties_html
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
@@ -59,6 +60,7 @@ app.jamstats_plots = None
 PLOT_NAME_FUNC_MAP = {
     "Game Summary": plot_game_summary_table,
     "Teams Summary": plot_game_teams_summary_table,
+    "Recent Penalties": None,
     "Cumulative Score by Jam": plot_cumulative_score_by_jam,
     "Lead and Scores (Period 1)": plot_jam_lead_and_scores_period1,
     "Lead and Scores (Period 2)": plot_jam_lead_and_scores_period2,
@@ -143,8 +145,8 @@ def index():
                             f"{app.scoreboard_server}:{app.scoreboard_port}: {e}")
                 try:
                     traceback.print_stack()
-                except Exception as e:
-                    print(f"Exception while printing stack: {e}")
+                except Exception as e2:
+                    print(f"Exception while printing stack: {e2}")
                 return show_error("Exception while connecting to server. Will retry")
         else:
             logger.debug("Scoreboard client already exists. Checking for new game data...")
@@ -173,7 +175,9 @@ def index():
                            game_update_time_str=game_update_time_str,
                            jamstats_ip=app.ip, jamstats_port=app.port,
                            autorefresh_seconds=app.autorefresh_seconds,
-                           plot_name=plot_name, all_plot_names=ALL_PLOT_NAMES)
+                           plot_name=plot_name, all_plot_names=ALL_PLOT_NAMES,
+                           recent_penalties_html = get_recent_penalties_html(
+                               app.derby_game, anonymize_names=app.anonymize_names))
 
 
 def show_error(error_message: str):
