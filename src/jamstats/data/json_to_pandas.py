@@ -598,23 +598,45 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     logger.debug("extract_penalties begin")
     pdf_penalty_gamedata = pdf_game_state[(pdf_game_state.n_key_chunks == 5)].copy()
     pdf_penalty_gamedata["keychunk_2"] = [chunks[2] for chunks in pdf_penalty_gamedata.key_chunks]
-    pdf_penalty_gamedata["keychunk_3"] = [chunks[3] for chunks in pdf_penalty_gamedata.key_chunks]
+
+    # this value includes the string "Penalty(" and trailing ")"
+    pdf_penalty_gamedata["penalty_number"] = [chunks[3] for chunks in pdf_penalty_gamedata.key_chunks]
+
     # Ignore "Penalty(0)". Those aren't regular penalties. They seem to get generated when
     # someone fouls out.
     pdf_penalty_gamedata = pdf_penalty_gamedata[
-        pdf_penalty_gamedata.keychunk_3.str.startswith("Penalty(") &
-        ~pdf_penalty_gamedata.keychunk_3.str.startswith("Penalty(0)")]
+        pdf_penalty_gamedata.penalty_number.str.startswith("Penalty(") &
+        ~pdf_penalty_gamedata.penalty_number.str.startswith("Penalty(0)")]
+
     logger.debug(f"    Rows with `Penalty(`: {len(pdf_penalty_gamedata)}")
-    pdf_penalty_gamedata["penalty_key"] = [chunks[4] for chunks in pdf_penalty_gamedata.key_chunks]
-    pdf_penalty_gamedata["Id"] = [chunk[len("Skater("):-1]
-                                  for chunk in pdf_penalty_gamedata.keychunk_2]
-    pdf_penalty_gamedata = pdf_penalty_gamedata.merge(
-        pdf_roster[["Id", "Name", "team"]], on="Id")
-    logger.debug(f"    After merging with roster: {len(pdf_penalty_gamedata)}")
-    pdf_penalties = pdf_penalty_gamedata[pdf_penalty_gamedata.penalty_key == "Code"]
-    pdf_penalties = pdf_penalties.rename(columns={"value": "penalty_code"})
-    pdf_penalties = pdf_penalties[["Name", "team", "penalty_code"]]
-    logger.debug(f"    Before merge with penalty codes: {len(pdf_penalties)}")
+    pdf_penalty_gamedata["penalty_variable"] = [chunks[4] for chunks in pdf_penalty_gamedata.key_chunks]
+    pdf_penalty_gamedata["SkaterId"] = [chunk[len("Skater("):-1]
+                                for chunk in pdf_penalty_gamedata.keychunk_2]
+
+    # make a unique identifier for this penalty from the combination of skater id and penalty number
+    pdf_penalty_gamedata["penalty_id"] = pdf_penalty_gamedata["SkaterId"] + "___" + pdf_penalty_gamedata["penalty_number"]
+
+    # Drop extraneous columns
+    pdf_penalties_long = pdf_penalty_gamedata[["penalty_id", "penalty_variable", "value"]]
+
+    # Pivot to create different columns for each different penalty key
+    pdf_penalties = pdf_penalties_long.pivot(index="penalty_id", 
+                                            columns="penalty_variable",
+                                            values="value")
+    # restore skater ID as "Id"
+    pdf_penalties["Id"] = [x.split("___")[0] for x in pdf_penalties.index]
+
+    # Drop extraneous columns
+    pdf_penalties = pdf_penalties[["Id", "PeriodNumber", "JamNumber",
+                                   "Code", "Served", "Serving", "Time"]]
+    pdf_penalties["prd_jam"] = [
+        f"{period}:{'0' if (jam < 10) else ''}{jam}" 
+        for period, jam in zip(*[pdf_penalties.PeriodNumber, pdf_penalties.JamNumber])]
+    pdf_penalties = pdf_penalties.rename(columns={"Code": "penalty_code"})
+
+    logger.debug(f"    Before merging with roster: {len(pdf_penalties)}")
+    pdf_penalties = pdf_penalties.merge(pdf_roster[["Id", "Name", "team"]], on="Id")
+    logger.debug(f"    After merging with roster: {len(pdf_penalties)}")
 
     # add penalty names
     pdf_penalty_codes_names = build_penalty_code_name_map(pdf_game_state, json_major_version)

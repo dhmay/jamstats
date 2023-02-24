@@ -50,7 +50,11 @@
                         </td>
                         <td width="70%" valign="top">
                             <p><b>{{plot_name}}</b></p>
-                            <p><img src="fig/{{plot_name}}" width="100%"/>
+                            {% if plot_name == "Recent Penalties" %}
+                                <p>{{recent_penalties_html | safe}}</p>
+                            {% else %}
+                                <p><img src="fig/{{plot_name}}" width="100%"/>
+                            {% endif %}
                         </td>
                     </tr>
                 </table>

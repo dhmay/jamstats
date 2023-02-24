@@ -61,3 +61,21 @@ def wordwrap_x_labels(ax: Any, max_len: int = DEFAULT_XLABEL_MAX_LEN):
         ticks = ax.get_xticks().tolist()
     ax.set_xticks(ticks)
     ax.set_xticklabels(new_xticklabels)
+
+
+def convert_millis_to_min_sec_str(millis: int) -> str:
+    """ Convert milliseconds to a string of minutes:seconds.
+
+    Args:
+        millis (int): milliseconds
+
+    Returns:
+        str: minutes:seconds
+    """
+    minutes = int(millis/(1000*60))%60
+    seconds = int(millis/1000)%60
+    seconds_str = str(seconds)
+    if seconds < 10:
+        seconds_str = "0" + seconds_str
+    
+    return f"{minutes}:{seconds_str}"
