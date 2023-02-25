@@ -57,23 +57,35 @@ app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_fol
             template_folder=template_folder)
 app.jamstats_plots = None
 
-PLOT_NAME_FUNC_MAP = {
-    "Game Summary": plot_game_summary_table,
-    "Teams Summary": plot_game_teams_summary_table,
-    "Recent Penalties": None,
-    "Cumulative Score by Jam": plot_cumulative_score_by_jam,
-    "Lead and Scores (Period 1)": plot_jam_lead_and_scores_period1,
-    "Lead and Scores (Period 2)": plot_jam_lead_and_scores_period2,
-    "Jammer Summary": plot_jammers_by_team,
-    "Lead Summary": plot_lead_summary,
-    "Team Penalty Counts": plot_team_penalty_counts,
-    "Team 1 Jammers": plot_jammer_stats_team1,
-    "Team 2 Jammers": plot_jammer_stats_team2,
-    "Team 1 Skaters": plot_skater_stats_team1,
-    "Team 2 Skaters": plot_skater_stats_team2,
-    "Jam Duration": histogram_jam_duration,
+PLOT_SECTION_NAME_FUNC_MAP = {
+    "Tables": {
+        "Game Summary": plot_game_summary_table,
+        "Teams Summary": plot_game_teams_summary_table,
+        "Recent Penalties": None,
+    },
+    "Plots": {
+        "Cumulative Score by Jam": plot_cumulative_score_by_jam,
+        "Team Penalty Counts": plot_team_penalty_counts,
+        "Lead Summary": plot_lead_summary,
+        "Team 1 Jammers": plot_jammer_stats_team1,
+        "Team 2 Jammers": plot_jammer_stats_team2,
+        "Team 1 Skaters": plot_skater_stats_team1,
+        "Team 2 Skaters": plot_skater_stats_team2,
+        "Lead and Scores (Period 1)": plot_jam_lead_and_scores_period1,
+        "Lead and Scores (Period 2)": plot_jam_lead_and_scores_period2,
+        "Jammer Summary": plot_jammers_by_team,
+    }
+    #    "Jam Duration": histogram_jam_duration,
+}
+PLOT_NAME_FUNC_MAP = {}
+for section_name, amap in PLOT_SECTION_NAME_FUNC_MAP.items():
+    for name, func in amap.items():
+        PLOT_NAME_FUNC_MAP[name] = func
+PLOT_SECTION_NAMES_MAP = {
+    section: list(amap.keys()) for section, amap in PLOT_SECTION_NAME_FUNC_MAP.items()
 }
 ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
+
 
 
 
@@ -172,11 +184,19 @@ def index():
 
     plot_name = request.args["plot_name"] if "plot_name" in request.args else "Game Summary"
 
+    plotname_displayname_map = {
+        plotname: (plotname.replace("Team 1", app.derby_game.team_1_name)
+                   .replace("Team 2", app.derby_game.team_2_name))
+        for plotname in ALL_PLOT_NAMES
+    }
+
     return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
                            game_update_time_str=game_update_time_str,
                            jamstats_ip=app.ip, jamstats_port=app.port,
                            autorefresh_seconds=app.autorefresh_seconds,
-                           plot_name=plot_name, all_plot_names=ALL_PLOT_NAMES,
+                           plot_name=plot_name,
+                           section_name_map=PLOT_SECTION_NAMES_MAP,
+                           plotname_displayname_map=plotname_displayname_map,
                            recent_penalties_html = get_recent_penalties_html(
                                app.derby_game, anonymize_names=app.anonymize_names))
 

@@ -37,14 +37,18 @@
                 <table>
                     <tr>
                         <td width="30%" valign="top">
-                            {% for plot_name_forlink in all_plot_names %}
-                                {% if plot_name_forlink == plot_name %}
-                                    {{plot_name_forlink}}
-                                {% else %}
-                                    <a href='/?plot_name={{plot_name_forlink}}'>
-                                       {{plot_name_forlink}}
-                                    </a>
-                                {% endif %}
+                            {% for section in section_name_map %}
+                                <b>{{section}}</b><br/>
+                                {% for plot_name_forlink in section_name_map[section] %}
+                                    {% if plot_name_forlink == plot_name %}
+                                        {{plotname_displayname_map[plot_name_forlink]}}
+                                    {% else %}
+                                        <a href='/?plot_name={{plot_name_forlink}}'>
+                                        {{plotname_displayname_map[plot_name_forlink]}}
+                                        </a>
+                                    {% endif %}
+                                    <br/>
+                                {% endfor %}
                             <br/>
                             {% endfor %}
                         </td>
