@@ -633,16 +633,26 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
         if col not in pdf_penalties:
             pdf_penalties[col] = None
 
+    # "Served" and "Serving" are a bit silly to separate. Combine them
+    pdf_penalties["Status"] = [
+        "Not Yet" if not served and not serving
+        else "Serving" if served and serving
+        else "Served" if served and not serving
+        else "Unknown"
+        for served, serving in zip(*[pdf_penalties.Served, pdf_penalties.Serving])
+    ]
+    pdf_penalties = pdf_penalties.drop(columns=["Served", "Serving"])
+
     # Drop extraneous columns
     pdf_penalties = pdf_penalties[["Id", "PeriodNumber", "JamNumber",
-                                   "Code", "Served", "Serving", "Time"]]
+                                   "Code", "Status", "Time"]]
     pdf_penalties["prd_jam"] = [
         f"{period}:{'0' if (jam < 10) else ''}{jam}" 
         for period, jam in zip(*[pdf_penalties.PeriodNumber, pdf_penalties.JamNumber])]
     pdf_penalties = pdf_penalties.rename(columns={"Code": "penalty_code"})
 
     logger.debug(f"    Before merging with roster: {len(pdf_penalties)}")
-    pdf_penalties = pdf_penalties.merge(pdf_roster[["Id", "Name", "team"]], on="Id")
+    pdf_penalties = pdf_penalties.merge(pdf_roster[["Id", "Name", "RosterNumber", "team"]], on="Id")
     logger.debug(f"    After merging with roster: {len(pdf_penalties)}")
 
     # add penalty names

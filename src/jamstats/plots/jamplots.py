@@ -144,7 +144,17 @@ def get_recent_penalties_html(derby_game: DerbyGame,
     pdf_recent_penalties = make_recent_penalties_dataframe(derby_game,
                                                            n_penalties_for_table=n_penalties_for_table,
                                                            anonymize_names=anonymize_names)
-    return pdf_recent_penalties.to_html(index=False)
+    # add colors
+    map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
+        else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \
+        else ''
+    styler = pdf_recent_penalties.style.applymap(map_team_to_color, subset=["Team"]).hide_index()
+
+    # if either team is white, don't use white background.
+    # This will break if white plays gray
+    if derby_game.team_color_1.lower() == "#ffffff" or derby_game.team_color_2.lower() == "#ffffff":
+        styler = styler.set_properties(**{'background-color': 'gray'})
+    return styler.render(index=False)
 
 
 def make_recent_penalties_dataframe(derby_game: DerbyGame,
@@ -167,17 +177,17 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
     pdf_recent_penalties["Time in Jam"] = pdf_recent_penalties["Time"] - pdf_recent_penalties["WalltimeStart"]
     pdf_recent_penalties["Time in Jam"] = [convert_millis_to_min_sec_str(x)
                                            for x in pdf_recent_penalties["Time in Jam"]]
-        
+    pdf_recent_penalties["Skater"] = pdf_recent_penalties["RosterNumber"] + " " + pdf_recent_penalties["Name"]
+
     # Make pretty names for columns
     pdf_recent_penalties = pdf_recent_penalties.rename(columns={
         "PeriodNumber": "Period",
         "JamNumber": "Jam",
         "team": "Team",
-        "Name": "Skater",
         "penalty_name": "Penalty"})
-    # restrict columns
+    # restrict, order columns
     pdf_recent_penalties = pdf_recent_penalties[[
-        "Served", "Serving", "Period", "Jam", "Time in Jam", "Team", "Skater", "Penalty"]]
+        "Team", "Skater", "Penalty", "Status", "Period", "Jam", "Time in Jam"]]
     if anonymize_names:
         name_dict = build_anonymizer_map(set(pdf_recent_penalties.Skater))
         pdf_recent_penalties["Skater"] = [name_dict[skater] for skater in pdf_recent_penalties.Skater]  
