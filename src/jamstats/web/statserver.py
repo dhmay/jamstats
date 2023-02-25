@@ -39,7 +39,7 @@ import socket
 import sys, os
 
 
-DEFAULT_AUTOREFRESH_SECONDS = 30
+DEFAULT_AUTOREFRESH_SECONDS = 15
 
 logger = logging.Logger(__name__)
 
@@ -81,6 +81,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
           scoreboard_server: str = None,
           scoreboard_port: int = None,
           jamstats_ip: str = None, debug: bool = True, anonymize_names=False,
+          autorefresh_seconds=DEFAULT_AUTOREFRESH_SECONDS,
           theme="white") -> None:
     """
 
@@ -101,7 +102,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     app.scoreboard_client = scoreboard_client
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
-    app.autorefresh_seconds = DEFAULT_AUTOREFRESH_SECONDS
+    app.autorefresh_seconds = autorefresh_seconds
     if jamstats_ip:
         app.ip = jamstats_ip
     else:

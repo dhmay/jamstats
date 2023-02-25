@@ -78,6 +78,8 @@ def add_args(parser, is_gooey):
                         help="Set the color for team 1. Can be of the form 'green' or of the form '#00FF00'")
     parser.add_argument('--teamcolor2', type=str,
                         help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
+    parser.add_argument('--refreshseconds', type=int, default=statserver.DEFAULT_AUTOREFRESH_SECONDS,
+                        help="If reading from a server, how often to refresh the data (in seconds).")
     args = parser.parse_args()
 
     if args.jsonfile is None and args.scoreboardserver is None:
@@ -183,6 +185,7 @@ def __main__():
             "scoreboard_client": scoreboard_client,
             "scoreboard_server": scoreboardserver,
             "scoreboard_port": scoreboardport,
+            "autorefresh_seconds": args.refreshseconds,
         }
         statserver.set_game(derby_game) 
         statserver.start(args.jamstatsport, **kwargs)
