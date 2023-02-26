@@ -124,7 +124,7 @@ class DerbyGame:
             "Game Status": self.game_data_dict["game_status"],
             "Periods": n_periods,
             "Jams": n_jams,
-            "Total Game Time": str(timedelta(seconds = game_duration_s)),
+            "Total Game Time": str(timedelta(seconds = int(game_duration_s))),
             f"{self.team_1_name} Score": score_team_1,
             f"{self.team_2_name} Score": score_team_2,
             "Injury Jams": n_jams_with_injury,
