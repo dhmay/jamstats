@@ -95,6 +95,20 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     return f
 
 
+def get_game_summary_html(derby_game: DerbyGame) -> str:
+    """Get a game summary table as html
+
+    Args:
+        derby_game (DebyGame): derby game
+
+    Returns:
+        str: html table
+    """
+    pdf_game_summary = derby_game.extract_game_summary()
+    styler = pdf_game_summary.style.set_table_attributes("style='display:inline'").hide_index()
+    return styler.render()
+
+
 def plot_game_summary_table(derby_game: DerbyGame) -> Figure:
     """Make a table figure out of the game summary dataframe,
     suitable for writing to a .pdf
@@ -114,6 +128,25 @@ def plot_game_summary_table(derby_game: DerbyGame) -> Figure:
              colLabels=pdf_game_summary.columns, bbox=[0,0,1,1])
     return f
 
+
+def get_game_teams_summary_html(derby_game: DerbyGame) -> str:
+    """Get a game teams summary table as html
+
+    Args:
+        derby_game (DerbyGame): derby game
+
+    Returns:
+        str: html table
+    """
+    pdf_game_teams_summary = derby_game.extract_game_teams_summary().transpose()
+    pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
+    pdf_game_teams_summary["Team"] = pdf_game_teams_summary.index
+    pdf_game_teams_summary = pdf_game_teams_summary[["Team", 0, 1]]
+    pdf_game_teams_summary = pdf_game_teams_summary.rename(columns={0: derby_game.team_1_name,
+                                                                    1: derby_game.team_2_name})
+    pdf_game_teams_summary = pdf_game_teams_summary[pdf_game_teams_summary.Team != "Team"]
+    styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
+    return styler.render()
 
 def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
     """Make a table figure out of the teams summary dataframe,

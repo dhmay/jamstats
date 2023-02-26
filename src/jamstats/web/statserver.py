@@ -14,8 +14,8 @@ import _thread
 import traceback
 
 from jamstats.plots.jamplots import (
-        plot_game_summary_table,
-        plot_game_teams_summary_table,
+        get_game_summary_html,
+        get_game_teams_summary_html,
         plot_cumulative_score_by_jam,
         plot_jam_lead_and_scores_period1,    
         plot_jam_lead_and_scores_period2,
@@ -61,9 +61,9 @@ app.jamstats_plots = None
 
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
-        "Game Summary": plot_game_summary_table,
-        "Teams Summary": plot_game_teams_summary_table,
-        "Recent Penalties": None,
+        "Game Summary": get_game_summary_html,
+        "Teams Summary": get_game_teams_summary_html,
+        "Recent Penalties": get_recent_penalties_html,
         "Team 1 Roster": get_team1_roster_html,
         "Team 2 Roster": get_team2_roster_html,
     },
@@ -91,11 +91,16 @@ PLOT_SECTION_NAMES_MAP = {
 ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
 
 HTML_PLOT_NAMES = [
+    "Game Summary",
+    "Teams Summary",
     "Recent Penalties",
     "Team 1 Roster",
     "Team 2 Roster",
 ]
-
+PLOT_NAME_TYPE_MAP = {
+    plot_name: "html" if plot_name in HTML_PLOT_NAMES else "figure"
+    for plot_name in ALL_PLOT_NAMES
+}
 
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
@@ -206,10 +211,9 @@ def index():
                            plot_name=plot_name,
                            section_name_map=PLOT_SECTION_NAMES_MAP,
                            plotname_displayname_map=plotname_displayname_map,
-                           recent_penalties_html = get_recent_penalties_html(
-                               app.derby_game, anonymize_names=app.anonymize_names),
-                           team1_roster_html = get_team1_roster_html(app.derby_game),
-                           team2_roster_html = get_team2_roster_html(app.derby_game))
+                           plotname_type_map=PLOT_NAME_TYPE_MAP,
+                           plotname_func_map=PLOT_NAME_FUNC_MAP,
+                           derby_game=app.derby_game)
 
 
 def show_error(error_message: str):

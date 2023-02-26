@@ -56,12 +56,8 @@
                         </td>
                         <td width="70%" valign="top">
                             <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
-                            {% if plot_name == "Recent Penalties" %}
-                                <p>{{recent_penalties_html | safe}}</p>
-                            {% elif plot_name == "Team 1 Roster" %}
-                                <p>{{team1_roster_html | safe}}</p>
-                            {% elif plot_name == "Team 2 Roster" %}
-                                <p>{{team2_roster_html | safe}}</p>
+                            {% if plotname_type_map[plot_name] == "html" %}
+                                <p>{{plotname_func_map[plot_name](derby_game) | safe}}</object></p>
                             {% else %}
                                 <p><img src="fig/{{plot_name}}" width="100%"/>
                             {% endif %}
