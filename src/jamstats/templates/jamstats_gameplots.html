@@ -53,7 +53,7 @@
                             {% endfor %}
                         </td>
                         <td width="70%" valign="top">
-                            <p><b>{{plot_name}}</b></p>
+                            <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
                             {% if plot_name == "Recent Penalties" %}
                                 <p>{{recent_penalties_html | safe}}</p>
                             {% else %}
