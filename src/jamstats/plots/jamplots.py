@@ -152,8 +152,8 @@ def get_recent_penalties_html(derby_game: DerbyGame,
 
     # if either team is white, don't use white background.
     # This will break if white plays gray
-    if derby_game.team_color_1.lower() == "#ffffff" or derby_game.team_color_2.lower() == "#ffffff":
-        styler = styler.set_properties(**{'background-color': 'gray'})
+    #if derby_game.team_color_1.lower() == "#ffffff" or derby_game.team_color_2.lower() == "#ffffff":
+    #    styler = styler.set_properties(**{'background-color': 'gray'})
     return styler.render(index=False)
 
 
