@@ -14,31 +14,40 @@
         <noscript>
             <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
         </noscript>
+        <style>
+td {
+  padding: 5px 10px;
+  border-top-width: 0;
+  border-left-width: 0;
+}
+        </style>
     </head>
     <body>
-        <div class="container">
-            <div style="clear: both">
+        <div class="header">
                 <p>
                     <table>
-                        <tr> <th>
-                        <a href="https://jamstats.net"><img src="logo" width="175"></a><br>
-                        Jamstats version {{jamstats_version}}
-                        <br>
-                        by TheDM
-                        </th>
-                        <th align="left" valign="top" bgcolor="gray" width="200" height="100">
-                            <p>jamstats server/port:
-                            <br/>
-                            {{jamstats_ip}}:{{jamstats_port}}</p>
-                            <p>Page will refresh every {{autorefresh_seconds}} seconds</p>
-                        </th>
-                    </tr>
+                        <tr>
+                            <td width="5"></td> <td height="100" halign="middle">
+                            <a href="https://jamstats.net"><img src="logo" width="175"></a><br>
+                            Jamstats version {{jamstats_version}}
+                            <br>
+                            by TheDM
+                            </td>
+                            <td align="left" valign="top" bgcolor="gray" width="400" height="100">
+                                <p>jamstats server/port:
+                                <br/>
+                                {{jamstats_ip}}:{{jamstats_port}}</p>
+                                <p>Page will refresh every {{autorefresh_seconds}} seconds</p>
+                        </td>
+                        </tr>
                     </table>
                 </p>
+        <div>
                 <p>
                 <table>
                     <tr>
-                        <td width="30%" valign="top">
+                        <td width="5"></td> 
+                        <td width="20%" valign="top">
                             {% for section in section_name_map %}
                                 <b>{{section}}</b><br/>
                                 {% for plot_name_forlink in section_name_map[section] %}
@@ -54,7 +63,7 @@
                             <br/>
                             {% endfor %}
                         </td>
-                        <td width="70%" valign="top">
+                        <td width="80%" valign="top">
                             <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
                             {% if plotname_type_map[plot_name] == "html" %}
                                 <p>{{plotname_func_map[plot_name](derby_game) | safe}}</object></p>
@@ -65,7 +74,6 @@
                     </tr>
                 </table>
                 </p>
-            </div>
 
         </div>
     </body>

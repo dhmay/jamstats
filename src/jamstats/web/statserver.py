@@ -39,6 +39,7 @@ import io
 import logging
 import socket
 import sys, os
+import webbrowser
 
 
 DEFAULT_AUTOREFRESH_SECONDS = 15
@@ -135,8 +136,12 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
         app.ip = socket.gethostbyname(socket.gethostname())
     app.port = port
     app.anonymize_names=anonymize_names
-    print(f"Starting jamstats server at http://{app.ip}:{app.port}")
+    print("")
+    print(f"Starting jamstats server...")
+    print(f"Point your browser to:  http://{app.ip}:{app.port}")
+    print("")
     app.run(host=app.ip, port=port, debug=debug)
+
 
 
 def set_game(derby_game: DerbyGame):
