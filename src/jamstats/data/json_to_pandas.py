@@ -46,7 +46,8 @@ def load_json_derby_game(game_json) -> DerbyGame:
         pdf_team_colors = extract_team_colors(pdf_game_state)
     except Exception as e:
         logger.warn(f"Failed to extract team colors. Exception: {e}")
-    return DerbyGame(pdf_game_data, game_data_dict, pdf_penalties, pdf_team_colors)
+    return DerbyGame(pdf_game_data, game_data_dict, pdf_penalties, pdf_team_colors,
+                     pdf_roster)
 
 
 def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:

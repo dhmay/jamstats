@@ -137,6 +137,30 @@ def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
     return f
 
 
+def get_team1_roster_html(derby_game: DerbyGame) -> str:
+    return get_team_roster_html(derby_game, derby_game.team_1_name)
+
+def get_team2_roster_html(derby_game: DerbyGame) -> str:
+    return get_team_roster_html(derby_game, derby_game.team_2_name)
+
+def get_team_roster_html(derby_game: DerbyGame, team_name: str) -> str:
+    """Build html table out of team roster
+
+    Args:
+        derby_game (DerbyGame): derby game
+        team_name (str): team name
+
+    Returns:
+        str: HTML table
+    """
+    pdf_team_roster = derby_game.pdf_roster[derby_game.pdf_roster.team == team_name]
+    pdf_team_roster = pdf_team_roster[["RosterNumber", "Name"]]
+    pdf_team_roster = pdf_team_roster.rename(columns={"Name": "Name", "RosterNumber": "Number"})
+    pdf_team_roster = pdf_team_roster.sort_values("Number")
+    styler = pdf_team_roster.style.set_table_attributes("style='display:inline'").hide_index()
+    return styler.render()
+
+
 def get_recent_penalties_html(derby_game: DerbyGame,
                               n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
                               anonymize_names: bool = False) -> str:

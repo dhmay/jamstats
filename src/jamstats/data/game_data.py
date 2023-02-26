@@ -15,9 +15,11 @@ class DerbyGame:
     """Class for storing all the data related to a derby game.
     """
     def __init__(self, pdf_jams_data: pd.DataFrame, game_data_dict: Dict[str, str],
-                 pdf_penalties: pd.DataFrame, pdf_team_colors: pd.DataFrame):
+                 pdf_penalties: pd.DataFrame, pdf_team_colors: pd.DataFrame,
+                 pdf_roster: pd.DataFrame):
         logger.debug("DerbyGame init")
         self.pdf_jams_data = pdf_jams_data
+        self.pdf_roster = pdf_roster
         self.game_data_dict = game_data_dict
         self.team_1_name = game_data_dict["team_1"]
         self.team_2_name = game_data_dict["team_2"]
