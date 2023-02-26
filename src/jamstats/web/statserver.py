@@ -23,7 +23,9 @@ from jamstats.plots.jamplots import (
         plot_lead_summary,
         histogram_jam_duration,
         plot_team_penalty_counts,
-        get_recent_penalties_html
+        get_recent_penalties_html,
+        get_team1_roster_html,
+        get_team2_roster_html,
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
@@ -62,6 +64,8 @@ PLOT_SECTION_NAME_FUNC_MAP = {
         "Game Summary": plot_game_summary_table,
         "Teams Summary": plot_game_teams_summary_table,
         "Recent Penalties": None,
+        "Team 1 Roster": get_team1_roster_html,
+        "Team 2 Roster": get_team2_roster_html,
     },
     "Plots": {
         "Cumulative Score by Jam": plot_cumulative_score_by_jam,
@@ -86,6 +90,11 @@ PLOT_SECTION_NAMES_MAP = {
 }
 ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
 
+HTML_PLOT_NAMES = [
+    "Recent Penalties",
+    "Team 1 Roster",
+    "Team 2 Roster",
+]
 
 
 
@@ -198,7 +207,9 @@ def index():
                            section_name_map=PLOT_SECTION_NAMES_MAP,
                            plotname_displayname_map=plotname_displayname_map,
                            recent_penalties_html = get_recent_penalties_html(
-                               app.derby_game, anonymize_names=app.anonymize_names))
+                               app.derby_game, anonymize_names=app.anonymize_names),
+                           team1_roster_html = get_team1_roster_html(app.derby_game),
+                           team2_roster_html = get_team2_roster_html(app.derby_game))
 
 
 def show_error(error_message: str):
