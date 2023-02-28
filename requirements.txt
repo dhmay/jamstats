@@ -4,3 +4,4 @@ flask>=2.2.2
 attrdict>=2.0.1
 gooey>=1.0.8.1
 websocket-client>=1.2.1
+Flask-SocketIO>=5.3.2
