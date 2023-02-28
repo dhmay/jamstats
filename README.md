@@ -4,7 +4,7 @@
 
 Tools for making plots with roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and 5.x). Build jamstats plots online! Check out [jamstats.net](https://jamstats.net). 
 
-The main reason to run Jamstats locally is to connect to a live game on a running scoreboard. Jamstats is great for announcers! See the most recent penalties, score over time, jammer stats and rosters for both teams.
+The main reason to run Jamstats on your laptop, rather than through the website, is to connect to a live game on a running scoreboard. Jamstats is great for announcers! See the most recent penalties, score over time, jammer stats and rosters for both teams.
 
 #### Features
 
