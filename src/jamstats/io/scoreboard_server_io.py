@@ -6,6 +6,14 @@ import traceback
 logger = logging.getLogger(__name__)
 
 
+class GameStateListener:
+    def on_game_state_changed(self) -> None:
+        """Called when the game state changes
+
+        """
+        pass
+
+
 class ScoreboardClient:
     def __init__(self, scoreboard_server: str, scoreboard_port: int):
         """init
@@ -28,6 +36,16 @@ class ScoreboardClient:
         # we checked
         self.game_state_dirty = False
 
+        # list of listeners to update when game state changes
+        self.game_state_listeners = []
+
+    def add_game_state_listener(self, listener: GameStateListener) -> None:
+        """Add a listener to be notified when the game state changes
+
+        Args:
+            listener (GameStateListener): listener to add
+        """
+        self.game_state_listeners.append(listener)
         
     def start(self):
         """Start the websocket client
@@ -108,7 +126,9 @@ class ScoreboardClient:
                 for key in message_game_state_dict:
                     if not key.startswith("ScoreBoard.CurrentGame.Clock") and key != "ScoreBoard.Version(release)":
                         self.game_state_dirty = True
-                        logger.debug(f"Setting game state dirty because {key}.")
+                        logger.debug(f"Setting game state dirty because {key}. Updating listeners.")
+                        for listener in self.game_state_listeners:
+                            listener.on_game_state_changed()
                         break
             #logger.debug("Loaded game state from message.")
         except Exception as e:

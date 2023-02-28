@@ -7,7 +7,7 @@ from jamstats.util.resources import (
     get_jamstats_logo_image, get_jamstats_version
 )
 from jamstats.data.json_to_pandas import load_json_derby_game
-from jamstats.io.scoreboard_server_io import ScoreboardClient
+from jamstats.io.scoreboard_server_io import ScoreboardClient, GameStateListener
 import inspect
 import time
 import _thread
@@ -40,9 +40,10 @@ import logging
 import socket
 import sys, os
 import webbrowser
+from flask_socketio import SocketIO
 
 
-DEFAULT_AUTOREFRESH_SECONDS = 15
+GAME_STATE_UPDATE_MINSECS = 2
 
 logger = logging.Logger(__name__)
 
@@ -59,6 +60,8 @@ print(f"static_folder={static_folder}, template_folder={template_folder}")
 app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_folder,
             template_folder=template_folder)
 app.jamstats_plots = None
+# for communicating with clients
+socketio = SocketIO(app)
 
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
@@ -103,12 +106,25 @@ PLOT_NAME_TYPE_MAP = {
     for plot_name in ALL_PLOT_NAMES
 }
 
+class UpdateWebclientGameStateListener(GameStateListener):
+    def __init__(self):
+        self.last_update_time = datetime.now()
+
+    def on_game_state_changed(self) -> None:
+        """Called when the game state changes
+
+        """
+        logger.debug("UpdateWebclientGameStateListener.on_game_state_changed")
+        # if enough time has passed, update the web client
+        if (datetime.now() - self.last_update_time).total_seconds() >= GAME_STATE_UPDATE_MINSECS:
+            self.last_update_time = datetime.now()
+            socketio.emit("game_state_changed", {})
+
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
           scoreboard_server: str = None,
           scoreboard_port: int = None,
           jamstats_ip: str = None, debug: bool = True, anonymize_names=False,
-          autorefresh_seconds=DEFAULT_AUTOREFRESH_SECONDS,
           theme="white") -> None:
     """
 
@@ -129,13 +145,16 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     app.scoreboard_client = scoreboard_client
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
-    app.autorefresh_seconds = autorefresh_seconds
     if jamstats_ip:
         app.ip = jamstats_ip
     else:
         app.ip = socket.gethostbyname(socket.gethostname())
     app.port = port
     app.anonymize_names=anonymize_names
+
+    # add listener to update webclient when game state changes
+    scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener())
+
     print("")
     print(f"Starting jamstats server...")
     print(f"Point your browser to:  http://{app.ip}:{app.port}")
@@ -161,6 +180,8 @@ def index():
             logger.debug("No scoreboard client. Creating one...")
             try:
                 app.scoreboard_client = ScoreboardClient(app.scoreboard_server, app.scoreboard_port)
+                # add listener to update webclient when game state changes
+                scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener())
                 _thread.start_new_thread(app.scoreboard_client.start, ())
                 print("Connected to server. Waiting for game data...")
                 time.sleep(2)
@@ -212,7 +233,6 @@ def index():
     return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
                            game_update_time_str=game_update_time_str,
                            jamstats_ip=app.ip, jamstats_port=app.port,
-                           autorefresh_seconds=app.autorefresh_seconds,
                            plot_name=plot_name,
                            section_name_map=PLOT_SECTION_NAMES_MAP,
                            plotname_displayname_map=plotname_displayname_map,
@@ -233,10 +253,10 @@ def show_error(error_message: str):
             <script type="text/javascript">
             setTimeout(function () {{
                   location.reload();
-                }}, {1000 * app.autorefresh_seconds});
+                }}, {1000 * 15});
             </script>
             <noscript>
-                <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
+                <meta http-equiv="refresh" content="{15}" />
             </noscript>
         </head>
         <body>

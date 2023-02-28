@@ -6,10 +6,13 @@
         <link rel= "stylesheet" type= "text/css"
               href= "{{ url_for('static',filename='styles/skeleton.css') }}">
         <head title="Jamstats">
-        <script type="text/javascript">
-        setTimeout(function () {
-                location.reload();
-            }, {{1000 * autorefresh_seconds}});
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+    <script>
+    var socket = io();
+    socket.on('game_state_changed', function(msg) {
+        location.reload();
+        console.log("game_state_changed")
+    });
         </script>
         <noscript>
             <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
@@ -37,7 +40,6 @@ td {
                                 <p>jamstats server/port:
                                 <br/>
                                 {{jamstats_ip}}:{{jamstats_port}}</p>
-                                <p>Page will refresh every {{autorefresh_seconds}} seconds</p>
                         </td>
                         </tr>
                     </table>
