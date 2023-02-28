@@ -36,11 +36,6 @@ td {
                             <br>
                             by TheDM
                             </td>
-                            <td align="left" valign="top" bgcolor="lightgray" width="400" height="100">
-                                <p>jamstats server/port:
-                                <br/>
-                                {{jamstats_ip}}:{{jamstats_port}}</p>
-                        </td>
                         </tr>
                     </table>
                 </p>
@@ -50,6 +45,9 @@ td {
                     <tr>
                         <td width="5"></td> 
                         <td width="20%" valign="top">
+                            <p>jamstats server/port:
+                                <br/>
+                                {{jamstats_ip}}:{{jamstats_port}}</p>
                             {% for section in section_name_map %}
                                 <b>{{section}}</b><br/>
                                 {% for plot_name_forlink in section_name_map[section] %}
