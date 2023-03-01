@@ -44,7 +44,7 @@ import webbrowser
 from flask_socketio import SocketIO
 
 
-GAME_STATE_UPDATE_MINSECS = 2
+GAME_STATE_UPDATE_MINSECS = 3
 
 logger = logging.Logger(__name__)
 
@@ -108,8 +108,9 @@ PLOT_NAME_TYPE_MAP = {
 }
 
 class UpdateWebclientGameStateListener(GameStateListener):
-    def __init__(self):
+    def __init__(self, min_refresh_secs):
         self.last_update_time = datetime.now()
+        self.min_refresh_secs = min_refresh_secs
 
     def on_game_state_changed(self) -> None:
         """Called when the game state changes
@@ -117,7 +118,7 @@ class UpdateWebclientGameStateListener(GameStateListener):
         """
         logger.debug("UpdateWebclientGameStateListener.on_game_state_changed")
         # if enough time has passed, update the web client
-        if (datetime.now() - self.last_update_time).total_seconds() >= GAME_STATE_UPDATE_MINSECS:
+        if (datetime.now() - self.last_update_time).total_seconds() >= self.min_refresh_secs:
             self.last_update_time = datetime.now()
             socketio.emit("game_state_changed", {})
 
@@ -126,7 +127,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
           scoreboard_server: str = None,
           scoreboard_port: int = None,
           jamstats_ip: str = None, debug: bool = True, anonymize_names=False,
-          theme="white") -> None:
+          theme="white", min_refresh_secs=GAME_STATE_UPDATE_MINSECS) -> None:
     """
 
     Args:
@@ -146,6 +147,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     app.scoreboard_client = scoreboard_client
     app.scoreboard_server = scoreboard_server
     app.scoreboard_port = scoreboard_port
+    app.min_refresh_secs = min_refresh_secs
     if jamstats_ip:
         app.ip = jamstats_ip
     else:
@@ -183,7 +185,8 @@ def index():
             try:
                 app.scoreboard_client = ScoreboardClient(app.scoreboard_server, app.scoreboard_port)
                 # add listener to update webclient when game state changes
-                scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener())
+                scoreboard_client.add_game_state_listener(
+                    UpdateWebclientGameStateListener(app.min_refresh_secs))
                 _thread.start_new_thread(app.scoreboard_client.start, ())
                 print("Connected to server. Waiting for game data...")
                 time.sleep(2)
@@ -240,7 +243,8 @@ def index():
                            plotname_displayname_map=plotname_displayname_map,
                            plotname_type_map=PLOT_NAME_TYPE_MAP,
                            plotname_func_map=PLOT_NAME_FUNC_MAP,
-                           derby_game=app.derby_game)
+                           derby_game=app.derby_game,
+                           min_refresh_secs=app.min_refresh_secs)
 
 
 def show_error(error_message: str):

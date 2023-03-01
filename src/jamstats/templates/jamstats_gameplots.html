@@ -26,28 +26,20 @@ td {
         </style>
     </head>
     <body>
-        <div class="header">
-                <p>
-                    <table>
-                        <tr>
-                            <td width="5"></td> <td height="100" halign="middle">
-                            <a href="https://jamstats.net"><img src="logo" width="175"></a><br>
-                            Jamstats version {{jamstats_version}}
-                            <br>
-                            by TheDM
-                            </td>
-                        </tr>
-                    </table>
-                </p>
         <div>
                 <p>
                 <table>
                     <tr>
                         <td width="5"></td> 
                         <td width="20%" valign="top">
-                            <p>jamstats server/port:
-                                <br/>
-                                {{jamstats_ip}}:{{jamstats_port}}</p>
+                            <p>
+                            <a href="https://jamstats.net"><img src="logo" width="175"></a>
+                            <br>
+                            Jamstats version {{jamstats_version}}
+                            <br>
+                            by TheDM
+                            </p>
+
                             {% for section in section_name_map %}
                                 <b>{{section}}</b><br/>
                                 {% for plot_name_forlink in section_name_map[section] %}
@@ -62,6 +54,12 @@ td {
                                 {% endfor %}
                             <br/>
                             {% endfor %}
+                        <p>jamstats server/port:
+                                <br/>
+                                {{jamstats_ip}}:{{jamstats_port}}
+                                <br/>
+                            Refreshes at least {{min_refresh_secs}}s apart
+                        </p>
                         </td>
                         <td width="80%" valign="top">
                             <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
@@ -74,7 +72,6 @@ td {
                     </tr>
                 </table>
                 </p>
-
-        </div>
+            </div>
     </body>
 </html>

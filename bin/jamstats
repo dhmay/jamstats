@@ -78,6 +78,8 @@ def add_args(parser, is_gooey):
                         help="Set the color for team 1. Can be of the form 'green' or of the form '#00FF00'")
     parser.add_argument('--teamcolor2', type=str,
                         help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
+    parser.add_argument('--minrefreshseconds', type=int,
+                        help="Minimum number of seconds between scoreboard data refreshes.")
     args = parser.parse_args()
 
     if args.jsonfile is None and args.scoreboardserver is None:
