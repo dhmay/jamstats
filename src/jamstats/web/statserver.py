@@ -12,6 +12,7 @@ import inspect
 import time
 import _thread
 import traceback
+from engineio.async_drivers import gevent
 
 from jamstats.plots.jamplots import (
         get_game_summary_html,
