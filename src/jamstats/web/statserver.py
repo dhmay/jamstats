@@ -154,7 +154,8 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     app.anonymize_names=anonymize_names
 
     # add listener to update webclient when game state changes
-    scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener())
+    if scoreboard_client is not None:
+        scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener())
 
     print("")
     print(f"Starting jamstats server...")
