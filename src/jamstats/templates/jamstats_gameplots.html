@@ -7,15 +7,13 @@
               href= "{{ url_for('static',filename='styles/skeleton.css') }}">
         <head title="Jamstats">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
-    <script>
+    <script type="text/javascript">
     var socket = io();
-    socket.on('game_state_changed', function(msg) {
-        document.getElementById("new_game_data").checked = true;
-        console.log("game_state_changed");
-    });
+    console.log("socket.io:")
+    console.log(socket)
     socket.on('reload', function(msg) {
         location.reload();
-        console.log("reload");
+        console.log("reload")
     });
         </script>
         <noscript>

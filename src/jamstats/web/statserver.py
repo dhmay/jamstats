@@ -120,8 +120,10 @@ class UpdateWebclientGameStateListener(GameStateListener):
         # if enough time has passed, update the web client
         if (datetime.now() - self.last_update_time).total_seconds() >= self.min_refresh_secs:
             self.last_update_time = datetime.now()
+            print("***emitting reload")
             socketio.emit("reload", {})
         else:
+            print("***emitting game_state_changed")
             socketio.emit("game_state_changed", {})
 
 
