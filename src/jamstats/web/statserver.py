@@ -120,6 +120,8 @@ class UpdateWebclientGameStateListener(GameStateListener):
         # if enough time has passed, update the web client
         if (datetime.now() - self.last_update_time).total_seconds() >= self.min_refresh_secs:
             self.last_update_time = datetime.now()
+            socketio.emit("reload", {})
+        else:
             socketio.emit("game_state_changed", {})
 
 
@@ -157,7 +159,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
 
     # add listener to update webclient when game state changes
     if scoreboard_client is not None:
-        scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener())
+        scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs))
 
     print("")
     print(f"Starting jamstats server...")

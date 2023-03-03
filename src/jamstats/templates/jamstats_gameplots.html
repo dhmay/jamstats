@@ -10,8 +10,12 @@
     <script>
     var socket = io();
     socket.on('game_state_changed', function(msg) {
+        document.getElementById("new_game_data").checked = true;
+        console.log("game_state_changed");
+    });
+    socket.on('reload', function(msg) {
         location.reload();
-        console.log("game_state_changed")
+        console.log("reload");
     });
         </script>
         <noscript>
@@ -62,6 +66,9 @@ td {
                         </p>
                         </td>
                         <td width="80%" valign="top">
+                            <p>
+                            New game data available? <input type=checkbox id="new_game_data"/>
+                            </p>
                             <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
                             {% if plotname_type_map[plot_name] == "html" %}
                                 <p>{{plotname_func_map[plot_name](derby_game) | safe}}</object></p>
