@@ -9,11 +9,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
     <script type="text/javascript">
     var socket = io();
-    console.log("socket.io:")
-    console.log(socket)
-    socket.on('reload', function(msg) {
-        location.reload();
-        console.log("reload")
+    socket.on('game_state_changed', function(msg) {
+        console.log("game_state_changed");
+        document.getElementById('newdata_avail').style.visibility = 'visible'
+        setTimeout(function() {
+            location.reload();
+        }, {{min_refresh_secs}} * 1000);
     });
         </script>
         <noscript>
@@ -60,12 +61,13 @@ td {
                                 <br/>
                                 {{jamstats_ip}}:{{jamstats_port}}
                                 <br/>
-                            Refreshes at least {{min_refresh_secs}}s apart
+                            Refresh delay: {{min_refresh_secs}}s
                         </p>
                         </td>
                         <td width="80%" valign="top">
-                            <p>
-                            New game data available? <input type=checkbox id="new_game_data"/>
+                            <p id="newdata_avail" style="visibility: hidden; color: darkred; background-color: lightgray;">
+                                New game data available. Refreshing in {{min_refresh_secs}} seconds.
+                                <button onClick="window.location.reload();" style="color: darkred">Refresh Now</button>
                             </p>
                             <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
                             {% if plotname_type_map[plot_name] == "html" %}

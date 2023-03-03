@@ -44,7 +44,7 @@ import webbrowser
 from flask_socketio import SocketIO
 
 
-GAME_STATE_UPDATE_MINSECS = 3
+GAME_STATE_UPDATE_MINSECS = 5
 
 logger = logging.Logger(__name__)
 
@@ -61,8 +61,8 @@ print(f"static_folder={static_folder}, template_folder={template_folder}")
 app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_folder,
             template_folder=template_folder)
 app.jamstats_plots = None
-# for communicating with clients
 socketio = SocketIO(app)
+
 
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
@@ -118,13 +118,7 @@ class UpdateWebclientGameStateListener(GameStateListener):
         """
         logger.debug("UpdateWebclientGameStateListener.on_game_state_changed")
         # if enough time has passed, update the web client
-        if (datetime.now() - self.last_update_time).total_seconds() >= self.min_refresh_secs:
-            self.last_update_time = datetime.now()
-            print("***emitting reload")
-            socketio.emit("reload", {})
-        else:
-            print("***emitting game_state_changed")
-            socketio.emit("game_state_changed", {})
+        socketio.emit("game_state_changed", {})
 
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
@@ -167,7 +161,10 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     print(f"Starting jamstats server...")
     print(f"Point your browser to:  http://{app.ip}:{app.port}")
     print("")
-    app.run(host=app.ip, port=port, debug=debug)
+    # for communicating with clients
+    
+    socketio.run(app, host=app.ip, port=port, debug=debug)
+    #app.run(host=app.ip, port=port, debug=debug)
 
 
 
