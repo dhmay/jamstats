@@ -186,7 +186,7 @@ def index():
             try:
                 app.scoreboard_client = ScoreboardClient(app.scoreboard_server, app.scoreboard_port)
                 # add listener to update webclient when game state changes
-                scoreboard_client.add_game_state_listener(
+                app.scoreboard_client.add_game_state_listener(
                     UpdateWebclientGameStateListener(app.min_refresh_secs))
                 _thread.start_new_thread(app.scoreboard_client.start, ())
                 print("Connected to server. Waiting for game data...")
