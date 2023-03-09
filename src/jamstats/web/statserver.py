@@ -244,7 +244,8 @@ def index():
                            plotname_type_map=PLOT_NAME_TYPE_MAP,
                            plotname_func_map=PLOT_NAME_FUNC_MAP,
                            derby_game=app.derby_game,
-                           min_refresh_secs=app.min_refresh_secs)
+                           min_refresh_secs=app.min_refresh_secs,
+                           anonymize_names=app.anonymize_names)
 
 
 def show_error(error_message: str):
@@ -331,7 +332,10 @@ def plot_figure(plot_name: str):
         # add anonymize arg if the function has it
         kwargs = {}
         sig = inspect.signature(plotfunc)
+
+        print("checking anon")
         if "anonymize_names" in sig.parameters:
+            print(f"has anon, setting to {app.anonymize_names}")
             kwargs["anonymize_names"] = app.anonymize_names
 
         f = plotfunc(app.derby_game, **kwargs)

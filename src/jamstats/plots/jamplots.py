@@ -129,7 +129,7 @@ def plot_game_summary_table(derby_game: DerbyGame) -> Figure:
     return f
 
 
-def get_game_teams_summary_html(derby_game: DerbyGame) -> str:
+def get_game_teams_summary_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
     """Get a game teams summary table as html
 
     Args:
@@ -148,7 +148,7 @@ def get_game_teams_summary_html(derby_game: DerbyGame) -> str:
     styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
     return styler.render()
 
-def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
+def plot_game_teams_summary_table(derby_game: DerbyGame, anonymize_names=False) -> Figure:
     """Make a table figure out of the teams summary dataframe,
     suitable for writing to a .pdf
 
@@ -170,13 +170,16 @@ def plot_game_teams_summary_table(derby_game: DerbyGame) -> Figure:
     return f
 
 
-def get_team1_roster_html(derby_game: DerbyGame) -> str:
-    return get_team_roster_html(derby_game, derby_game.team_1_name)
+def get_team1_roster_html(derby_game: DerbyGame,
+                          anonymize_names: bool = False) -> str:
+    return get_team_roster_html(derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
 
-def get_team2_roster_html(derby_game: DerbyGame) -> str:
-    return get_team_roster_html(derby_game, derby_game.team_2_name)
+def get_team2_roster_html(derby_game: DerbyGame,
+                          anonymize_names: bool = False) -> str:
+    return get_team_roster_html(derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
 
-def get_bothteams_roster_html(derby_game: DerbyGame) -> str:
+def get_bothteams_roster_html(derby_game: DerbyGame,
+                              anonymize_names: bool = False) -> str:
     """Get a html table of both teams' rosters
 
     Args:
@@ -185,9 +188,9 @@ def get_bothteams_roster_html(derby_game: DerbyGame) -> str:
     Returns:
         str: html table
     """
-    pdf_team1_roster = format_team_roster_fordisplay(derby_game, derby_game.team_1_name)
+    pdf_team1_roster = format_team_roster_fordisplay(derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
     pdf_team1_roster.index = range(len(pdf_team1_roster))
-    pdf_team2_roster = format_team_roster_fordisplay(derby_game, derby_game.team_2_name)
+    pdf_team2_roster = format_team_roster_fordisplay(derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
     pdf_team2_roster.index = range(len(pdf_team2_roster))
     pdf_bothteams_roster = pd.concat([pdf_team1_roster, pdf_team2_roster], axis=1)
     pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
@@ -208,7 +211,8 @@ def get_team_roster_html(derby_game: DerbyGame, team_name: str) -> str:
     styler = pdf_team_roster.style.set_table_attributes("style='display:inline'").hide_index()
     return styler.render()
 
-def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str) -> str:
+def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str,
+                                  anonymize_names: str = False) -> str:
     """Format team roster for display
 
     Args:
@@ -221,6 +225,9 @@ def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str) -> str:
     pdf_team_roster = derby_game.pdf_roster[derby_game.pdf_roster.team == team_name]
     pdf_team_roster = pdf_team_roster[["RosterNumber", "Name"]]
     pdf_team_roster = pdf_team_roster.rename(columns={"Name": "Name", "RosterNumber": "Number"})
+    if anonymize_names:
+        name_dict = build_anonymizer_map(set(pdf_team_roster.Name))
+        pdf_team_roster["Name"] = [name_dict[skater] for skater in pdf_team_roster.Name]  
     pdf_team_roster = pdf_team_roster.sort_values("Number")
     pdf_team_roster[f"{team_name} Skater"] = pdf_team_roster["Number"].astype(str) + " " + pdf_team_roster["Name"]
     pdf_team_roster = pdf_team_roster.drop(columns=["Number", "Name"])
@@ -234,6 +241,9 @@ def get_recent_penalties_html(derby_game: DerbyGame,
     pdf_recent_penalties = make_recent_penalties_dataframe(derby_game,
                                                            n_penalties_for_table=n_penalties_for_table,
                                                            anonymize_names=anonymize_names)
+    if anonymize_names:
+        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Skater))
+        pdf_recent_penalties["Skater"] = [name_dict[skater] for skater in pdf_recent_penalties.Skater] 
     # add colors
     map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
         else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \

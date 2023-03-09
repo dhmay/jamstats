@@ -71,7 +71,7 @@ td {
                             </p>
                             <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
                             {% if plotname_type_map[plot_name] == "html" %}
-                                <p>{{plotname_func_map[plot_name](derby_game) | safe}}</object></p>
+                                <p>{{plotname_func_map[plot_name](derby_game, anonymize_names=anonymize_names) | safe}}</object></p>
                             {% else %}
                                 <p><img src="fig/{{plot_name}}" style="max-width:1000px;max-height:1000px"/>
                             {% endif %}
