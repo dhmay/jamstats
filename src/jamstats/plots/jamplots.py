@@ -176,6 +176,24 @@ def get_team1_roster_html(derby_game: DerbyGame) -> str:
 def get_team2_roster_html(derby_game: DerbyGame) -> str:
     return get_team_roster_html(derby_game, derby_game.team_2_name)
 
+def get_bothteams_roster_html(derby_game: DerbyGame) -> str:
+    """Get a html table of both teams' rosters
+
+    Args:
+        derby_game (DerbyGame): a derby game
+
+    Returns:
+        str: html table
+    """
+    pdf_team1_roster = format_team_roster_fordisplay(derby_game, derby_game.team_1_name)
+    pdf_team1_roster.index = range(len(pdf_team1_roster))
+    pdf_team2_roster = format_team_roster_fordisplay(derby_game, derby_game.team_2_name)
+    pdf_team2_roster.index = range(len(pdf_team2_roster))
+    pdf_bothteams_roster = pd.concat([pdf_team1_roster, pdf_team2_roster], axis=1)
+    pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
+    styler = pdf_bothteams_roster.style.set_table_attributes("style='display:inline'").hide_index()
+    return styler.render()
+
 def get_team_roster_html(derby_game: DerbyGame, team_name: str) -> str:
     """Build html table out of team roster
 
@@ -186,12 +204,27 @@ def get_team_roster_html(derby_game: DerbyGame, team_name: str) -> str:
     Returns:
         str: HTML table
     """
+    pdf_team_roster = format_team_roster_fordisplay(derby_game, team_name)
+    styler = pdf_team_roster.style.set_table_attributes("style='display:inline'").hide_index()
+    return styler.render()
+
+def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str) -> str:
+    """Format team roster for display
+
+    Args:
+        derby_game (DerbyGame): derby game
+        team_name (str): team name
+
+    Returns:
+        str: formatted team roster
+    """
     pdf_team_roster = derby_game.pdf_roster[derby_game.pdf_roster.team == team_name]
     pdf_team_roster = pdf_team_roster[["RosterNumber", "Name"]]
     pdf_team_roster = pdf_team_roster.rename(columns={"Name": "Name", "RosterNumber": "Number"})
     pdf_team_roster = pdf_team_roster.sort_values("Number")
-    styler = pdf_team_roster.style.set_table_attributes("style='display:inline'").hide_index()
-    return styler.render()
+    pdf_team_roster[f"{team_name} Skater"] = pdf_team_roster["Number"].astype(str) + " " + pdf_team_roster["Name"]
+    pdf_team_roster = pdf_team_roster.drop(columns=["Number", "Name"])
+    return pdf_team_roster
 
 
 def get_recent_penalties_html(derby_game: DerbyGame,
