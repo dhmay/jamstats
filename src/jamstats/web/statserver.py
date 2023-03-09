@@ -25,7 +25,8 @@ from jamstats.plots.jamplots import (
         histogram_jam_duration,
         plot_team_penalty_counts,
         get_recent_penalties_html,
-        get_bothteams_roster_html
+        get_bothteams_roster_html,
+        get_current_skaters_html,
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
@@ -66,6 +67,7 @@ socketio = SocketIO(app)
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
         #"Game Summary": get_game_summary_html,
+        "Current Skaters": get_current_skaters_html,
         "Teams Summary": get_game_teams_summary_html,
         "Recent Penalties": get_recent_penalties_html,
         "Roster": get_bothteams_roster_html,
@@ -97,6 +99,7 @@ ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
 
 HTML_PLOT_NAMES = [
     "Game Summary",
+    "Current Skaters",
     "Teams Summary",
     "Recent Penalties",
     "Roster",
