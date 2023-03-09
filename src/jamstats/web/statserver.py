@@ -25,8 +25,7 @@ from jamstats.plots.jamplots import (
         histogram_jam_duration,
         plot_team_penalty_counts,
         get_recent_penalties_html,
-        get_team1_roster_html,
-        get_team2_roster_html,
+        get_bothteams_roster_html
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
@@ -66,22 +65,23 @@ socketio = SocketIO(app)
 
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
-        "Game Summary": get_game_summary_html,
+        #"Game Summary": get_game_summary_html,
         "Teams Summary": get_game_teams_summary_html,
         "Recent Penalties": get_recent_penalties_html,
-        "Team 1 Roster": get_team1_roster_html,
-        "Team 2 Roster": get_team2_roster_html,
+        "Roster": get_bothteams_roster_html,
     },
-    "Plots": {
-        "Cumulative Score by Jam": plot_cumulative_score_by_jam,
+    "Basic Plots": {
+        "Score by Jam": plot_cumulative_score_by_jam,
         "Team Penalty Counts": plot_team_penalty_counts,
-        "Lead Summary": plot_lead_summary,
         "Team 1 Jammers": plot_jammer_stats_team1,
         "Team 2 Jammers": plot_jammer_stats_team2,
         "Team 1 Skaters": plot_skater_stats_team1,
         "Team 2 Skaters": plot_skater_stats_team2,
-        "Lead and Scores (Period 1)": plot_jam_lead_and_scores_period1,
-        "Lead and Scores (Period 2)": plot_jam_lead_and_scores_period2,
+    },
+    "Advanced Plots": {
+        "Lead Summary": plot_lead_summary,
+        "Jam Details (Period 1)": plot_jam_lead_and_scores_period1,
+        "Jam Details (Period 2)": plot_jam_lead_and_scores_period2,
         "Jammer Summary": plot_jammers_by_team,
     }
     #    "Jam Duration": histogram_jam_duration,
@@ -99,8 +99,7 @@ HTML_PLOT_NAMES = [
     "Game Summary",
     "Teams Summary",
     "Recent Penalties",
-    "Team 1 Roster",
-    "Team 2 Roster",
+    "Roster",
 ]
 PLOT_NAME_TYPE_MAP = {
     plot_name: "html" if plot_name in HTML_PLOT_NAMES else "figure"

@@ -145,15 +145,19 @@ class DerbyGame:
                        "StarPass"]
         teams_summary_dict = {"Team": [self.team_1_name, self.team_2_name]}
 
+        teams_summary_dict["Score"] = [max(self.pdf_jams_data.TotalScore_1),
+                                       max(self.pdf_jams_data.TotalScore_2)] 
+
         # add skater counts
         n_skaters_in_jams_1 = len(set().union(*self.pdf_jams_data.Skaters_1))
         n_skaters_in_jams_2 = len(set().union(*self.pdf_jams_data.Skaters_2))
-        teams_summary_dict["Skaters played"] = [n_skaters_in_jams_1, n_skaters_in_jams_2]
 
         for col in cols_to_sum:
             sum_1 = sum(self.pdf_jams_data[col + "_1"])
             sum_2 = sum(self.pdf_jams_data[col + "_2"])
             teams_summary_dict[col] = [sum_1, sum_2]
+
+        teams_summary_dict["Skaters played"] = [n_skaters_in_jams_1, n_skaters_in_jams_2]
             
         pdf_game_teams_summary = pd.DataFrame(teams_summary_dict)
         return pdf_game_teams_summary
