@@ -14,6 +14,7 @@ logger = logging.Logger(__name__)
 TEAMJAM_SUMMARY_COLUMNS = [
     "Calloff", "Injury", "JamScore", "Lead",
     "Lost", "NoInitial", "StarPass", "TotalScore", "jammer_name", "jammer_number",
+    "pivot_name", "pivot_number",
     "Skaters"]
 
 
@@ -466,8 +467,18 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_roster.rename(
         columns={"Id": "jammer_id", "Name": "jammer_name", "RosterNumber": "jammer_number"}),
         on="jammer_id", how="left")
-
     logger.debug(f"After adding jammer info: {len(pdf_ateamjams_summary)}")
+
+    # add pivot info
+    pdf_ateamjams_pivots = pdf_ateamjams_data[
+        pdf_ateamjams_data.key.str.endswith("Fielding(Pivot).Skater")][
+            ["prd_jam", "value"]].rename(columns={"value": "pivot_id"})
+    pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_ateamjams_pivots,
+        on="prd_jam", how="left")
+    pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_roster.rename(
+        columns={"Id": "pivot_id", "Name": "pivot_name", "RosterNumber": "pivot_number"}),
+        on="pivot_id", how="left")
+    logger.debug(f"After adding pivot info: {len(pdf_ateamjams_summary)}")
 
     # add list of skater names per jam
     pdf_jam_skater_lists = extract_team_perjam_skaters(pdf_ateamjams_data, pdf_roster)
@@ -529,7 +540,6 @@ def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
         logger.warn("Failed to join skater data with roster. Merged with left join, "
                     f"rows {len(pdf_ateamjams_data_skaters_withname)}")
     logger.debug(f"    After roster merge, team jam skater data: {len(pdf_ateamjams_data_skaters_withname)}")
-
     pdf_jam_skater_lists = pdf_ateamjams_data_skaters_withname.groupby(
         "prd_jam")["Name"].apply(list).reset_index()
     pdf_jam_skater_lists = pdf_jam_skater_lists.rename(columns={"Name": "Skaters"})

@@ -95,6 +95,78 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     return f
 
 
+def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
+    """Get a table of the current skaters as html
+
+    Args:
+        derby_game (DerbyGame): derby game
+
+    Returns:
+        str: html table
+    """
+    pdf_team1_current_skaters = get_team_current_skaters_pdf(derby_game, derby_game.team_1_name,
+                                                             anonymize_names=anonymize_names)
+    pdf_team2_current_skaters = get_team_current_skaters_pdf(derby_game, derby_game.team_2_name,
+                                                             anonymize_names=anonymize_names)
+    pdf_bothteams_currentskaters = pd.concat([pdf_team1_current_skaters, pdf_team2_current_skaters], axis=1)
+    pdf_bothteams_currentskaters = pdf_bothteams_currentskaters.fillna("")
+
+    # add colors. This would work in pandas 1.4.0+, but not in the version I'm using, using applymap_index
+    #map_team_to_color = lambda val: f"color: {derby_game.team_color_1}" if derby_game.team_1_name in val \
+    #    else f"color: {derby_game.team_color_2}" if derby_game.team_2_name in val \
+    #    else ''
+    styler = pdf_bothteams_currentskaters.style.set_table_attributes("style='display:inline'").hide_index()
+    return styler.render()
+
+
+def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
+                                 anonymize_names: bool = False) -> pd.DataFrame:
+    """Get a table of one team's current skaters as html
+
+    Args:
+        derby_game (DerbyGame): derby game
+        team_name (str): team name
+
+    Returns:
+        str: html table
+    """
+    _, latest_jam_row_dict = next(derby_game.pdf_jams_data.sort_values("Number", ascending=False).iterrows())
+    if team_name == derby_game.team_1_name:
+        skaters = latest_jam_row_dict["Skaters_1"]
+        jammer = latest_jam_row_dict["jammer_name_1"]
+        pivot = latest_jam_row_dict["pivot_name_1"]
+    else:
+        skaters = latest_jam_row_dict["Skaters_2"]
+        jammer = latest_jam_row_dict["jammer_name_2"]
+        pivot = latest_jam_row_dict["pivot_name_2"]
+    pdf_team_current_skaters = pd.DataFrame({
+        "Position": ["J" if s == jammer else "P" if s == pivot else "B" for s in skaters],
+        "Name": skaters,
+    })
+    # add skater numbers
+    pdf_roster_formerge = derby_game.pdf_roster[["RosterNumber", "Name"]]
+    # this shouldn't be necessary, but sometimes the roster has duplicate names
+    pdf_roster_formerge = pdf_roster_formerge.drop_duplicates("Name", keep="first")
+    pdf_team_current_skaters = pdf_team_current_skaters.merge(pdf_roster_formerge, on="Name")
+
+
+    if anonymize_names:
+        name_dict = build_anonymizer_map(set(pdf_roster_formerge.Name))
+        pdf_team_current_skaters["Name"] = [name_dict[skater] for skater in pdf_team_current_skaters.Name]  
+
+    # concat skater number and name
+    pdf_team_current_skaters[f"Skater"] = pdf_team_current_skaters["RosterNumber"].astype(str) + " " + pdf_team_current_skaters["Name"]
+    pdf_team_current_skaters["position_number"] = [
+        1 if p == "J" else 2 if p == "P" else 3 for p in pdf_team_current_skaters.Position
+    ] 
+    pdf_team_current_skaters = pdf_team_current_skaters.sort_values("position_number")
+    pdf_team_current_skaters = pdf_team_current_skaters.drop(columns=["Name", "RosterNumber", "position_number"])
+    pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"Skater": team_name + " Skater"})
+    #pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"Position": team_name + " Position"})
+    pdf_team_current_skaters.index = range(len(pdf_team_current_skaters))
+    return pdf_team_current_skaters
+
+
 def get_game_summary_html(derby_game: DerbyGame) -> str:
     """Get a game summary table as html
 
