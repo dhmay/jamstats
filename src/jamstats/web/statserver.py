@@ -230,7 +230,7 @@ def index():
 
     game_update_time_str = app.game_update_time.strftime("%Y-%m-%d, %H:%M:%S")
 
-    plot_name = request.args["plot_name"] if "plot_name" in request.args else "Game Summary"
+    plot_name = request.args["plot_name"] if "plot_name" in request.args else "Roster"
 
     plotname_displayname_map = {
         plotname: (plotname.replace("Team 1", app.derby_game.team_1_name)
