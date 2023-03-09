@@ -111,11 +111,15 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
     pdf_bothteams_currentskaters = pd.concat([pdf_team1_current_skaters, pdf_team2_current_skaters], axis=1)
     pdf_bothteams_currentskaters = pdf_bothteams_currentskaters.fillna("")
 
-    # add colors. This would work in pandas 1.4.0+, but not in the version I'm using, using applymap_index
-    #map_team_to_color = lambda val: f"color: {derby_game.team_color_1}" if derby_game.team_1_name in val \
-    #    else f"color: {derby_game.team_color_2}" if derby_game.team_2_name in val \
-    #    else ''
-    styler = pdf_bothteams_currentskaters.style.set_table_attributes("style='display:inline'").hide_index()
+    # add colors to penalties. This would work in pandas 1.4.0+, but not in the version I'm using, using applymap_index
+    map_penalty_to_color = lambda val: 'color: red' if "Serving" in val \
+                                else 'color: yellow' if "Not Yet" in val \
+                                else 'color: green' if "Served" in val \
+                                else ''
+    styler = pdf_bothteams_currentskaters.style.set_properties(**{'background-color': 'lightgray'})
+    styler = styler.applymap(map_penalty_to_color,
+        subset=["Penalty", "Penalty "]).hide_index()
+    styler = styler.set_table_attributes("style='display:inline'").hide_index()
     return styler.render()
 
 
@@ -130,7 +134,10 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     Returns:
         str: html table
     """
-    _, latest_jam_row_dict = next(derby_game.pdf_jams_data.sort_values("Number", ascending=False).iterrows())
+    _, latest_jam_row_dict = next(derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
+                                                                       ascending=False).iterrows())
+    period = latest_jam_row_dict["PeriodNumber"]
+    number = latest_jam_row_dict["Number"]
     if team_name == derby_game.team_1_name:
         skaters = latest_jam_row_dict["Skaters_1"]
         jammer = latest_jam_row_dict["jammer_name_1"]
@@ -161,9 +168,32 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     ] 
     pdf_team_current_skaters = pdf_team_current_skaters.sort_values("position_number")
     pdf_team_current_skaters = pdf_team_current_skaters.drop(columns=["Name", "RosterNumber", "position_number"])
-    pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"Skater": team_name + " Skater"})
-    #pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"Position": team_name + " Position"})
     pdf_team_current_skaters.index = range(len(pdf_team_current_skaters))
+
+    # add penalties from this jam
+    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game,
+                                                        n_penalties_for_table=20,
+                                                        anonymize_names=anonymize_names)
+    pdf_recent_penalties = pdf_recent_penalties[pdf_recent_penalties["Team"] == team_name]
+    # restrict to penalties in this jam
+    pdf_recent_penalties = pdf_recent_penalties[(pdf_recent_penalties["Period"] == period)
+                                                & (pdf_recent_penalties["Jam"] == number)]
+    # only most recent penalty for each skater
+    pdf_recent_penalties = pdf_recent_penalties.sort_values(["Time in Jam"], ascending=False)
+    pdf_recent_penalties = pdf_recent_penalties.drop_duplicates("Skater", keep="first")
+    pdf_recent_penalties["PenaltyAndStatus"] = pdf_recent_penalties["Penalty"] + "\n(" + pdf_recent_penalties["Status"] + ")"
+    pdf_recent_penalties = pdf_recent_penalties[["Skater", "PenaltyAndStatus"]]
+    pdf_recent_penalties = pdf_recent_penalties.rename(columns={"PenaltyAndStatus": "Penalty"})
+
+    pdf_team_current_skaters = pd.merge(pdf_team_current_skaters, pdf_recent_penalties,
+                                        on="Skater", how="left")
+    
+    pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"Skater": team_name + " Skater"})
+    if team_name == derby_game.team_2_name:
+        # rename columns to be visualy the same but technically different
+        pdf_team_current_skaters = pdf_team_current_skaters.rename(
+            columns={"Position": "Position ", "Penalty": "Penalty "})
+
     return pdf_team_current_skaters
 
 
