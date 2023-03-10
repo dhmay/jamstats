@@ -128,7 +128,7 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
     number = latest_jam_row_dict["Number"]
     result = f"Period {period}, Jam {number}<br>" + result
     result = result + "<p>Positions: P=Pivot, J=Jammer, B=Blocker<br/>"
-    result = result + "Position notes: (L)=Lead, (LO)=Lost, (SP)=Star Pass<p/>"
+    result = result + "Position notes: (L)=Lead, (LO)=Lost, (SP)=Star Pass, (NI)=No Initial<p/>"
     result = result + f"<table width=0% style='background-color: lightgray'><tr><td><br/>Penalty status:<ul>\
         <li style='color: yellow; background-color: lightgray'>Not Yet: skater on way to box</li>\
         <li style='color: red; background-color: lightgray'>Serving: skater in box</li>\
@@ -160,12 +160,15 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     lead = latest_jam_row_dict[f"Lead_{field_suffix}"]
     lost = latest_jam_row_dict[f"Lost_{field_suffix}"]
     starpass = latest_jam_row_dict[f"StarPass_{field_suffix}"]
+    noinitial = latest_jam_row_dict[f"NoInitial_{field_suffix}"]
 
     position_list = []
     for s in skaters:
         if s == jammer:
             position = "J"
-            if lost:
+            if noinitial:
+                position += " (NI)"
+            elif lost:
                 position += " (LO)"
             elif lead:
                 position += " (L)"
