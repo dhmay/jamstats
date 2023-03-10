@@ -154,8 +154,10 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_roster_formerge = derby_game.pdf_roster[["RosterNumber", "Name"]]
     # this shouldn't be necessary, but sometimes the roster has duplicate names
     pdf_roster_formerge = pdf_roster_formerge.drop_duplicates("Name", keep="first")
-    pdf_team_current_skaters = pdf_team_current_skaters.merge(pdf_roster_formerge, on="Name")
 
+    # if no active skaters, Name gets wrong type
+    pdf_team_current_skaters["Name"] = pdf_team_current_skaters["Name"].astype(str)
+    pdf_team_current_skaters = pdf_team_current_skaters.merge(pdf_roster_formerge, on="Name")
 
     if anonymize_names:
         name_dict = build_anonymizer_map(set(pdf_roster_formerge.Name))
