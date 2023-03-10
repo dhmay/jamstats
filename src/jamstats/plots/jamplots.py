@@ -127,11 +127,13 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
     period = latest_jam_row_dict["PeriodNumber"]
     number = latest_jam_row_dict["Number"]
     result = f"Period {period}, Jam {number}<br>" + result
-    result = result + f"<p><br/>Penalty colors:<ul>\
+    result = result + "<p>Positions: P=Pivot, J=Jammer, B=Blocker<br/>"
+    result = result + "Position notes: (L)=Lead, (LO)=Lost, (SP)=Star Pass<p/>"
+    result = result + f"<table width=0% style='background-color: lightgray'><tr><td><br/>Penalty status:<ul>\
         <li style='color: yellow; background-color: lightgray'>Not Yet: skater on way to box</li>\
         <li style='color: red; background-color: lightgray'>Serving: skater in box</li>\
         <li style='color: green; background-color: lightgray'>Served: skater has completed serving penalty</li>\
-        </li></ul></p>"
+        </li></ul></td></tr></table>"
     return result
 
 
@@ -150,18 +152,35 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
                                                                        ascending=False).iterrows())
     period = latest_jam_row_dict["PeriodNumber"]
     number = latest_jam_row_dict["Number"]
-    if team_name == derby_game.team_1_name:
-        skaters = latest_jam_row_dict["Skaters_1"]
-        jammer = latest_jam_row_dict["jammer_name_1"]
-        pivot = latest_jam_row_dict["pivot_name_1"]
-    else:
-        skaters = latest_jam_row_dict["Skaters_2"]
-        jammer = latest_jam_row_dict["jammer_name_2"]
-        pivot = latest_jam_row_dict["pivot_name_2"]
+
+    field_suffix = "1" if team_name == derby_game.team_1_name else "2"
+    skaters = latest_jam_row_dict[f"Skaters_{field_suffix}"]
+    jammer = latest_jam_row_dict[f"jammer_name_{field_suffix}"]
+    pivot = latest_jam_row_dict[f"pivot_name_{field_suffix}"]
+    lead = latest_jam_row_dict[f"Lead_{field_suffix}"]
+    lost = latest_jam_row_dict[f"Lost_{field_suffix}"]
+    starpass = latest_jam_row_dict[f"StarPass_{field_suffix}"]
+
+    position_list = []
+    for s in skaters:
+        if s == jammer:
+            position = "J"
+            if lost:
+                position += " (LO)"
+            elif lead:
+                position += " (L)"
+        elif s == pivot:
+            position = "P"
+            if starpass:
+                position += " (SP)"
+        else:
+            position = "B"
+        position_list.append(position)
     pdf_team_current_skaters = pd.DataFrame({
-        "Position": ["J" if s == jammer else "P" if s == pivot else "B" for s in skaters],
+        "Position": position_list,
         "Name": skaters,
     })
+
     # add skater numbers
     pdf_roster_formerge = derby_game.pdf_roster[["RosterNumber", "Name"]]
     # this shouldn't be necessary, but sometimes the roster has duplicate names
@@ -178,7 +197,7 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     # concat skater number and name
     pdf_team_current_skaters[f"Skater"] = pdf_team_current_skaters["RosterNumber"].astype(str) + " " + pdf_team_current_skaters["Name"]
     pdf_team_current_skaters["position_number"] = [
-        1 if p == "J" else 2 if p == "P" else 3 for p in pdf_team_current_skaters.Position
+        1 if p.startswith("J") else 2 if p.startswith("P") else 3 for p in pdf_team_current_skaters.Position
     ] 
     pdf_team_current_skaters = pdf_team_current_skaters.sort_values("position_number")
     pdf_team_current_skaters = pdf_team_current_skaters.drop(columns=["Name", "RosterNumber", "position_number"])
