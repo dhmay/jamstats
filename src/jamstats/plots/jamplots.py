@@ -130,7 +130,7 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
     result = result + f"<p><br/>Penalty colors:<ul>\
         <li style='color: yellow; background-color: lightgray'>Not Yet: skater on way to box</li>\
         <li style='color: red; background-color: lightgray'>Serving: skater in box</li>\
-        <li style='color: green; background-color: lightgray'>Serving: skater has completed serving penalty</li>\
+        <li style='color: green; background-color: lightgray'>Served: skater has completed serving penalty</li>\
         </li></ul></p>"
     return result
 
