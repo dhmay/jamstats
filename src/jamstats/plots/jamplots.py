@@ -120,7 +120,14 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
     styler = styler.applymap(map_penalty_to_color,
         subset=["Penalty", "Penalty "]).hide_index()
     styler = styler.set_table_attributes("style='display:inline'").hide_index()
-    return styler.render()
+    result = styler.render()
+
+    _, latest_jam_row_dict = next(derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
+                                                                       ascending=False).iterrows())
+    period = latest_jam_row_dict["PeriodNumber"]
+    number = latest_jam_row_dict["Number"]
+    result = f"<p>Period {period}, Jam {number}</p>" + result
+    return result
 
 
 def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
