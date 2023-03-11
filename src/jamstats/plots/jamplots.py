@@ -196,10 +196,7 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     # if no active skaters, Name gets wrong type
     pdf_team_current_skaters["Name"] = pdf_team_current_skaters["Name"].astype(str)
     pdf_team_current_skaters = pdf_team_current_skaters.merge(pdf_roster_formerge, on="Name")
-
-    if anonymize_names:
-        name_dict = build_anonymizer_map(set(pdf_roster_formerge.Name))
-        pdf_team_current_skaters["Name"] = [name_dict[skater] for skater in pdf_team_current_skaters.Name]  
+ 
 
     # concat skater number and name
     pdf_team_current_skaters["position_number"] = [
@@ -226,6 +223,10 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
                                         on="Name", how="left")
     pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Penalty"]]
     pdf_team_current_skaters = pdf_team_current_skaters.fillna("")
+
+    if anonymize_names:
+        name_dict = build_anonymizer_map(set(pdf_team_current_skaters.Name))
+        pdf_team_current_skaters["Name"] = [name_dict[skater] for skater in pdf_team_current_skaters.Name] 
     return pdf_team_current_skaters
 
 
