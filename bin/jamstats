@@ -38,18 +38,16 @@ def gui_args():
     print("Starting GUI...")
     parser = GooeyParser()
     print("Created parser. Adding args...")
-    add_args(parser, True)
-    print("Added args. Parsing args...")
-    result = parser.parse_args()
-    print(f"args: {result}")
+    result = add_and_parse_args(parser, is_gooey=True)
+    print(f"Parsed: {args}")
     return result
 
 def cmdline_args():
     parser = argparse.ArgumentParser()
-    add_args(parser, False)
-    return parser.parse_args()
+    result = add_and_parse_args(parser, is_gooey=False)
+    return result
 
-def add_args(parser, is_gooey):
+def add_and_parse_args(parser, is_gooey=False):
     # this is necessary because, for some reason, by default Gooy will
     # open a file save dialog rather than a file open dialog
     file_read_kwargs = {"widget": "FileChooser"} if is_gooey else {}
@@ -85,16 +83,24 @@ def add_args(parser, is_gooey):
                         help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
     parser.add_argument('--minrefreshseconds', type=int, default=statserver.GAME_STATE_UPDATE_MINSECS,
                         help="Minimum number of seconds between scoreboard data refreshes.")
+    if is_gooey:
+        print("Added args. Parsing args...")
     args = parser.parse_args()
+    if is_gooey:
+        print(f"Parsed args: {args}")
 
     if args.jsonfile is None and args.scoreboardserver is None:
-        sys.exit("Must specify either --jsonfile or --scoreboardserver")
+        print("Must specify either --jsonfile or --scoreboardserver")
+        sys.exit()
     if args.jsonfile is not None and args.scoreboardserver is not None:
-        sys.exit("Must specify either --jsonfile or --scoreboardserver, but not both")
+        print("Must specify either --jsonfile or --scoreboardserver, but not both")
+        sys.exit()
     if args.outfile is None and args.jamstatsport is None and args.jsonfile is None:
-        sys.exit("Must specify either --outfile or --jamstatsport if connecting to a server")
+        print("Must specify either --outfile or --jamstatsport if connecting to a server")
+        sys.exit()
     if args.outfile is not None and args.jamstatsport is not None:
-        sys.exit("Cannot specify both --outfile and --jamstatsport")
+        print("Cannot specify both --outfile and --jamstatsport")
+        sys.exit()
     return args
 
 def __main__():

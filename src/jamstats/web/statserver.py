@@ -44,9 +44,8 @@ import webbrowser
 from flask_socketio import SocketIO
 
 #attempt to fix windows issue
-from gevent import monkey
-monkey.patch_all()
-
+#from gevent import monkey
+#monkey.patch_all()
 
 GAME_STATE_UPDATE_MINSECS = 5
 
@@ -67,10 +66,7 @@ app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_fol
 print("Flask app built.")
 app.jamstats_plots = None
 
-print("Starting SocketIO Flask app...")
-socketio = SocketIO(app)
-print("Flask app started")
-
+socketio = None
 
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
@@ -173,6 +169,9 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     print("")
     # for communicating with clients
     
+    print("Starting SocketIO Flask app...")
+    socketio = SocketIO(app)
+    print("Flask app started")
     socketio.run(app, host=app.ip, port=port, debug=debug)
     #app.run(host=app.ip, port=port, debug=debug)
 
