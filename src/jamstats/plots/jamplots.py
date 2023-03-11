@@ -108,25 +108,29 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
                                                              anonymize_names=anonymize_names)
     pdf_team2_current_skaters = get_team_current_skaters_pdf(derby_game, derby_game.team_2_name,
                                                              anonymize_names=anonymize_names)
-    pdf_bothteams_currentskaters = pd.concat([pdf_team1_current_skaters, pdf_team2_current_skaters], axis=1)
-    pdf_bothteams_currentskaters = pdf_bothteams_currentskaters.fillna("")
 
     # add colors to penalties. This would work in pandas 1.4.0+, but not in the version I'm using, using applymap_index
     map_penalty_to_color = lambda val: 'color: red' if "Serving" in val \
                                 else 'color: yellow' if "Not Yet" in val \
                                 else 'color: green' if "Served" in val \
                                 else ''
-    styler = pdf_bothteams_currentskaters.style.set_properties(**{'background-color': 'lightgray'})
-    styler = styler.applymap(map_penalty_to_color,
-        subset=["Penalty", "Penalty "]).hide_index()
-    styler = styler.set_table_attributes("style='display:inline'").hide_index()
-    result = styler.render()
+    table_htmls = []
+    for pdf in [pdf_team1_current_skaters, pdf_team2_current_skaters]:
+        styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
+        styler = styler.applymap(map_penalty_to_color,
+            subset=["Penalty"]).hide_index()
+        styler = styler.set_table_attributes("style='display:inline'").hide_index()
+        table_htmls.append(styler.render())
 
     _, latest_jam_row_dict = next(derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
                                                                        ascending=False).iterrows())
     period = latest_jam_row_dict["PeriodNumber"]
     number = latest_jam_row_dict["Number"]
-    result = f"Period {period}, Jam {number}<br>" + result
+    result = f"Period {period}, Jam {number}<br>"
+
+    result = result + f"<table width=0%><tr><td><h4>{derby_game.team_1_name}</h4>{table_htmls[0]}</td>"
+    result = result + f"<td><h4>{derby_game.team_2_name}</h4>{table_htmls[1]}</td></tr></table>\n"
+
     result = result + "<p>Positions: P=Pivot, J=Jammer, B=Blocker<br/>"
     result = result + "Position notes: (NI)=No Initial, (L)=Lead, (LO)=Lost, (SP)=Star Pass<p/>"
     result = result + f"<table width=0% style='background-color: lightgray'><tr><td><br/>Penalty status:<ul>\
@@ -198,12 +202,12 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
         pdf_team_current_skaters["Name"] = [name_dict[skater] for skater in pdf_team_current_skaters.Name]  
 
     # concat skater number and name
-    pdf_team_current_skaters[f"Skater"] = pdf_team_current_skaters["RosterNumber"].astype(str) + " " + pdf_team_current_skaters["Name"]
     pdf_team_current_skaters["position_number"] = [
         1 if p.startswith("J") else 2 if p.startswith("P") else 3 for p in pdf_team_current_skaters.Position
     ] 
-    pdf_team_current_skaters = pdf_team_current_skaters.sort_values("position_number")
-    pdf_team_current_skaters = pdf_team_current_skaters.drop(columns=["Name", "RosterNumber", "position_number"])
+    pdf_team_current_skaters = pdf_team_current_skaters.sort_values(["position_number", "RosterNumber"])
+    pdf_team_current_skaters = pdf_team_current_skaters.drop(columns=["position_number"])
+    pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"RosterNumber": "Number"})
     pdf_team_current_skaters.index = range(len(pdf_team_current_skaters))
 
     # add penalties from this jam
@@ -216,20 +220,14 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
                                                 & (pdf_recent_penalties["Jam"] == number)]
     # only most recent penalty for each skater
     pdf_recent_penalties = pdf_recent_penalties.sort_values(["Time in Jam"], ascending=False)
-    pdf_recent_penalties = pdf_recent_penalties.drop_duplicates("Skater", keep="first")
+    pdf_recent_penalties = pdf_recent_penalties.drop_duplicates("Name", keep="first")
     pdf_recent_penalties["PenaltyAndStatus"] = pdf_recent_penalties["Penalty"] + "\n(" + pdf_recent_penalties["Status"] + ")"
-    pdf_recent_penalties = pdf_recent_penalties[["Skater", "PenaltyAndStatus"]]
+    pdf_recent_penalties = pdf_recent_penalties[["Name", "PenaltyAndStatus"]]
     pdf_recent_penalties = pdf_recent_penalties.rename(columns={"PenaltyAndStatus": "Penalty"})
-
     pdf_team_current_skaters = pd.merge(pdf_team_current_skaters, pdf_recent_penalties,
-                                        on="Skater", how="left")
-    
-    pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"Skater": team_name + " Skater"})
-    if team_name == derby_game.team_2_name:
-        # rename columns to be visualy the same but technically different
-        pdf_team_current_skaters = pdf_team_current_skaters.rename(
-            columns={"Position": "Position ", "Penalty": "Penalty "})
-
+                                        on="Name", how="left")
+    pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Penalty"]]
+    pdf_team_current_skaters = pdf_team_current_skaters.fillna("")
     return pdf_team_current_skaters
 
 
@@ -415,7 +413,6 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
     pdf_recent_penalties["Time in Jam"] = pdf_recent_penalties["Time"] - pdf_recent_penalties["WalltimeStart"]
     pdf_recent_penalties["Time in Jam"] = [convert_millis_to_min_sec_str(x)
                                            for x in pdf_recent_penalties["Time in Jam"]]
-    pdf_recent_penalties["Skater"] = pdf_recent_penalties["RosterNumber"] + " " + pdf_recent_penalties["Name"]
 
     # Make pretty names for columns
     pdf_recent_penalties = pdf_recent_penalties.rename(columns={
@@ -425,10 +422,10 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
         "penalty_name": "Penalty"})
     # restrict, order columns
     pdf_recent_penalties = pdf_recent_penalties[[
-        "Team", "Skater", "Penalty", "Status", "Period", "Jam", "Time in Jam"]]
+        "Team", "Name", "Penalty", "Status", "Period", "Jam", "Time in Jam"]]
     if anonymize_names:
         name_dict = build_anonymizer_map(set(pdf_recent_penalties.Skater))
-        pdf_recent_penalties["Skater"] = [name_dict[skater] for skater in pdf_recent_penalties.Skater]  
+        pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Name]  
 
     return pdf_recent_penalties 
 
