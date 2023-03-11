@@ -379,7 +379,7 @@ def get_recent_penalties_html(derby_game: DerbyGame,
                                                            anonymize_names=anonymize_names)
     if anonymize_names:
         name_dict = build_anonymizer_map(set(pdf_recent_penalties.Skater))
-        pdf_recent_penalties["Skater"] = [name_dict[skater] for skater in pdf_recent_penalties.Skater] 
+        pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Skater] 
     # add colors
     map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
         else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \
@@ -424,7 +424,7 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
     pdf_recent_penalties = pdf_recent_penalties[[
         "Team", "Name", "Penalty", "Status", "Period", "Jam", "Time in Jam"]]
     if anonymize_names:
-        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Skater))
+        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Name))
         pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Name]  
 
     return pdf_recent_penalties 
