@@ -43,6 +43,10 @@ import sys, os
 import webbrowser
 from flask_socketio import SocketIO
 
+#attempt to fix windows issue
+from gevent import monkey
+monkey.patch_all()
+
 
 GAME_STATE_UPDATE_MINSECS = 5
 
@@ -60,8 +64,12 @@ print(f"static_folder={static_folder}, template_folder={template_folder}")
 
 app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_folder,
             template_folder=template_folder)
+print("Flask app built.")
 app.jamstats_plots = None
+
+print("Starting SocketIO Flask app...")
 socketio = SocketIO(app)
+print("Flask app started")
 
 
 PLOT_SECTION_NAME_FUNC_MAP = {
