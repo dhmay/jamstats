@@ -144,11 +144,12 @@ def __main__():
     scoreboardport = None
     if args.scoreboardserver:
         try:
+            connect_to_server = True
             scoreboardserver, scoreboardport = args.scoreboardserver.split(":")
             scoreboardport = int(scoreboardport)
-            connect_to_server = True
         except Exception as e:
             print(f"Tried to interpret {args.scoreboardserver} as server:port but failed: {e}")
+            system.exit(1)
 
     if connect_to_server:
         derby_game = None
