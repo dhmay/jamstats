@@ -211,9 +211,7 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_team_current_skaters.index = range(len(pdf_team_current_skaters))
 
     # add penalties from this jam
-    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game,
-                                                        n_penalties_for_table=20,
-                                                        anonymize_names=anonymize_names)
+    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game, n_penalties_for_table=20)
     pdf_recent_penalties = pdf_recent_penalties[pdf_recent_penalties["Team"] == team_name]
     # restrict to penalties in this jam
     pdf_recent_penalties = pdf_recent_penalties[(pdf_recent_penalties["Period"] == period)
@@ -375,11 +373,10 @@ def get_recent_penalties_html(derby_game: DerbyGame,
                               anonymize_names: bool = False) -> str:
     """Make html table out of most recent penalties"""
     pdf_recent_penalties = make_recent_penalties_dataframe(derby_game,
-                                                           n_penalties_for_table=n_penalties_for_table,
-                                                           anonymize_names=anonymize_names)
+                                                           n_penalties_for_table=n_penalties_for_table)
     if anonymize_names:
-        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Skater))
-        pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Skater] 
+        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Name))
+        pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Name] 
     # add colors
     map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
         else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \
@@ -394,8 +391,7 @@ def get_recent_penalties_html(derby_game: DerbyGame,
 
 
 def make_recent_penalties_dataframe(derby_game: DerbyGame,
-                                n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
-                                anonymize_names: bool = False) -> pd.DataFrame:
+                                    n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES) -> pd.DataFrame:
     """Make a dataframe out of most recent penalties
 
     Args:
@@ -423,9 +419,6 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
     # restrict, order columns
     pdf_recent_penalties = pdf_recent_penalties[[
         "Team", "Name", "Penalty", "Status", "Period", "Jam", "Time in Jam"]]
-    if anonymize_names:
-        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Name))
-        pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Name]  
 
     return pdf_recent_penalties 
 
