@@ -124,6 +124,7 @@ class UpdateWebclientGameStateListener(GameStateListener):
         logger.debug("UpdateWebclientGameStateListener.on_game_state_changed")
         # if enough time has passed, update the web client
         if self.socketio is not None:
+            logger.debug("Emitting game_state_changed")
             self.socketio.emit("game_state_changed", {})
         else:
             logger.warning("Got game state change, but socketio is None!")
