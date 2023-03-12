@@ -66,8 +66,6 @@ app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_fol
 print("Flask app built.")
 app.jamstats_plots = None
 
-socketio = None
-
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
         #"Game Summary": get_game_summary_html,
@@ -114,9 +112,10 @@ PLOT_NAME_TYPE_MAP = {
 }
 
 class UpdateWebclientGameStateListener(GameStateListener):
-    def __init__(self, min_refresh_secs):
+    def __init__(self, min_refresh_secs, socketio):
         self.last_update_time = datetime.now()
         self.min_refresh_secs = min_refresh_secs
+        self.socketio = socketio
 
     def on_game_state_changed(self) -> None:
         """Called when the game state changes
@@ -124,8 +123,8 @@ class UpdateWebclientGameStateListener(GameStateListener):
         """
         logger.debug("UpdateWebclientGameStateListener.on_game_state_changed")
         # if enough time has passed, update the web client
-        if socketio is not None:
-            socketio.emit("game_state_changed", {})
+        if self.socketio is not None:
+            self.socketio.emit("game_state_changed", {})
         else:
             logger.warning("Got game state change, but socketio is None!")
 
@@ -169,15 +168,15 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     # for communicating with clients
     
     print("Starting SocketIO Flask app...")
-    socketio = SocketIO(app)
+    app.socketio = SocketIO(app)
 
     # add listener to update webclient when game state changes
     if scoreboard_client is not None:
         print("Adding game state listener to scoreboard client")
-        scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs))
+        scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
 
     print("Flask app started")
-    socketio.run(app, host=app.ip, port=port, debug=debug)
+    app.socketio.run(app, host=app.ip, port=port, debug=debug)
     #app.run(host=app.ip, port=port, debug=debug)
 
 
