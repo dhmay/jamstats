@@ -160,10 +160,6 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     app.port = port
     app.anonymize_names=anonymize_names
 
-    # add listener to update webclient when game state changes
-    if scoreboard_client is not None:
-        scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs))
-
     print("")
     print(f"Starting jamstats server...")
     print(f"Point your browser to:  http://{app.ip}:{app.port}")
@@ -172,6 +168,11 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     
     print("Starting SocketIO Flask app...")
     socketio = SocketIO(app)
+
+    # add listener to update webclient when game state changes
+    if scoreboard_client is not None:
+        scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs))
+
     print("Flask app started")
     socketio.run(app, host=app.ip, port=port, debug=debug)
     #app.run(host=app.ip, port=port, debug=debug)
