@@ -126,6 +126,8 @@ class UpdateWebclientGameStateListener(GameStateListener):
         # if enough time has passed, update the web client
         if socketio is not None:
             socketio.emit("game_state_changed", {})
+        else:
+            logger.warning("Got game state change, but socketio is None!")
 
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
@@ -171,6 +173,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
 
     # add listener to update webclient when game state changes
     if scoreboard_client is not None:
+        print("Adding game state listener to scoreboard client")
         scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs))
 
     print("Flask app started")
