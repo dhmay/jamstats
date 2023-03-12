@@ -47,7 +47,7 @@ from flask_socketio import SocketIO
 #from gevent import monkey
 #monkey.patch_all()
 
-GAME_STATE_UPDATE_MINSECS = 5
+GAME_STATE_UPDATE_MINSECS = 2
 
 logger = logging.Logger(__name__)
 
