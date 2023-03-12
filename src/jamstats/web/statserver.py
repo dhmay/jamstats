@@ -63,6 +63,7 @@ print(f"static_folder={static_folder}, template_folder={template_folder}")
 
 app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_folder,
             template_folder=template_folder)
+app.socketio = None
 print("Flask app built.")
 app.jamstats_plots = None
 
@@ -201,7 +202,7 @@ def index():
                 app.scoreboard_client = ScoreboardClient(app.scoreboard_server, app.scoreboard_port)
                 # add listener to update webclient when game state changes
                 app.scoreboard_client.add_game_state_listener(
-                    UpdateWebclientGameStateListener(app.min_refresh_secs))
+                    UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
                 _thread.start_new_thread(app.scoreboard_client.start, ())
                 print("Connected to server. Waiting for game data...")
                 time.sleep(2)
