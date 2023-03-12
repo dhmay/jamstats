@@ -279,9 +279,9 @@ def build_jam_dataframe(pdf_game_state: pd.DataFrame) -> pd.DataFrame:
     pdf_jam_data = pdf_period[
         pdf_period.keychunk_2.str.startswith("Jam(")].copy()
 
-    # Make sure all the "Jam" fields have at least 3 chunks. Defensive coding
+    # Make sure all the "Jam" fields have at least 4 chunks. Defensive coding
     # against a bug erevrav reported 20230311
-    pdf_jam_data = pdf_jam_data[[len(x) >= 3 for x in pdf_jam_data.key_chunks]]
+    pdf_jam_data = pdf_jam_data[[len(x) >= 4 for x in pdf_jam_data.key_chunks]]
 
     pdf_jam_data["keychunk_3"] = [x[3] for x in pdf_jam_data.key_chunks]
 
