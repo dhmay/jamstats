@@ -124,7 +124,8 @@ class UpdateWebclientGameStateListener(GameStateListener):
         """
         logger.debug("UpdateWebclientGameStateListener.on_game_state_changed")
         # if enough time has passed, update the web client
-        socketio.emit("game_state_changed", {})
+        if socketio is not None:
+            socketio.emit("game_state_changed", {})
 
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
