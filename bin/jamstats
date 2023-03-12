@@ -65,8 +65,8 @@ def add_and_parse_args(parser, is_gooey=False):
                         help='Port to serve to, e.g., 8080. If this argument is specified, will serve output to a webserver '
                         'on the specified port. Either this or outfile must be specified unless input is jsonfile.')
     parser.add_argument('--jamstatsip', type=str,
-                        help='IP address to serve to, e.g., "192.168.4.21" or "localhost". This argument is optional even if jamstatsport is specified. '
-                        'If not specified, will infer your local IP address.')
+                        help='IP address to serve to, e.g., "192.168.4.21" or "localhost". This argument is optional even if jamstatsport is specified. ',
+                        default="localhost")
     parser.add_argument('--anonymize', action="store_true",
                         help="Replace actual skater names with random pregenerated ones?")
     parser.add_argument('--anonymizeteams', action="store_true",
