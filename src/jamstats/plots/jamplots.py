@@ -686,9 +686,10 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
     pdf_plot = pdf_jams_data_long.sort_values("team_number").rename(columns={
         "team": "Team"
     })
-    sns.violinplot(y="first_scoring_pass_durations", x="Team",
-                data=pdf_plot, cut=0, ax=ax,
-                inner="stick", palette=team_color_palette)
+    if len(pdf_plot) > 0:
+        sns.violinplot(y="first_scoring_pass_durations", x="Team",
+                    data=pdf_plot, cut=0, ax=ax,
+                    inner="stick", palette=team_color_palette)
     ax.set_ylabel("Time to Initial (s)")
     ax.set_title("Time to Initial per jam")
     # word-wrap too-long team names
@@ -699,14 +700,18 @@ def plot_lead_summary(derby_game: DerbyGame) -> Figure:
               else team_color_palette[1] if lead_team == 2
               else (.5, .5, .5)
               for lead_team in derby_game.pdf_jams_data.team_with_lead]
-    sns.scatterplot(data=derby_game.pdf_jams_data,
-                    x="first_scoring_pass_durations_1",
-                    y="first_scoring_pass_durations_2",
-                    color=colors,
-                    ax=ax)
-    max_tti_time = max([
-        max(derby_game.pdf_jams_data.first_scoring_pass_durations_1),
-        max(derby_game.pdf_jams_data.first_scoring_pass_durations_2)])
+    if len(derby_game.pdf_jams_data) > 0:
+        sns.scatterplot(data=derby_game.pdf_jams_data,
+                        x="first_scoring_pass_durations_1",
+                        y="first_scoring_pass_durations_2",
+                        color=colors,
+                        ax=ax)
+    max_tti_time = 0
+    if len(derby_game.pdf_jams_data) > 0:
+        max_tti_time = max([
+            max(derby_game.pdf_jams_data.first_scoring_pass_durations_1),
+            max(derby_game.pdf_jams_data.first_scoring_pass_durations_2)])
+
     # 1:1 line
     sns.lineplot(x="x", y="y", data=pd.DataFrame({
         "x": [0, max_tti_time],
@@ -748,8 +753,9 @@ def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
     
     f, ax = plt.subplots()
 
-    sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts,
-                hue="team", ax=ax, palette=team_color_palette)
+    if len(pdf_penalty_counts) > 0:
+        sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts,
+                    hue="team", ax=ax, palette=team_color_palette)
     ax.set_title(f"Penalty counts") 
     ax.set_ylabel("")
 

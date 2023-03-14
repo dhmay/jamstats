@@ -113,8 +113,12 @@ class DerbyGame:
         logger.debug(f"Game duration: {game_duration_s} seconds")
     
         logger.debug("Calculating scores")
-        score_team_1 = max(self.pdf_jams_data.TotalScore_1)
-        score_team_2 = max(self.pdf_jams_data.TotalScore_2)
+        if len(self.pdf_jams_data) == 0:
+            score_team_1 = 0
+            score_team_2 = 0
+        else:
+            score_team_1 = max(self.pdf_jams_data.TotalScore_1)
+            score_team_2 = max(self.pdf_jams_data.TotalScore_2)
 
         # Per @erevrav, injuries accrue to jams, not teams, so the proper quantity
         # to represent at the game level is the number of jams that ended in injury.
@@ -145,8 +149,13 @@ class DerbyGame:
                        "StarPass"]
         teams_summary_dict = {"Team": [self.team_1_name, self.team_2_name]}
 
-        teams_summary_dict["Score"] = [max(self.pdf_jams_data.TotalScore_1),
-                                       max(self.pdf_jams_data.TotalScore_2)] 
+        # guarding against empty pdf_jams_data
+        score_1 = 0
+        score_2 = 0
+        if len(self.pdf_jams_data) > 0:
+            score_1 = max(self.pdf_jams_data.TotalScore_1)
+            score_2 = max(self.pdf_jams_data.TotalScore_2)
+        teams_summary_dict["Score"] = [score_1, score_2]
 
         # add skater counts
         n_skaters_in_jams_1 = len(set().union(*self.pdf_jams_data.Skaters_1))
