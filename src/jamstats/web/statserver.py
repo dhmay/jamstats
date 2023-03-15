@@ -112,6 +112,10 @@ PLOT_NAME_TYPE_MAP = {
     for plot_name in ALL_PLOT_NAMES
 }
 
+PLOT_NAMES_TO_SHOW_BEFORE_GAME_START = [
+    "Roster"
+]
+
 class UpdateWebclientGameStateListener(GameStateListener):
     def __init__(self, min_refresh_secs, socketio):
         self.last_update_time = datetime.now()
@@ -251,6 +255,13 @@ def index():
         for plotname in ALL_PLOT_NAMES
     }
 
+    # determine which plots we're allowed to show
+    plots_allowed = list(plotname_displayname_map.keys())
+    if app.derby_game.game_status == "Prepared":
+        # game hasn't started yet. Only show the plots we're supposed to show
+        # before the game starts
+        plots_allowed = PLOT_NAMES_TO_SHOW_BEFORE_GAME_START
+
     return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
                            game_update_time_str=game_update_time_str,
                            jamstats_ip=app.ip, jamstats_port=app.port,
@@ -261,7 +272,8 @@ def index():
                            plotname_func_map=PLOT_NAME_FUNC_MAP,
                            derby_game=app.derby_game,
                            min_refresh_secs=app.min_refresh_secs,
-                           anonymize_names=app.anonymize_names)
+                           anonymize_names=app.anonymize_names,
+                           plots_allowed=plots_allowed)
 
 
 def show_error(error_message: str):

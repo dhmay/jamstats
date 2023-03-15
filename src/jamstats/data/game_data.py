@@ -26,6 +26,8 @@ class DerbyGame:
 
         logger.debug("Extracting game summary dict")
         self.game_summary_dict = self.extract_game_summary_dict()
+        self.game_status = game_data_dict["game_status"]
+
         self.n_jams = self.game_summary_dict["Jams"]
         self.pdf_penalties = pdf_penalties
         self.pdf_team_colors = pdf_team_colors

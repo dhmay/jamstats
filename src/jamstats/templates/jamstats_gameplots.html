@@ -65,15 +65,20 @@ td {
                         </p>
                         </td>
                         <td width="80%" valign="top">
+                            <div style="background-color: lightgray">Game Status: {{derby_game.game_status}}</div></div>
                             <p id="newdata_avail" style="visibility: hidden; color: darkred; background-color: lightgray;">
                                 New game data available. Refreshing in {{min_refresh_secs}} seconds.
                                 <button onClick="window.location.reload();" style="color: darkred">Refresh Now</button>
                             </p>
                             <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
-                            {% if plotname_type_map[plot_name] == "html" %}
-                                <p>{{plotname_func_map[plot_name](derby_game, anonymize_names=anonymize_names) | safe}}</object></p>
+                            {% if plot_name in plots_allowed %}
+                                {% if plotname_type_map[plot_name] == "html" %}
+                                    <p>{{plotname_func_map[plot_name](derby_game, anonymize_names=anonymize_names) | safe}}</object></p>
+                                {% else %}
+                                    <p><img src="fig/{{plot_name}}" style="max-width:1000px;max-height:1000px"/>
+                                {% endif %}
                             {% else %}
-                                <p><img src="fig/{{plot_name}}" style="max-width:1000px;max-height:1000px"/>
+                                <p><H2>Game hasn't started yet</H2></p>
                             {% endif %}
                         </td>
                     </tr>
