@@ -104,32 +104,17 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
     Returns:
         str: html table
     """
-    pdf_team1_current_skaters = get_team_current_skaters_pdf(derby_game, derby_game.team_1_name,
-                                                             anonymize_names=anonymize_names)
-    pdf_team2_current_skaters = get_team_current_skaters_pdf(derby_game, derby_game.team_2_name,
-                                                             anonymize_names=anonymize_names)
+    pdf_jams_sorted_desc = derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"], ascending=False)
+    pdf_jams_sorted_desc.index = range(len(pdf_jams_sorted_desc))
 
-    # add colors to penalties. This would work in pandas 1.4.0+, but not in the version I'm using, using applymap_index
-    map_penalty_to_color = lambda val: 'color: red' if "Serving" in val \
-                                else 'color: yellow' if "Not Yet" in val \
-                                else 'color: green' if "Served" in val \
-                                else ''
-    table_htmls = []
-    for pdf in [pdf_team1_current_skaters, pdf_team2_current_skaters]:
-        styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
-        styler = styler.applymap(map_penalty_to_color,
-            subset=["Penalty"]).hide_index()
-        styler = styler.set_table_attributes("style='display:inline'").hide_index()
-        table_htmls.append(styler.render())
-
-    _, latest_jam_row_dict = next(derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
-                                                                       ascending=False).iterrows())
-    period = latest_jam_row_dict["PeriodNumber"]
-    number = latest_jam_row_dict["Number"]
-    result = f"Period {period}, Jam {number}<br>"
-
-    result = result + f"<table width=0%><tr><td><h4>{derby_game.team_1_name}</h4>{table_htmls[0]}</td>"
-    result = result + f"<td><h4>{derby_game.team_2_name}</h4>{table_htmls[1]}</td></tr></table>\n"
+    most_recent_jam_html = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc.head(1),
+                                                      anonymize_names=anonymize_names)
+    result = most_recent_jam_html
+    if len(pdf_jams_sorted_desc) > 1:
+        result = result + "<p>Previous jam:<br/>"
+        second_most_recent_jam_html = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc[1:].head(1),
+                                                                 anonymize_names=anonymize_names)
+        result = result + second_most_recent_jam_html
 
     result = result + "<p>Positions: P=Pivot, J=Jammer, B=Blocker<br/>"
     result = result + "Position notes: (NI)=No Initial, (L)=Lead, (LO)=Lost, (SP)=Star Pass<p/>"
@@ -140,9 +125,48 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
         </li></ul></td></tr></table>"
     return result
 
+def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
+                               anonymize_names: bool = False) -> str:
+    """Get per-team tables of the skaters for a *single jam* as html
 
-def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
-                                 anonymize_names: bool = False) -> pd.DataFrame:
+    Args:
+        derby_game (DerbyGame): derby game
+        pdf_one_jam (pd.DataFrame): table with a single row of jam data
+
+    Returns:
+        str: html table
+    """
+    pdf_team1_jam_skaters = get_team_jam_skaters_pdf(derby_game, derby_game.team_1_name,
+                                                         pdf_one_jam,
+                                                         anonymize_names=anonymize_names)
+    pdf_team2_jam_skaters = get_team_jam_skaters_pdf(derby_game, derby_game.team_2_name,
+                                                         pdf_one_jam,
+                                                         anonymize_names=anonymize_names)
+    map_penalty_to_color = lambda val: 'color: red' if "Serving" in val \
+                                else 'color: yellow' if "Not Yet" in val \
+                                else 'color: green' if "Served" in val \
+                                else ''
+    table_htmls = []
+    for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
+        styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
+        styler = styler.applymap(map_penalty_to_color,
+            subset=["Penalty"]).hide_index()
+        styler = styler.set_table_attributes("style='display:inline'").hide_index()
+        table_htmls.append(styler.render())
+
+    _, latest_jam_row_dict = next(pdf_one_jam.iterrows())
+    period = latest_jam_row_dict["PeriodNumber"]
+    number = latest_jam_row_dict["Number"]
+    result = f"Period {period}, Jam {number}<br>"
+
+    result = result + f"<table width=0%><tr><td><h4>{derby_game.team_1_name}</h4>{table_htmls[0]}</td>"
+    result = result + f"<td><h4>{derby_game.team_2_name}</h4>{table_htmls[1]}</td></tr></table>\n"    
+    return result
+
+
+def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
+                             pdf_one_jam: pd.DataFrame,
+                             anonymize_names: bool = False) -> pd.DataFrame:
     """Get a table of one team's current skaters as html
 
     Args:
@@ -152,8 +176,7 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     Returns:
         str: html table
     """
-    _, latest_jam_row_dict = next(derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
-                                                                       ascending=False).iterrows())
+    _, latest_jam_row_dict = next(pdf_one_jam.iterrows())
     period = latest_jam_row_dict["PeriodNumber"]
     number = latest_jam_row_dict["Number"]
 
@@ -207,8 +230,9 @@ def get_team_current_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"RosterNumber": "Number"})
     pdf_team_current_skaters.index = range(len(pdf_team_current_skaters))
 
-    # add penalties from this jam
-    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game, n_penalties_for_table=20)
+    # add penalties from this jam.
+    # TODO: this is a bit of a hack, but it works
+    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game, n_penalties_for_table=50)
     pdf_recent_penalties = pdf_recent_penalties[pdf_recent_penalties["Team"] == team_name]
     # restrict to penalties in this jam
     pdf_recent_penalties = pdf_recent_penalties[(pdf_recent_penalties["Period"] == period)
