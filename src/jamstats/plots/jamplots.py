@@ -111,7 +111,8 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
                                                       anonymize_names=anonymize_names)
     result = most_recent_jam_html
     if len(pdf_jams_sorted_desc) > 1:
-        result = result + "<p>Previous jam:<br/>"
+        
+        result = result + "<br/><H4>Previous jam:</H4>"
         second_most_recent_jam_html = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc[1:].head(1),
                                                                  anonymize_names=anonymize_names)
         result = result + second_most_recent_jam_html
