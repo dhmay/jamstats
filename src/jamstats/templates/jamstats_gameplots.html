@@ -16,6 +16,10 @@
             location.reload();
         }, {{min_refresh_secs}} * 1000);
     });
+    socket.on('refresh', function(msg) {
+        console.log("refresh");
+        location.reload();
+    });
         </script>
         <noscript>
             <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />

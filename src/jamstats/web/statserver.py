@@ -47,7 +47,7 @@ from flask_socketio import SocketIO
 #from gevent import monkey
 #monkey.patch_all()
 
-GAME_STATE_UPDATE_MINSECS = 5
+GAME_STATE_UPDATE_MINSECS = 2
 
 logger = logging.Logger(__name__)
 
@@ -123,16 +123,27 @@ class UpdateWebclientGameStateListener(GameStateListener):
         self.socketio = socketio
 
     def on_game_state_changed(self) -> None:
-        """Called when the game state changes
-
+        """Called when the game state changes.
+        Either notify the web client that stage has changed, or, if enough
+        time has passed, tell it to refresh.
         """
+        seconds_since_last_update = (datetime.now() - self.last_update_time).total_seconds()
         logger.debug("UpdateWebclientGameStateListener.on_game_state_changed")
-        # if enough time has passed, update the web client
         if self.socketio is not None:
-            logger.debug("Emitting game_state_changed")
-            self.socketio.emit("game_state_changed", {})
+            # test if enough time has passed since last update. This approach could lead to
+            # stun-locking the web client if the game state changes too frequently, except
+            # that the web client will trigger a refresh after self.min_refresh_secs seconds
+            if seconds_since_last_update >= self.min_refresh_secs:
+                # enough time has passed, tell the web client to refresh
+                logger.debug("Emitting refresh")
+                self.socketio.emit("refresh", {})
+            else:
+                # not enough time has passed, just tell the web client that the game state has changed
+                logger.debug("Emitting game_state_changed")
+                self.socketio.emit("game_state_changed", {})
         else:
             logger.warning("Got game state change, but socketio is None!")
+        self.last_update_time = datetime.now()
 
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
