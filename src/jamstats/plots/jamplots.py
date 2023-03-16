@@ -371,8 +371,36 @@ def get_team_roster_html(derby_game: DerbyGame, team_name: str) -> str:
     styler = pdf_team_roster.style.set_table_attributes("style='display:inline'").hide_index()
     return styler.render()
 
+
+def plot_roster_with_jammerpivot(derby_game: DerbyGame) -> Figure:
+    """Make a table figure out of the team roster dataframe,
+    suitable for writing to a .pdf
+
+    Args:
+        derby_game (DerbyGame): a derby game
+        team_name (str): team name
+
+    Returns:
+        Figure: table figure
+    """
+    pdf_team_roster1 = format_team_roster_fordisplay(derby_game, derby_game.team_1_name,
+                                                     show_jammers_and_pivots=True)
+    pdf_team_roster1.index = range(len(pdf_team_roster1))
+    pdf_team_roster2 = format_team_roster_fordisplay(derby_game, derby_game.team_2_name,
+                                                     show_jammers_and_pivots=True)
+    pdf_team_roster2.index = range(len(pdf_team_roster2))
+
+    pdf_bothteams_roster = pd.concat([pdf_team_roster1, pdf_team_roster2], axis=1)
+    f = plt.figure(figsize=(8, 10))
+    ax = plt.subplot(111)
+    ax.axis('off')
+    ax.table(cellText=pdf_bothteams_roster.values,
+             colLabels=pdf_bothteams_roster.columns, bbox=[0,0,1,1])
+    return f
+
 def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str,
-                                  anonymize_names: str = False) -> str:
+                                  anonymize_names: str = False,
+                                  show_jammers_and_pivots: bool = False) -> str:
     """Format team roster for display
 
     Args:
@@ -390,7 +418,24 @@ def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str,
         pdf_team_roster["Name"] = [name_dict[skater] for skater in pdf_team_roster.Name]  
     pdf_team_roster = pdf_team_roster.sort_values("Number")
     pdf_team_roster[f"{team_name} Skater"] = pdf_team_roster["Number"].astype(str) + " " + pdf_team_roster["Name"]
+
+    team_number = 1 if team_name == derby_game.team_1_name else 2
+    if show_jammers_and_pivots:
+        pdf_jammer_counts = pd.DataFrame(derby_game.pdf_jams_data[f"jammer_number_{team_number}"].value_counts())
+        pdf_jammer_counts = pdf_jammer_counts.rename(columns={f"jammer_number_{team_number}": "Jammed"})
+        pdf_jammer_counts["Number"] = pdf_jammer_counts.index
+        pdf_team_roster = pdf_team_roster.merge(pdf_jammer_counts, on="Number", how="left")
+        pdf_team_roster["Jammed"] = pdf_team_roster["Jammed"].fillna(0).astype(int)
+        # now do pivot
+        pdf_pivot_counts = pd.DataFrame(derby_game.pdf_jams_data[f"pivot_number_{team_number}"].value_counts())
+        pdf_pivot_counts = pdf_pivot_counts.rename(columns={f"pivot_number_{team_number}": "Pivoted"})
+        pdf_pivot_counts["Number"] = pdf_pivot_counts.index
+        pdf_team_roster = pdf_team_roster.merge(pdf_pivot_counts, on="Number", how="left")
+        pdf_team_roster["Pivoted"] = pdf_team_roster["Pivoted"].fillna(0).astype(int)
+
     pdf_team_roster = pdf_team_roster.drop(columns=["Number", "Name"])
+
+
     return pdf_team_roster
 
 

@@ -14,6 +14,7 @@ from jamstats.plots.jamplots import (
         plot_lead_summary,
         histogram_jam_duration,
         plot_team_penalty_counts,
+        plot_roster_with_jammerpivot,
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
@@ -105,7 +106,8 @@ def make_all_plots(derby_game: DerbyGame,
     advanced_plots.extend([
         plot_jammers_by_team,
         plot_lead_summary,
-        histogram_jam_duration
+        histogram_jam_duration,
+        plot_roster_with_jammerpivot,
         ])
 
     for plot_func in advanced_plots:
