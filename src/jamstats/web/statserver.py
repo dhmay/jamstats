@@ -10,7 +10,7 @@ from jamstats.data.json_to_pandas import load_json_derby_game
 from jamstats.io.scoreboard_server_io import ScoreboardClient, GameStateListener
 import inspect
 import time
-import _thread
+import threading
 import traceback
 from engineio.async_drivers import gevent
 
@@ -216,17 +216,24 @@ def index():
             try:
                 app.scoreboard_client = ScoreboardClient(app.scoreboard_server, app.scoreboard_port)
                 # add listener to update webclient when game state changes
+                logger.debug("Adding game state listener to scoreboard client")
                 app.scoreboard_client.add_game_state_listener(
                     UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
-                _thread.start_new_thread(app.scoreboard_client.start, ())
-                print("Connected to server. Waiting for game data...")
+                logger.debug("Starting scoreboard client thread...")
+                mythread = threading.Thread(target=app.scoreboard_client.start)
+                #mythread.daemon = True
+                mythread.start()
+                logger.debug("Connected to server. Waiting for game data...")
                 time.sleep(2)
+                logger.debug("Done waiting for game data. Checking if connected to server...") 
                 if app.scoreboard_client.is_connected_to_server:
+                    logger.debug("Connected to server. Loading game data...")
                     derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
                     set_game(derby_game)
                     logger.debug("Updated derby game.")
                 else:
                     app.scoreboard_client = None
+                    logger.debug("Not connected to server.")
                     return show_error("Error getting game from server. Will retry.")
             except Exception as e:
                 app.scoreboard_client = None
