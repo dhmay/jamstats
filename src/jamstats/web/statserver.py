@@ -10,7 +10,7 @@ from jamstats.data.json_to_pandas import load_json_derby_game
 from jamstats.io.scoreboard_server_io import ScoreboardClient, GameStateListener
 import inspect
 import time
-import _thread
+import threading
 import traceback
 from engineio.async_drivers import gevent
 
@@ -112,6 +112,10 @@ PLOT_NAME_TYPE_MAP = {
     for plot_name in ALL_PLOT_NAMES
 }
 
+PLOT_NAMES_TO_SHOW_BEFORE_GAME_START = [
+    "Roster"
+]
+
 class UpdateWebclientGameStateListener(GameStateListener):
     def __init__(self, min_refresh_secs, socketio):
         self.last_update_time = datetime.now()
@@ -119,16 +123,27 @@ class UpdateWebclientGameStateListener(GameStateListener):
         self.socketio = socketio
 
     def on_game_state_changed(self) -> None:
-        """Called when the game state changes
-
+        """Called when the game state changes.
+        Either notify the web client that stage has changed, or, if enough
+        time has passed, tell it to refresh.
         """
+        seconds_since_last_update = (datetime.now() - self.last_update_time).total_seconds()
         logger.debug("UpdateWebclientGameStateListener.on_game_state_changed")
-        # if enough time has passed, update the web client
         if self.socketio is not None:
-            logger.debug("Emitting game_state_changed")
-            self.socketio.emit("game_state_changed", {})
+            # test if enough time has passed since last update. This approach could lead to
+            # stun-locking the web client if the game state changes too frequently, except
+            # that the web client will trigger a refresh after self.min_refresh_secs seconds
+            if seconds_since_last_update >= self.min_refresh_secs:
+                # enough time has passed, tell the web client to refresh
+                logger.debug("Emitting refresh")
+                self.socketio.emit("refresh", {})
+            else:
+                # not enough time has passed, just tell the web client that the game state has changed
+                logger.debug("Emitting game_state_changed")
+                self.socketio.emit("game_state_changed", {})
         else:
             logger.warning("Got game state change, but socketio is None!")
+        self.last_update_time = datetime.now()
 
 
 def start(port: int, scoreboard_client: ScoreboardClient = None,
@@ -201,17 +216,24 @@ def index():
             try:
                 app.scoreboard_client = ScoreboardClient(app.scoreboard_server, app.scoreboard_port)
                 # add listener to update webclient when game state changes
+                logger.debug("Adding game state listener to scoreboard client")
                 app.scoreboard_client.add_game_state_listener(
                     UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
-                _thread.start_new_thread(app.scoreboard_client.start, ())
-                print("Connected to server. Waiting for game data...")
+                logger.debug("Starting scoreboard client thread...")
+                mythread = threading.Thread(target=app.scoreboard_client.start)
+                #mythread.daemon = True
+                mythread.start()
+                logger.debug("Connected to server. Waiting for game data...")
                 time.sleep(2)
+                logger.debug("Done waiting for game data. Checking if connected to server...") 
                 if app.scoreboard_client.is_connected_to_server:
+                    logger.debug("Connected to server. Loading game data...")
                     derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
                     set_game(derby_game)
                     logger.debug("Updated derby game.")
                 else:
                     app.scoreboard_client = None
+                    logger.debug("Not connected to server.")
                     return show_error("Error getting game from server. Will retry.")
             except Exception as e:
                 app.scoreboard_client = None
@@ -251,6 +273,13 @@ def index():
         for plotname in ALL_PLOT_NAMES
     }
 
+    # determine which plots we're allowed to show
+    plots_allowed = list(plotname_displayname_map.keys())
+    if app.derby_game.game_status == "Prepared":
+        # game hasn't started yet. Only show the plots we're supposed to show
+        # before the game starts
+        plots_allowed = PLOT_NAMES_TO_SHOW_BEFORE_GAME_START
+
     return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
                            game_update_time_str=game_update_time_str,
                            jamstats_ip=app.ip, jamstats_port=app.port,
@@ -261,7 +290,8 @@ def index():
                            plotname_func_map=PLOT_NAME_FUNC_MAP,
                            derby_game=app.derby_game,
                            min_refresh_secs=app.min_refresh_secs,
-                           anonymize_names=app.anonymize_names)
+                           anonymize_names=app.anonymize_names,
+                           plots_allowed=plots_allowed)
 
 
 def show_error(error_message: str):

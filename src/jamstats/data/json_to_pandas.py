@@ -414,6 +414,11 @@ def extract_roster(pdf_game_state: pd.DataFrame,
         ["Id", "Name", "RosterNumber", "team"]
     )]
     pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
+    logger.debug("pdf_roster columns: " + str(pdf_roster.columns) + 
+                 ". Before dropping nulls, length: " + str(len(pdf_roster)))
+    pdf_roster = pdf_roster[pdf_roster.Id.notnull()]
+    logger.debug("After dropping nulls, length: " + str(len(pdf_roster)))
+    print(pdf_roster)
 
     skaterid_team_map = dict(zip(*[pdf_game_state_roster["skater"], pdf_game_state_roster["team"]]))
     pdf_roster["team"] = [skaterid_team_map[skater] for skater in pdf_roster.Id]
@@ -664,6 +669,8 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     pdf_penalties["prd_jam"] = [
         f"{period}:{'0' if (jam < 10) else ''}{jam}" 
         for period, jam in zip(*[pdf_penalties.PeriodNumber, pdf_penalties.JamNumber])]
+    # cast is necessary if there are no penalties yet
+    pdf_penalties = pdf_penalties.astype({"prd_jam": str})
     pdf_penalties = pdf_penalties.rename(columns={"Code": "penalty_code"})
 
     logger.debug(f"    Before merging with roster: {len(pdf_penalties)}")
