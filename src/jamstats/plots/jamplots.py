@@ -109,12 +109,12 @@ def get_officials_roster_html(derby_game: DerbyGame,
     if len(derby_game.pdf_ref_roster) == 0:
         html = html + "No Data"
     else:
-        html = html + derby_game.pdf_ref_roster.to_html(index=False)
+        html = html + derby_game.pdf_ref_roster.style.hide_index().to_html()
     html = html + "</td><td><td valign='top'><H3>NSOs</H3>"
     if len(derby_game.pdf_nso_roster) == 0:
         html = html + "No Data"
     else:
-        html = html + derby_game.pdf_nso_roster.to_html(index=False)
+        html = html + derby_game.pdf_nso_roster.style.hide_index().to_html()
     html = html + "</td></tr></table>"
     return html
 
