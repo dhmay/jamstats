@@ -414,7 +414,11 @@ def extract_roster(pdf_game_state: pd.DataFrame,
         ["Id", "Name", "RosterNumber", "team"]
     )]
     pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
-    logger.debug("pdf_roster columns: " + str(pdf_roster.columns))
+    logger.debug("pdf_roster columns: " + str(pdf_roster.columns) + 
+                 ". Before dropping nulls, length: " + str(len(pdf_roster)))
+    pdf_roster = pdf_roster[pdf_roster.Id.notnull()]
+    logger.debug("After dropping nulls, length: " + str(len(pdf_roster)))
+    print(pdf_roster)
 
     skaterid_team_map = dict(zip(*[pdf_game_state_roster["skater"], pdf_game_state_roster["team"]]))
     pdf_roster["team"] = [skaterid_team_map[skater] for skater in pdf_roster.Id]

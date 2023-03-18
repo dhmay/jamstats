@@ -86,18 +86,15 @@ class ScoreboardClient:
                     self.scoreboard_version = message_game_state_dict["ScoreBoard.Version(release)"]
                 if "ScoreBoard.CurrentGame.Game" in message_game_state_dict:
                     message_game_id = message_game_state_dict["ScoreBoard.CurrentGame.Game"]
-                    if self.game_id is not None and self.game_id != message_game_id:
-                        # new game! GIVE UP. Say we are not connected to the server,
-                        # so we will reconnect and get a new game state.
-                        # This is necessary because the server doesn't send all the information
-                        # I think it should when a new game starts.
-                        #self.game_state_dirty = True
-                        #self.game_json_dict = {}
-                        logger.debug(f"New game! {message_game_id}")
-                        logger.warning("New game! Giving up on this connection.")
-                        self.is_connected_to_server = False
-                        return
                     self.game_id = message_game_id
+                    if self.game_id is not None and self.game_id != message_game_id:
+                        # new game! I seem to have big trouble parsing new game data
+                        # after this point, so instead get a new connection
+                        ws.close()
+                        logger.warning("New game! Wiping out game state. Game ID: " + message_game_id)
+                        self.game_json_dict = {}
+                        self.start()
+                        return
                 if "state" in self.game_json_dict: # if we already have a game state...
                      # Update the game json.
                     # first, remove any keys that are overwritten by null values in the message.
