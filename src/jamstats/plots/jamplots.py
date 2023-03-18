@@ -15,12 +15,20 @@ import matplotlib.patches as mpatches
 from jamstats.plots.plot_util import convert_millis_to_min_sec_str
 from jamstats.plots.plot_util import build_anonymizer_map
 
+from pandas.api.types import CategoricalDtype
 
 
 DEFAULT_N_RECENT_PENALTIES = 10
 
 
 logger = logging.Logger(__name__)
+
+
+# ordered dtype so we can sort easily by penalty status
+PENALTYSTATUS_ORDER_DTYPE = cat_size_order = CategoricalDtype(
+    ['Serving', 'Not Yet', 'Served'], 
+    ordered=True
+)
 
 
 def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
@@ -191,12 +199,15 @@ def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
 
 def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
                              pdf_one_jam: pd.DataFrame,
-                             anonymize_names: bool = False) -> pd.DataFrame:
+                             anonymize_names: bool = False,
+                             include_alljam_serving_penalties: bool = True) -> pd.DataFrame:
     """Get a table of one team's current skaters as html
 
     Args:
         derby_game (DerbyGame): derby game
         team_name (str): team name
+        include_alljam_serving_penalties (bool, optional): if True, add all penalties
+            in "Serving" or "Not Yet" status to this jam's penalties. Defaults to True.
 
     Returns:
         str: html table
@@ -256,16 +267,24 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_team_current_skaters.index = range(len(pdf_team_current_skaters))
 
     # add penalties from this jam.
-    # TODO: this is a bit of a hack, but it works
-    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game, n_penalties_for_table=50)
+    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game, n_penalties_for_table=100)
     pdf_recent_penalties = pdf_recent_penalties[pdf_recent_penalties["Team"] == team_name]
+
+    if include_alljam_serving_penalties:
+        # Change the jam number of all "Serving" or "Not Yet" penalties to the current jam,
+        # so they are included.
+        pdf_recent_penalties.loc[pdf_recent_penalties["Status"].isin(["Serving", "Not Yet"]), "Period"] = period
+        pdf_recent_penalties.loc[pdf_recent_penalties["Status"].isin(["Serving", "Not Yet"]), "Jam"] = number
+    
     # restrict to penalties in this jam
     pdf_recent_penalties = pdf_recent_penalties[(pdf_recent_penalties["Period"] == period)
                                                 & (pdf_recent_penalties["Jam"] == number)]
     # only most recent penalty for each skater
-    pdf_recent_penalties = pdf_recent_penalties.sort_values(["Time in Jam"], ascending=False)
+    # Show "Serving" penalties first, then "Not Yet" penalties, then "Served" penalties.
+    # Within each category, sort by most recent
+    pdf_recent_penalties = pdf_recent_penalties.sort_values(["Status", "Time in Jam"], ascending=[True, False])
     pdf_recent_penalties = pdf_recent_penalties.drop_duplicates("Name", keep="first")
-    pdf_recent_penalties["PenaltyAndStatus"] = pdf_recent_penalties["Penalty"] + "\n(" + pdf_recent_penalties["Status"] + ")"
+    pdf_recent_penalties["PenaltyAndStatus"] = pdf_recent_penalties["Penalty"] + "\n(" + pdf_recent_penalties["Status"].astype(str) + ")"
     pdf_recent_penalties = pdf_recent_penalties[["Name", "PenaltyAndStatus"]]
     pdf_recent_penalties = pdf_recent_penalties.rename(columns={"PenaltyAndStatus": "Penalty"})
     pdf_team_current_skaters = pd.merge(pdf_team_current_skaters, pdf_recent_penalties,
@@ -504,6 +523,7 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
     pdf_recent_penalties["Time in Jam"] = pdf_recent_penalties["Time"] - pdf_recent_penalties["WalltimeStart"]
     pdf_recent_penalties["Time in Jam"] = [convert_millis_to_min_sec_str(x)
                                            for x in pdf_recent_penalties["Time in Jam"]]
+    pdf_recent_penalties["Status"] = pdf_recent_penalties["Status"].astype(PENALTYSTATUS_ORDER_DTYPE)
 
     # Make pretty names for columns
     pdf_recent_penalties = pdf_recent_penalties.rename(columns={
