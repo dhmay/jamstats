@@ -60,12 +60,11 @@ def add_and_parse_args(parser, is_gooey=False):
     parser.add_argument('--outfile', type=argparse.FileType('w'),
                         help='File to write. If this argument is specified, will write a PDF or TSV file. '
                         'If ends with ".pdf", write plots to a PDF. If ".tsv" or ".txt" '
-                        'write data to tab-separated values file. Either this or jamstatsport must be specified.')
-    parser.add_argument('--jamstatsport', type=int,
-                        help='Port to serve to, e.g., 8080. If this argument is specified, will serve output to a webserver '
-                        'on the specified port. Either this or outfile must be specified unless input is jsonfile.')
+                        'write data to tab-separated values file.')
+    parser.add_argument('--jamstatsport', type=int, default=8080,
+                        help='Port to serve to, if running webserver')
     parser.add_argument('--jamstatsip', type=str,
-                        help='IP address to serve to, e.g., "192.168.4.21" or "localhost". This argument is optional even if jamstatsport is specified. ',
+                        help='IP address to serve to, e.g., "192.168.4.21"',
                         default="localhost")
     parser.add_argument('--anonymize', action="store_true",
                         help="Replace actual skater names with random pregenerated ones?")
@@ -77,6 +76,9 @@ def add_and_parse_args(parser, is_gooey=False):
                         default=DEFAULT_THEME,
                         choices=VALID_THEMES,
                         help="Plot theme. This is how you make the plots dark.")
+    parser.add_argument("--mode", type=str, choices=["pdf", "web", "auto"], default="auto",
+                        help="Mode of operation. 'pdf' writes to a pdf file. 'web' runs a web server. " +
+                        " 'auto' infers the behavior by whether you specify a scoreboard server or a json file.")
     parser.add_argument('--teamcolor1', type=str,
                         help="Set the color for team 1. Can be of the form 'green' or of the form '#00FF00'")
     parser.add_argument('--teamcolor2', type=str,
@@ -95,20 +97,18 @@ def add_and_parse_args(parser, is_gooey=False):
     if args.jsonfile is not None and args.scoreboardserver is not None:
         print("Must specify either --jsonfile or --scoreboardserver, but not both")
         sys.exit()
-    if args.outfile is None and args.jamstatsport is None and args.jsonfile is None:
-        print("Must specify either --outfile or --jamstatsport if connecting to a server")
-        sys.exit()
-    if args.outfile is not None and args.jamstatsport is not None:
-        print("Cannot specify both --outfile and --jamstatsport")
-        sys.exit()
     return args
 
 def __main__():
     if len(sys.argv) == 1:
         # no args, so run the GUI
         args = gui_args()
-    elif len(sys.argv) == 2 and sys.argv[1] != "-h" and sys.argv[1] != "--help":
-        # one arg, so try to treat it as a json file, and fail if it's not.
+    elif len(sys.argv) == 2 and sys.argv[1] != "-h" \
+      and sys.argv[1] != "-v" \
+      and not "scoreboardserver" in sys.argv[1].lower() \
+      and not sys.argv[1].startswith("--"):
+        # one arg, and not help or verbose, and not scoreboardserver, and not a -- arg.
+        # so try to treat it as a json file, and fail if it's not.
         # This option makes it possible to drag-and-drop on Windows.
         if exists(sys.argv[1]):
             args = AttrDict()
@@ -122,6 +122,7 @@ def __main__():
             args.jamstatsport = None
             args.outfile = None
             args.theme = None
+            args.mode = "auto"
         else:
             sys.exit(f"File {sys.argv[1]} does not exist")
     else:
@@ -188,7 +189,13 @@ def __main__():
         derby_game.set_team_color_2(args.teamcolor2)
         print(f"Setting team 2 color to {args.teamcolor2}")
 
-    if args.jamstatsport is not None:
+    if args.mode == 'auto':
+        if connect_to_server:
+            args.mode = 'web'
+        else:
+            args.mode = 'pdf'
+        print("Mode not specified. Inferred mode " + args.mode)
+    if args.mode == "web":
         # start a webserver
         kwargs = {
             "anonymize_names": args.anonymize,
