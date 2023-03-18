@@ -72,7 +72,7 @@ PLOT_SECTION_NAME_FUNC_MAP = {
         "Current Skaters": get_current_skaters_html,
         "Teams Summary": get_game_teams_summary_html,
         "Recent Penalties": get_recent_penalties_html,
-        "Roster": get_bothteams_roster_html,
+        "Team Rosters": get_bothteams_roster_html,
         "Officials Roster": get_officials_roster_html,
     },
     "Basic Plots": {
@@ -105,7 +105,7 @@ HTML_PLOT_NAMES = [
     "Current Skaters",
     "Teams Summary",
     "Recent Penalties",
-    "Roster",
+    "Team Rosters",
     "Officials Roster"
 ]
 PLOT_NAME_TYPE_MAP = {
@@ -114,7 +114,8 @@ PLOT_NAME_TYPE_MAP = {
 }
 
 PLOT_NAMES_TO_SHOW_BEFORE_GAME_START = [
-    "Roster"
+    "Team Rosters",
+    "Officials Roster",
 ]
 
 class UpdateWebclientGameStateListener(GameStateListener):
