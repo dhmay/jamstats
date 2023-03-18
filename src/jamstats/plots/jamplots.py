@@ -95,6 +95,30 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     return f
 
 
+def get_officials_roster_html(derby_game: DerbyGame,
+                              anonymize_names: bool = False) -> str:
+    """Get a table of the officials as html
+
+    Args:
+        derby_game (DerbyGame): derby game
+
+    Returns:
+        str: html table
+    """
+    html = "<table><tr><td valign='top'><H3>Referees</H3>"
+    if len(derby_game.pdf_ref_roster) == 0:
+        html = html + "No Data"
+    else:
+        html = html + derby_game.pdf_ref_roster.to_html(index=False)
+    html = html + "</td><td><td valign='top'><H3>NSOs</H3>"
+    if len(derby_game.pdf_nso_roster) == 0:
+        html = html + "No Data"
+    else:
+        html = html + derby_game.pdf_nso_roster.to_html(index=False)
+    html = html + "</td></tr></table>"
+    return html
+
+
 def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
     """Get a table of the current skaters as html
 

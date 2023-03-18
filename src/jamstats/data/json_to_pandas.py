@@ -38,6 +38,8 @@ def load_json_derby_game(game_json) -> DerbyGame:
     pdf_roster = extract_roster(pdf_game_state,
                                 game_data_dict["team_1"],
                                 game_data_dict["team_2"])
+    pdf_ref_roster = extract_officials_roster(pdf_game_state, "Ref")
+    pdf_nso_roster = extract_officials_roster(pdf_game_state, "Nso")
     logger.debug("Extracting jam data")
     pdf_game_data = extract_jam_data(pdf_game_state, pdf_roster)
     logger.debug("Extracting penalties")
@@ -48,7 +50,7 @@ def load_json_derby_game(game_json) -> DerbyGame:
     except Exception as e:
         logger.warn(f"Failed to extract team colors. Exception: {e}")
     return DerbyGame(pdf_game_data, game_data_dict, pdf_penalties, pdf_team_colors,
-                     pdf_roster)
+                     pdf_roster, pdf_ref_roster, pdf_nso_roster)
 
 
 def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
@@ -769,3 +771,41 @@ def extract_team_colors(pdf_game_data:pd.DataFrame) -> pd.DataFrame:
     else:
         logger.info("Could not load team colors. Team colors will be missing from plots.")
     return pdf_team_colors
+
+
+def extract_officials_roster(pdf_game_state: pd.DataFrame,
+                             Ref_or_Nso: str) -> pd.DataFrame:
+    """Extract the officials roster from the game data.
+    Ref_or_Nso should be "Ref" or "Nso"
+    """
+    try:
+        pdf_game_state_officials_roster = pdf_game_state.loc[
+            pdf_game_state.key.str.contains(
+                f".{Ref_or_Nso}\(")
+        ].copy()
+
+        pdf_game_state_officials_roster["roster_key"] = [
+            chunks[2] for chunks in pdf_game_state_officials_roster.key_chunks]
+        # dump a bunch of extraneous columns
+        pdf_game_state_officials_roster = pdf_game_state_officials_roster[
+            pdf_game_state_officials_roster.roster_key.isin(
+            ["Name", "Role"]
+        )]
+        pdf_officials_roster = pdf_game_state_officials_roster.pivot(
+            index="keychunk_1", columns="roster_key", values="value")
+        pdf_officials_roster = pdf_officials_roster.sort_values("Name")
+        # this is dumb but necessary
+        pdf_officials_roster = pd.DataFrame({
+            "Name": list(pdf_officials_roster.Name),
+            "Role": list(pdf_officials_roster.Role),
+        })
+    except Exception as e:
+        logger.warn(f"Could not load officials roster: {e}")
+        pdf_officials_roster = pd.DataFrame({
+            "Name": [],
+            "Role": []
+        })
+    return pdf_officials_roster
+
+
+    

@@ -15,18 +15,17 @@ import traceback
 from engineio.async_drivers import gevent
 
 from jamstats.plots.jamplots import (
-        get_game_summary_html,
         get_game_teams_summary_html,
         plot_cumulative_score_by_jam,
         plot_jam_lead_and_scores_period1,    
         plot_jam_lead_and_scores_period2,
         plot_jammers_by_team,
         plot_lead_summary,
-        histogram_jam_duration,
         plot_team_penalty_counts,
         get_recent_penalties_html,
         get_bothteams_roster_html,
         get_current_skaters_html,
+        get_officials_roster_html,
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
@@ -74,6 +73,7 @@ PLOT_SECTION_NAME_FUNC_MAP = {
         "Teams Summary": get_game_teams_summary_html,
         "Recent Penalties": get_recent_penalties_html,
         "Roster": get_bothteams_roster_html,
+        "Officials Roster": get_officials_roster_html,
     },
     "Basic Plots": {
         "Score by Jam": plot_cumulative_score_by_jam,
@@ -106,6 +106,7 @@ HTML_PLOT_NAMES = [
     "Teams Summary",
     "Recent Penalties",
     "Roster",
+    "Officials Roster"
 ]
 PLOT_NAME_TYPE_MAP = {
     plot_name: "html" if plot_name in HTML_PLOT_NAMES else "figure"
@@ -208,9 +209,6 @@ def index():
     logger.debug("Index page requested")
     if app.scoreboard_server is not None:
         logger.debug(f"Scoreboard server is {app.scoreboard_server}")
-        # if we've got a client but that client isn't connected, we don't have a client.
-        if app.scoreboard_client is not None and not app.scoreboard_client.is_connected_to_server:
-            app.scoreboard_client = None
         if app.scoreboard_client is None:
             logger.debug("No scoreboard client. Creating one...")
             try:
