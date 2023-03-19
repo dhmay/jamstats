@@ -48,7 +48,7 @@ Want to do your own analytics? Save down a spreadsheet and do your own thing wit
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/tsv_output_screenshot.png" width="500"></p>
 
-[Full guide to plot interpretation (PDF)](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_plot_interpretation.pdf)
+[Full user manual (PDF)](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_user_manual.pdf)
 
 ## Installation
 
