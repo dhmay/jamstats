@@ -272,8 +272,9 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_recent_penalties = make_recent_penalties_dataframe(derby_game, n_penalties_for_table=100)
     pdf_recent_penalties = pdf_recent_penalties[pdf_recent_penalties["Team"] == team_name]
 
-    # restrict to the last three jams in the current period
+    # restrict to the last three jams in the current period, up to the current jam
     pdf_recent_penalties = pdf_recent_penalties[pdf_recent_penalties["Period"] == period]
+    pdf_recent_penalties = pdf_recent_penalties[pdf_recent_penalties["Jam"] <= number]
     most_recent_jams = sorted(list(set(pdf_recent_penalties["Jam"])), reverse=True)[:3]
     pdf_recent_penalties = pdf_recent_penalties[pdf_recent_penalties["Jam"].isin(most_recent_jams)]
 
