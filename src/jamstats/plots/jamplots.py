@@ -284,6 +284,7 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
         pdf_recent_penalties.loc[pdf_recent_penalties["Status"].isin(["Serving", "Not Yet"]), "Period"] = period
         pdf_recent_penalties.loc[pdf_recent_penalties["Status"].isin(["Serving", "Not Yet"]), "Jam"] = number
     
+    
     # restrict to penalties in this jam
     pdf_recent_penalties = pdf_recent_penalties[(pdf_recent_penalties["Period"] == period)
                                                 & (pdf_recent_penalties["Jam"] == number)]
