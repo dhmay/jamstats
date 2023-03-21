@@ -420,7 +420,6 @@ def extract_roster(pdf_game_state: pd.DataFrame,
                  ". Before dropping nulls, length: " + str(len(pdf_roster)))
     pdf_roster = pdf_roster[pdf_roster.Id.notnull()]
     logger.debug("After dropping nulls, length: " + str(len(pdf_roster)))
-    print(pdf_roster)
 
     skaterid_team_map = dict(zip(*[pdf_game_state_roster["skater"], pdf_game_state_roster["team"]]))
     pdf_roster["team"] = [skaterid_team_map[skater] for skater in pdf_roster.Id]
@@ -548,7 +547,7 @@ def extract_team_perjam_skaters(pdf_ateamjams_data: pd.DataFrame,
     if len(pdf_ateamjams_data_skaters_withname) == 0:
         pdf_ateamjams_data_skaters_withname = pdf_ateamjams_data_skaters.merge(
             pdf_roster, on="Id", how="left")
-        logger.warn("Failed to join skater data with roster. Merged with left join, "
+        logger.debug("Failed to join skater data with roster. Merged with left join, "
                     f"rows {len(pdf_ateamjams_data_skaters_withname)}")
     logger.debug(f"    After roster merge, team jam skater data: {len(pdf_ateamjams_data_skaters_withname)}")
     pdf_jam_skater_lists = pdf_ateamjams_data_skaters_withname.groupby(
@@ -769,7 +768,7 @@ def extract_team_colors(pdf_game_data:pd.DataFrame) -> pd.DataFrame:
     if succeeded:
         logger.debug(f"Team colors: {pdf_team_colors}")
     else:
-        logger.info("Could not load team colors. Team colors will be missing from plots.")
+        logger.debug("Could not load team colors. Team colors will be missing from plots.")
     return pdf_team_colors
 
 
@@ -800,7 +799,7 @@ def extract_officials_roster(pdf_game_state: pd.DataFrame,
             "Role": list(pdf_officials_roster.Role),
         })
     except Exception as e:
-        logger.warn(f"Could not load officials roster: {e}")
+        logger.debug(f"Could not load officials roster: {e}")
         pdf_officials_roster = pd.DataFrame({
             "Name": [],
             "Role": []

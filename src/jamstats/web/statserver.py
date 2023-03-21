@@ -119,7 +119,7 @@ PLOT_NAMES_TO_SHOW_BEFORE_GAME_START = [
 
 class UpdateWebclientGameStateListener(GameStateListener):
     def __init__(self, min_refresh_secs, socketio):
-        logger.info("UpdateWebclientGameStateListener init")
+        logger.debug("UpdateWebclientGameStateListener init")
         self.last_update_time = datetime.now()
         self.min_refresh_secs = min_refresh_secs
         self.socketio = socketio
@@ -186,15 +186,15 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     logger.info("")
     # for communicating with clients
     
-    logger.info("Starting SocketIO Flask app...")
+    logger.debug("Starting SocketIO Flask app...")
     app.socketio = SocketIO(app)
 
     # add listener to update webclient when game state changes
     if scoreboard_client is not None:
-        logger.info("Adding game state listener to scoreboard client")
+        logger.debug("Adding game state listener to scoreboard client")
         scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
 
-    logger.info("Flask app started")
+    logger.debug("Flask app started")
     app.socketio.run(app, host=app.ip, port=port, debug=debug, use_reloader=False)
     #app.run(host=app.ip, port=port, debug=debug)
 
@@ -252,7 +252,7 @@ def index():
                     derby_game = load_json_derby_game(app.scoreboard_client.game_json_dict)
                     app.scoreboard_client.game_state_dirty = False
                     set_game(derby_game)
-                    logger.info("Updated game data from server.")
+                    logger.debug("Updated game data from server.")
                 except Exception as e:
                     logger.warning(f"Failed to update game data from server: {e}")
                     formatted_lines = traceback.format_exc().splitlines()

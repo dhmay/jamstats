@@ -158,7 +158,7 @@ class ScoreboardClient:
         Args:
             ws (_type_): websocket
         """
-        print("Opened connection")
+        logger.debug("Opened connection")
         self.send_custom_message(ws,
         {
           "action": "Register",
@@ -168,11 +168,11 @@ class ScoreboardClient:
           ]
         })
         self.is_connected_to_server = True
-        print("Sent registration message")
+        logger.debug("Sent registration message")
 
     def send_custom_message(self, ws, msg):
         msg_json = json.dumps(msg)
         if ws and ws.sock.connected:
             ws.send(msg_json)
         else:
-            print("ws api is not connected.")
+            logger.debug("ws api is not connected.")
