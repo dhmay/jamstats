@@ -120,6 +120,7 @@ PLOT_NAMES_TO_SHOW_BEFORE_GAME_START = [
 
 class UpdateWebclientGameStateListener(GameStateListener):
     def __init__(self, min_refresh_secs, socketio):
+        print("UpdateWebclientGameStateListener init")
         self.last_update_time = datetime.now()
         self.min_refresh_secs = min_refresh_secs
         self.socketio = socketio
@@ -195,7 +196,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
         scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
 
     print("Flask app started")
-    app.socketio.run(app, host=app.ip, port=port, debug=debug)
+    app.socketio.run(app, host=app.ip, port=port, debug=debug, use_reloader=False)
     #app.run(host=app.ip, port=port, debug=debug)
 
 

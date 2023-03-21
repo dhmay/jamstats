@@ -150,22 +150,15 @@ def __main__():
             scoreboardport = int(scoreboardport)
         except Exception as e:
             print(f"Tried to interpret {args.scoreboardserver} as server:port but failed: {e}")
-            system.exit(1)
+            sys.exit(1)
 
+    derby_game = None
     if connect_to_server:
         derby_game = None
         print(f"Connecting to server {scoreboardserver}, port {scoreboardport}...")
         try:
             scoreboard_client = ScoreboardClient(scoreboardserver, scoreboardport)
             _thread.start_new_thread(scoreboard_client.start, ())
-            print("Connected to server. Waiting for game data...")
-            time.sleep(2)
-            if scoreboard_client.is_connected_to_server:
-                derby_game = load_json_derby_game(scoreboard_client.game_json_dict)
-                print("Loaded derby game from server.")
-            else:
-                print("Not yet connected to server.")
-                scoreboard_client = None
         except Exception as e:
             scoreboard_client = None
             logger.warning(f"Failed to download in-game data from server {scoreboardserver}:{scoreboardport}: {e}")
@@ -206,9 +199,18 @@ def __main__():
             "scoreboard_port": scoreboardport,
             "min_refresh_secs": args.minrefreshseconds,
         }
-        statserver.set_game(derby_game) 
+        if derby_game is not None:
+            statserver.set_game(derby_game) 
         statserver.start(args.jamstatsport, **kwargs)
-    else:
+    else:  #pdf
+        if connect_to_server:
+            print("Connected to server. Waiting for game data...")
+            time.sleep(2)
+            if scoreboard_client.is_connected_to_server:
+                derby_game = load_json_derby_game(scoreboard_client.game_json_dict)
+                print("Loaded derby game from server.")
+            else:
+                print("Not yet connected to server.")
         # write a file
         if args.outfile is None:
             in_filename = args.jsonfile.name
