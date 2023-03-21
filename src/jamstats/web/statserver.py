@@ -39,7 +39,6 @@ import io
 import logging
 import socket
 import sys, os
-import webbrowser
 from flask_socketio import SocketIO
 
 #attempt to fix windows issue
@@ -58,12 +57,12 @@ def resource_path(relative_path):
 # This is necessary for pyinstaller to find the templates folder
 static_folder = resource_path('static')
 template_folder = resource_path('templates')
-print(f"static_folder={static_folder}, template_folder={template_folder}")
+logger.info(f"static_folder={static_folder}, template_folder={template_folder}")
 
 app = Flask(__name__.split('.')[0], static_url_path="", static_folder=static_folder,
             template_folder=template_folder)
 app.socketio = None
-print("Flask app built.")
+logger.info("Flask app built.")
 app.jamstats_plots = None
 
 PLOT_SECTION_NAME_FUNC_MAP = {
@@ -120,7 +119,7 @@ PLOT_NAMES_TO_SHOW_BEFORE_GAME_START = [
 
 class UpdateWebclientGameStateListener(GameStateListener):
     def __init__(self, min_refresh_secs, socketio):
-        print("UpdateWebclientGameStateListener init")
+        logger.info("UpdateWebclientGameStateListener init")
         self.last_update_time = datetime.now()
         self.min_refresh_secs = min_refresh_secs
         self.socketio = socketio
@@ -181,21 +180,21 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     app.port = port
     app.anonymize_names=anonymize_names
 
-    print("")
-    print(f"Starting jamstats server...")
-    print(f"Point your browser to:  http://{app.ip}:{app.port}")
-    print("")
+    logger.info("")
+    logger.info(f"Starting jamstats server...")
+    logger.info(f"Point your browser to:  http://{app.ip}:{app.port}")
+    logger.info("")
     # for communicating with clients
     
-    print("Starting SocketIO Flask app...")
+    logger.info("Starting SocketIO Flask app...")
     app.socketio = SocketIO(app)
 
     # add listener to update webclient when game state changes
     if scoreboard_client is not None:
-        print("Adding game state listener to scoreboard client")
+        logger.info("Adding game state listener to scoreboard client")
         scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
 
-    print("Flask app started")
+    logger.info("Flask app started")
     app.socketio.run(app, host=app.ip, port=port, debug=debug, use_reloader=False)
     #app.run(host=app.ip, port=port, debug=debug)
 
@@ -242,7 +241,7 @@ def index():
                 try:
                     traceback.print_stack()
                 except Exception as e2:
-                    print(f"Exception while printing stack: {e2}")
+                    logger.warning(f"Exception while printing stack: {e2}")
                 return show_error("Exception while connecting to server. Will retry")
         else:
             logger.debug("Scoreboard client already exists. Checking for new game data...")
@@ -258,7 +257,7 @@ def index():
                     logger.warning(f"Failed to update game data from server: {e}")
                     formatted_lines = traceback.format_exc().splitlines()
                     for line in formatted_lines:
-                        print("EXC: " + line)
+                        logger.warning("EXC: " + line)
                     return show_error("Error connecting to server. Will retry")
             else:
                 logger.debug("No new game data. Using existing game data.")

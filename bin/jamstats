@@ -130,14 +130,17 @@ def __main__():
 
     if args.debug:
         stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.DEBUG)
-        stream_handler.setStream(sys.stdout)
-
         logger.warning("Enabling debug logging.")
-        for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data,
-                        plot_util, resources, scoreboard_server_io, statserver]:
-            mymodule.logger.setLevel(logging.DEBUG)
-            mymodule.logger.addHandler(stream_handler)
+        loglevel = logging.DEBUG
+    else:
+        loglevel = logging.INFO
+    
+    stream_handler.setLevel(loglevel)
+    stream_handler.setStream(sys.stdout)
+    for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data,
+                    plot_util, resources, scoreboard_server_io, statserver]:
+        mymodule.logger.setLevel(loglevel)
+        mymodule.logger.addHandler(stream_handler)
 
     connect_to_server = False
     scoreboard_client = None
