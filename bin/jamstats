@@ -129,12 +129,12 @@ def __main__():
         args = cmdline_args()
 
     if args.debug:
-        stream_handler = logging.StreamHandler()
         logger.warning("Enabling debug logging.")
         loglevel = logging.DEBUG
     else:
         loglevel = logging.INFO
     
+    stream_handler = logging.StreamHandler()
     stream_handler.setLevel(loglevel)
     stream_handler.setStream(sys.stdout)
     for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data,
