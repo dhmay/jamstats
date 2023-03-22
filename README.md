@@ -8,7 +8,7 @@ You can build jamstats plots **online!** No need to install anything. Check out 
 
 The main reason to run Jamstats on your laptop, rather than through [jamstats.net](https://jamstats.net), is to connect to a live game on a running scoreboard. 
 
-And one good reason to do that is that **Jamstats is great for announcers!** See the most recent **penalties**, **score** over time, **jammer stats** and **rosters** for both teams.
+And one good reason to do that is that **Jamstats is great for announcers!** See **who's on the track** (including positions), the most recent **penalties**, and **rosters** for both teams and officials.
 
 #### Features
 
@@ -21,10 +21,14 @@ And one good reason to do that is that **Jamstats is great for announcers!** See
 
 Quickstart: download [the latest release](https://github.com/dhmay/jamstats/releases) and run it.
 
-* **[Installation](#installation)** (Windows and Mac)
+In more detail:
+
+* **[Installation](#installation)** (Windows)
 * **[Usage](#usage)**
 
 ## Sample plots
+
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/current_skaters.png" width="500"></p>
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/cumulative_score_by_jam.png" width="500"></p>
 
@@ -42,33 +46,25 @@ Use the colors defined for each team in the scoreboard file, or provide your own
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/lead_summary.png" width="500"></p>
 
-<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/jammer_summary.png" width="500"></p>
-
 Want to do your own analytics? Save down a spreadsheet and do your own thing with it!
 
 <p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/tsv_output_screenshot.png" width="500"></p>
 
-[Full user manual (PDF)](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_user_manual.pdf)
 
 ## Installation
 
-#### Option 1: executable file
+* Windows: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-<version>.exe`
+* Other platforms: install Python 3.9 or higher, then run `pip install jamstats`
 
-Go to the [latest release](https://github.com/dhmay/jamstats/releases) and download the appropriate file for your operating system:
-* Windows: `jamstats-<version>.exe`
-* Mac: `jamstats-mac-<version>`
-
-#### Option 2: On any platform, with Python 3.7 or later
-
-`pip install jamstats`
-
-This will put the `jamstats` executable on your path.
+Would you really like a Mac executable? Let me know by [opening an issue](https://github.com/dhmay/jamstats/issues/new/choose)!
 
 ## Usage
 
+[Full user manual (PDF)](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_user_manual.pdf), including how to start Jamstats up and how to interpret all the plots.
+
 ### Drag-and-drop (Windows only)
 
-On Windows, to generate a plots PDF, you can simply **drag and drop** your game JSON file onto the jamstats.exe file. That will generate a .pdf file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
+On Windows, to generate a plots PDF, you can simply **drag and drop** your game JSON file onto the jamstats.exe file. That will generate a `.pdf` file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
 
 ### GUI
 
@@ -108,26 +104,4 @@ where:
 * `<some arguments to define the output>`: same as above. You can route the output to a PDF file by specifying `--mode=pdf`.
 
 
-\* *I am not a web security expert, and I make no guarantees whatsoever about webserver security. If you're concerned and can help make it more secure, please open an issue!*
-
-### Using jamstats from Python
-
-This example Python code parses a scoreboard json file, writes it out as a TSV file, makes a bunch of plots and saves them to a PDF file.
-
-```python
-from jamstats.io.scoreboard_json_io import load_derby_game_from_json_file
-from jamstats.plots import plot_together
-
-in_json_filepath = "period2.json"
-out_tsv_filepath = "jam_data.tsv"
-out_pdf_filepath = "game_plots.pdf"
-
-# parse a scoreboard json file
-derby_game = load_derby_game_from_json_file(in_json_filepath)
-
-# Write out a .tsv file with jam data.
-tsv_io.write_game_data_tsv(derby_game, out_tsv_filepath)
-                                       
-# Write a .pdf with a bunch of plots
-plot_together.save_game_plots_to_pdf(derby_game, out_pdf_filepath)
-```
+\* *I am not a web security expert, and I make no guarantees whatsoever about webserver security. If you're concerned and want to help make it more secure, please open an issue!*
