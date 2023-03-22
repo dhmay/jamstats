@@ -70,9 +70,9 @@ On Windows, to generate a plots PDF, you can simply **drag and drop** your game 
 
 Double-click on the jamstats executable to open a graphical window to specify your parameters. 
 
-To connect to a scoreboard, all you need to specify is "scoreboardserver" -- give that the combined IP address and port number of your scoreboard server (e.g., `172.21.12.7:8000`), as reported in the scoreboard GUI.
+To connect to a scoreboard, all you need to specify is `scoreboardserver` -- give that the combined IP address and port number of your scoreboard server (e.g., `172.21.12.7:8000`), as reported in the scoreboard GUI.
 
-With that usage, Jamstats will start its own server on your laptop, and the output in the GUI window will tell you where to point your browser (by default, `http://localhost:8080`).
+With that usage, Jamstats will start its own server on your laptop, and the output in the GUI window will tell you where to point your browser. By default, that's `http://localhost:8080`, which will make Jamstats available only on your own machine. If you want to make Jamstats available to other browsers on your network, set `jamstatsip` to your computer's IP address.
 
 You can also use the GUI to specify all other arguments you could specify from the commandline.
 
