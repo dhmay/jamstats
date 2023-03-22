@@ -54,7 +54,7 @@ Want to do your own analytics? Save down a spreadsheet and do your own thing wit
 ## Installation
 
 * Windows: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-<version>.exe`
-* Other platforms: install Python 3.9 or higher, then run `pip install jamstats`
+* Other platforms: install Python 3.9 or higher, then run `pip install jamstats`. That will put `jamstats.sh` on your path.
 
 Would you really like a Mac executable? Let me know by [opening an issue](https://github.com/dhmay/jamstats/issues/new/choose)!
 
