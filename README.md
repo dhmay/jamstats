@@ -12,10 +12,10 @@ And one good reason to do that is that **Jamstats is great for announcers!** See
 
 #### Features
 
+* Get up-to-date game data from a live scoreboard
 * Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and much more
 * Read in JSON files from completed games or connect to a running scoreboard
 * Save plots as PDF files, or start a webserver that anyone on your network can browse to
-* On Windows, build PDFs with **drag-and-drop**
 
 #### Instructions
 
