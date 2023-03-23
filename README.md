@@ -63,9 +63,9 @@ Want to do your own analytics? Save down a spreadsheet and do your own thing wit
 
 [Full user manual (PDF)](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_user_manual.pdf), including how to start Jamstats up and how to interpret all the plots.
 
-### Drag-and-drop (Windows only)
+### Drag-and-drop
 
-On Windows, to generate a plots PDF, you can simply **drag and drop** your game JSON file onto the jamstats.exe file. That will generate a `.pdf` file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
+On Windows or Mac, to generate a plots PDF, you can simply **drag and drop** your game JSON file onto the jamstats.exe file or Jamstats app. That will generate a `.pdf` file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
 
 ### GUI
 
