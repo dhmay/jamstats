@@ -23,7 +23,7 @@ Quickstart: download [the latest release](https://github.com/dhmay/jamstats/rele
 
 In more detail:
 
-* **[Installation](#installation)** (Windows)
+* **[Installation](#installation)**
 * **[Usage](#usage)**
 
 ## Sample plots
@@ -54,9 +54,10 @@ Want to do your own analytics? Save down a spreadsheet and do your own thing wit
 ## Installation
 
 * Windows: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-<version>.exe`
+* Mac: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-mac-<version>.zip`, then unzip that file into your Applications directory (or wherever you want to run Jamstats from)
+    * Note that the Mac app is particularly slow to start up
 * Other platforms: install Python 3.9 or higher, then run `pip install jamstats`. That will put `jamstats.sh` on your path.
-
-Would you really like a Mac executable? Let me know by [opening an issue](https://github.com/dhmay/jamstats/issues/new/choose)!
+    * Also works just fine on Windows and Mac
 
 ## Usage
 
