@@ -10,6 +10,8 @@ The main reason to run Jamstats on your laptop, rather than through [jamstats.ne
 
 And one good reason to do that is that **Jamstats is great for announcers!** See **who's on the track** (including positions), the most recent **penalties**, and **rosters** for both teams and officials.
 
+Do you like Jamstats? [Tell us why!](https://github.com/dhmay/jamstats/issues/new?assignees=&labels=testimonial&template=testimonial.md&title=)
+
 #### Features
 
 * Get up-to-date game data from a live scoreboard
