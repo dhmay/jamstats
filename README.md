@@ -57,8 +57,7 @@ Want to do your own analytics? Save down a spreadsheet and do your own thing wit
 * Windows: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-<version>.exe`
 * Mac: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-mac-<version>.zip`, then unzip that file into your Applications directory (or wherever you want to run Jamstats from)
     * Note that the Mac app is particularly slow to start up
-* Other platforms: install Python 3.9 or higher, then run `pip install jamstats`. That will put `jamstats.sh` on your path.
-    * Also works just fine on Windows and Mac
+* Any platform: install Python 3.9 or higher, then run `pip install jamstats`. That will put `jamstats` on your path so you can run it from the command line.
 
 ## Usage
 
