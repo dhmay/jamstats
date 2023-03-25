@@ -87,17 +87,17 @@ Get full commandline help running the command with the `--help` argument.
 
 #### Option 1: get game data from a JSON file
 
-`jamstats --jsonfile <JSON file> [some arguments to define the output]`
+`jamstats --jsonfile <JSON file> [optional arguments]`
 
 where:
 
 * `<JSON file>` is the path to a scoreboard JSON file
-* `[some arguments to define the output]`: by default, Jamstats will write the output to the same path as the input file, but with ".json" replaced with ".pdf". You can adjust that behavior by specifying an output `--outfile` file or using the `--mode=web` argument to start a webserver (see below), instead.
+* `[optional arguments]`: by default, Jamstats will write the output to the same path as the input file, but with ".json" replaced with ".pdf". You can adjust that behavior by specifying an output `--outfile` file or using the `--mode=web` argument to start a webserver (see below), instead.
     * there are also several options, explained in the help message, that affect the charts that are built.
 
 #### Option 2: connect to a running scoreboard server
 
-`jamstats --scoreboardserver <server:port> <some arguments to define the output>`
+`jamstats --scoreboardserver <server:port> [optional arguments]`
 
 where:
 
