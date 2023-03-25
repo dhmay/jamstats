@@ -6,7 +6,7 @@ Tools for displaying roller derby game data from the [CRG scoreboard](https://gi
 
 You can build jamstats plots from game JSON files **online!** No need to install anything. Check out [jamstats.net](https://jamstats.net). 
 
-The main reason to run Jamstats on your laptop, is to connect to a live game on a running scoreboard. And one good reason to do that is that **Jamstats is great for announcers!** See **who's on the track** (including positions), the most recent **penalties**, and **rosters** for both teams and officials.
+The main reason to download and run Jamstats on your laptop is to connect to a live game on a running scoreboard. And one good reason to do that is that **Jamstats is great for announcers!** See **who's on the track** (including positions), the most recent **penalties**, and **rosters** for both teams and officials.
 
 Do you like Jamstats? [Tell us why!](https://github.com/dhmay/jamstats/issues/new?assignees=&labels=testimonial&template=testimonial.md&title=)
 
