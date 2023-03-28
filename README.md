@@ -6,9 +6,7 @@ Tools for displaying roller derby game data from the [CRG scoreboard](https://gi
 
 You can build jamstats plots from game JSON files **online!** No need to install anything. Check out [jamstats.net](https://jamstats.net). 
 
-The main reason to run Jamstats on your laptop, rather than through [jamstats.net](https://jamstats.net), is to connect to a live game on a running scoreboard. 
-
-And one good reason to do that is that **Jamstats is great for announcers!** See **who's on the track** (including positions), the most recent **penalties**, and **rosters** for both teams and officials.
+The main reason to download and run Jamstats on your laptop is to connect to a live game on a running scoreboard. Why? Well, for one thing, **Jamstats is great for announcers!** See **who's on the track** (including positions), the most recent **penalties**, and **rosters** for both teams and officials.
 
 #### Features
 
@@ -17,13 +15,16 @@ And one good reason to do that is that **Jamstats is great for announcers!** See
 * Read in JSON files from completed games or connect to a running scoreboard
 * Save plots as PDF files, or start a webserver that anyone on your network can browse to
 
+Do you already love Jamstats? [Tell us about it!](https://github.com/dhmay/jamstats/issues/new?assignees=&labels=testimonial&template=testimonial.md&title=)
+
+
 #### Instructions
 
 Quickstart: download [the latest release](https://github.com/dhmay/jamstats/releases) and run it.
 
 In more detail:
 
-* **[Installation](#installation)** (Windows)
+* **[Installation](#installation)**
 * **[Usage](#usage)**
 
 ## Sample plots
@@ -54,17 +55,17 @@ Want to do your own analytics? Save down a spreadsheet and do your own thing wit
 ## Installation
 
 * Windows: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-<version>.exe`
-* Other platforms: install Python 3.9 or higher, then run `pip install jamstats`. That will put `jamstats.sh` on your path.
-
-Would you really like a Mac executable? Let me know by [opening an issue](https://github.com/dhmay/jamstats/issues/new/choose)!
+* Mac: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-mac-<version>.zip`, then unzip that file into your Applications directory (or wherever you want to run Jamstats from)
+    * Note that the Mac app is particularly slow to start up
+* Any platform: install Python 3.9 or higher, then run `pip install jamstats`. That will put `jamstats` on your path so you can run it from the command line.
 
 ## Usage
 
 [Full user manual (PDF)](https://github.com/dhmay/jamstats/blob/main/resources/jamstats_user_manual.pdf), including how to start Jamstats up and how to interpret all the plots.
 
-### Drag-and-drop (Windows only)
+### Drag-and-drop
 
-On Windows, to generate a plots PDF, you can simply **drag and drop** your game JSON file onto the jamstats.exe file. That will generate a `.pdf` file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
+On Windows or Mac, to generate a plots PDF, you can simply **drag and drop** your game JSON file onto the jamstats.exe file or Jamstats app. That will generate a `.pdf` file in the same directory as your `.json` file, with the same name but with the `.json` extension replaced with `.pdf`.
 
 ### GUI
 
@@ -86,17 +87,17 @@ Get full commandline help running the command with the `--help` argument.
 
 #### Option 1: get game data from a JSON file
 
-`jamstats --jsonfile <JSON file> [some arguments to define the output]`
+`jamstats --jsonfile <JSON file> [optional arguments]`
 
 where:
 
 * `<JSON file>` is the path to a scoreboard JSON file
-* `[some arguments to define the output]`: by default, Jamstats will write the output to the same path as the input file, but with ".json" replaced with ".pdf". You can adjust that behavior by specifying an output `--outfile` file or using the `--mode=web` argument to start a webserver (see below), instead.
+* `[optional arguments]`: by default, Jamstats will write the output to the same path as the input file, but with ".json" replaced with ".pdf". You can adjust that behavior by specifying an output `--outfile` file or using the `--mode=web` argument to start a webserver (see below), instead.
     * there are also several options, explained in the help message, that affect the charts that are built.
 
 #### Option 2: connect to a running scoreboard server
 
-`jamstats --scoreboardserver <server:port> <some arguments to define the output>`
+`jamstats --scoreboardserver <server:port> [optional arguments]`
 
 where:
 
