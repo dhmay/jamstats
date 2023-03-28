@@ -6,12 +6,9 @@ block_cipher = None
 
 a = Analysis(
     ['../bin/jamstats'],
-    pathex=[],
+    pathex=['.'],
     binaries=[],
-    datas=[
-        ('jamstats\\static\\', 'static'),
-        ('jamstats\\templates\\', 'templates'),
-    ],
+    datas=[('../resources/jamstats_logo.png', '.'), ('../resources/jamstats_version.txt', '.'), ('jamstats/templates', 'templates'), ('jamstats/static', 'static')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -38,11 +35,17 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
     icon=['../resources/jamstats_icon.ico'],
+)
+app = BUNDLE(
+    exe,
+    name='jamstats.app',
+    icon='../resources/jamstats_icon.ico',
+    bundle_identifier=None,
 )
