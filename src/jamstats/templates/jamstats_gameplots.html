@@ -6,7 +6,7 @@
         <link rel= "stylesheet" type= "text/css"
               href= "{{ url_for('static',filename='styles/skeleton.css') }}">
         <head title="Jamstats">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+    <script src="{{ url_for('static',filename='socket.io.js') }}"></script>
     <script type="text/javascript">
     var socket = io();
     socket.on('game_state_changed', function(msg) {
