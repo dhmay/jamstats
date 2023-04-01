@@ -157,8 +157,10 @@ class ScoreboardClient:
         print(error)
 
     def on_close(self, ws, close_status_code, close_msg):
-        print(f"### closed: code={close_status_code}, msg={close_msg} ###")
+        logger.warning(f"### closed: code={close_status_code}, msg={close_msg} ###")
         self.is_connected_to_server = False
+        logger.warning("Attempting restart...")
+        self.start()
         
     def on_ping(self, ws):
         print("on_ping")
@@ -170,8 +172,7 @@ class ScoreboardClient:
         Args:
             ws (_type_): websocket
         """
-        print("OPENED!!!")
-        logger.debug("Opened connection")
+        logger.warning("Opened connection.")
         self.send_custom_message(ws,
         {
           "action": "Register",
