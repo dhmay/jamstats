@@ -2,6 +2,7 @@ import websocket
 import json
 import logging
 import traceback
+import ssl
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,8 @@ class GameStateListener:
 
 
 class ScoreboardClient:
-    def __init__(self, scoreboard_server: str, scoreboard_port: int):
+    def __init__(self, scoreboard_server: str, scoreboard_port: int,
+                 use_ssl: bool = False):
         """init
 
         Args:
@@ -28,7 +30,8 @@ class ScoreboardClient:
         self.scoreboard_server = scoreboard_server
         self.scoreboard_port = scoreboard_port
         self.is_connected_to_server = False
-        self.scoreboard_version = None 
+        self.scoreboard_version = None
+        self.use_ssl = use_ssl
         # keep track of the game id so we can detect when a new game starts
         self.game_id = None
 
@@ -50,15 +53,24 @@ class ScoreboardClient:
     def start(self):
         """Start the websocket client
         """
-        websocket.enableTrace(False)
-        ws = websocket.WebSocketApp(f"ws://{self.scoreboard_server}:{self.scoreboard_port}/WS",
+        protocol = "wss" if self.use_ssl else "ws"
+        ws = websocket.WebSocketApp(#f"ws://{self.scoreboard_server}:{self.scoreboard_port}?ssl=true&ssl_cert_reqs=CERT_NONE",
+            # this is the right url for wsproxy
+            f"{protocol}://{self.scoreboard_server}:{self.scoreboard_port}/WS/",
                                     on_open=self.on_open,
                                     on_message=self.on_message,
                                     on_error=self.on_error,
                                     on_close=self.on_close,
                                     on_ping=self.on_ping)
-
-        ws.run_forever(ping_interval=30)  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+        mykwargs = {
+            "ping_interval": 30
+        }
+        if self.use_ssl:
+            mykwargs["sslopt"] = {"cert_reqs": ssl.CERT_NONE}
+        ws.run_forever(
+                      #, proxy_type="socks5", http_proxy_host=self.scoreboard_server
+                      **mykwargs
+                      )
         self.ws = ws
         
     def on_message(self, ws, message) -> None:
@@ -145,7 +157,7 @@ class ScoreboardClient:
         print(error)
 
     def on_close(self, ws, close_status_code, close_msg):
-        print("### closed ###")
+        print(f"### closed: code={close_status_code}, msg={close_msg} ###")
         self.is_connected_to_server = False
         
     def on_ping(self, ws):
@@ -158,6 +170,7 @@ class ScoreboardClient:
         Args:
             ws (_type_): websocket
         """
+        print("OPENED!!!")
         logger.debug("Opened connection")
         self.send_custom_message(ws,
         {

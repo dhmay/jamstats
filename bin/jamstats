@@ -25,6 +25,7 @@ from attrdict import AttrDict
 import time
 import sys, traceback
 import _thread
+import websocket
 
 logger = logging.Logger(__name__)
 
@@ -85,6 +86,8 @@ def add_and_parse_args(parser, is_gooey=False):
                         help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
     parser.add_argument('--minrefreshseconds', type=int, default=statserver.GAME_STATE_UPDATE_MINSECS,
                         help="Minimum number of seconds between scoreboard data refreshes.")
+    parser.add_argument('--ssl', action="store_true",
+                        help="Use SSL to connect to scoreboard? (Required for livederby.eu)")
     if is_gooey:
         print("Added args. Parsing args...")
     args = parser.parse_args()
@@ -130,6 +133,12 @@ def __main__():
 
     if args.debug:
         logger.warning("Enabling debug logging.")
+        logging.basicConfig(
+            format="hahah %(message)s",
+            level=logging.DEBUG,
+        )
+        logging.getLogger ('websockets.server').setLevel(logging.DEBUG)
+        logging.getLogger ('websockets.client').setLevel(logging.DEBUG)
         loglevel = logging.DEBUG
     else:
         loglevel = logging.INFO
@@ -160,7 +169,7 @@ def __main__():
         derby_game = None
         print(f"Connecting to server {scoreboardserver}, port {scoreboardport}...")
         try:
-            scoreboard_client = ScoreboardClient(scoreboardserver, scoreboardport)
+            scoreboard_client = ScoreboardClient(scoreboardserver, scoreboardport, use_ssl=args.ssl)
             _thread.start_new_thread(scoreboard_client.start, ())
         except Exception as e:
             scoreboard_client = None
