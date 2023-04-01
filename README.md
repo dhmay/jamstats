@@ -77,6 +77,41 @@ With that usage, Jamstats will start its own server on your laptop, and the outp
 
 You can also use the GUI to specify all other arguments you could specify from the commandline.
 
+### Connecting to a proxied scoreboard from the Internet
+
+It's possible to use Jamstats from anywhere in the world to connect to a running scoreboard! This lets **remote announcers** use Jamstats to help with calling games. Here's how:
+
+#### At the track: setting up a proxy
+
+1. Download [wsproxy](https://github.com/DerbyStats/wsproxy) and follow its instructions to set up a proxy. This will feed your scoreboard data, read-only, to the Internet
+    * If you're using the default scoreboard settings, the default wsproxy settings will work fine. 
+    * If not, pay attention to the port you're running your scoreboard on, and change from 8000 to that same port in wsproxy's config.ini file
+2. Your proxy can send your scoreboard data wherever you tell it to. On the other end, there needs to be another copy of wsproxy running.
+    * With the default configuration, your proxy data will be sent to a new subdomain of `derbystats.eu`
+        * e.g., [https://wftdaccess.derbystats.eu/](https://wftdaccess.derbystats.eu/), but it will be something else unique to your scoreboard
+    * When you start wsproxy, it will tell you where the data is going. 
+        * For example, `Display URL: https://jammer-lane.derbystats.eu`
+        * Give this to the person who'll be running Jamstats remotely.
+        
+#### Remotely: running Jamstats to connect to a proxy
+
+1. Get the "Display URL" from the person who set up wsproxy
+    * For example, `https://jammer-lane.derbystats.eu`
+2. Start up Jamstats and give it two arguments (either through the GUI or on the command line):
+    * `scoreboardserver`: make this the full subdomain of the "Display URL", without the `https://` part, with `:443` added to the end
+        * For example: `jammer-lane.derbystats.eu:443`
+    * `ssl`: set this to `true` (default is `false`)
+
+Example of how this looks on the commandline:
+
+`python bin/jamstats --scoreboardserver=jammer-lane.derbystats.eu:443 --ssl`
+
+Example of how this looks in the GUI:
+
+![image](https://user-images.githubusercontent.com/714077/229311685-b44359dc-5501-435b-ae44-9039317f2f09.png)
+
+That's it! If that setup all worked correctly, Jamstats should now behave exactly as though you were right there at the track.
+
 ### Commandline
 
 The command you'll use is the same as the name of the file you downloaded (e.g., `jamstats-v0.3.4-alpha.exe` on Windows, or `jamstats-mac-v0.3.4-alpha` on Mac).
