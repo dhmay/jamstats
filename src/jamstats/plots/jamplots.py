@@ -139,10 +139,20 @@ def get_caller_dashboard_html(derby_game: DerbyGame, anonymize_names: bool = Fal
     """
     # build stripped-down game summary table
     pdf_game_teams_summary = derby_game.extract_game_teams_summary()
-    #pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
-    #pdf_game_teams_summary["Team"] = pdf_game_teams_summary.index
-    #pdf_game_teams_summary = pdf_game_teams_summary[["Team", 0, 1]]
-    #pdf_game_teams_summary = pdf_game_teams_summary[pdf_game_teams_summary.Team != "Team"]
+    pdf_game_teams_summary = pdf_game_teams_summary.drop(columns=[
+        "Calloff", "NoInitial", "Skaters played"])
+    # add Absolute Difference row
+    pdf_game_teams_summary = pd.DataFrame({
+        column: [pdf_game_teams_summary.loc[0, column],
+                 pdf_game_teams_summary.loc[1, column],
+                 abs(pdf_game_teams_summary.loc[0, column] -
+                     pdf_game_teams_summary.loc[1, column])]
+        if column != "Team"
+        else [pdf_game_teams_summary.loc[0, column],
+              pdf_game_teams_summary.loc[1, column],
+              "Abs Difference"]
+        for column in pdf_game_teams_summary.columns
+    })
     styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
     html_game_summary = styler.render()
 
