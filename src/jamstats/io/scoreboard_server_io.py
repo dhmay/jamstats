@@ -3,6 +3,7 @@ import json
 import logging
 import traceback
 import ssl
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -157,8 +158,18 @@ class ScoreboardClient:
         print(error)
 
     def on_close(self, ws, close_status_code, close_msg):
-        logger.warning(f"### closed: code={close_status_code}, msg={close_msg} ###")
+        logger.warning(f"### websocket closed: code={close_status_code}, msg={close_msg} ###")
         self.is_connected_to_server = False
+        # try to clean up the socket connection
+        try:
+            logger.info("Closing ws...")
+            ws.keep_running = False
+            ws.close()
+            logger.info("ws closed.")
+        except Exception as e:
+            logger.warning(f"ws.close() failed: {e}")
+        # wait a second
+        time.sleep(1)
         logger.warning("Attempting restart...")
         self.start()
         
