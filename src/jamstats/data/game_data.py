@@ -172,6 +172,11 @@ class DerbyGame:
             teams_summary_dict[col] = [sum_1, sum_2]
 
         teams_summary_dict["Skaters played"] = [n_skaters_in_jams_1, n_skaters_in_jams_2]
+
+        if self.pdf_penalties is not None:
+            n_penalties_1 = sum(self.pdf_penalties.team == self.team_1_name)
+            n_penalties_2 = sum(self.pdf_penalties.team == self.team_2_name)
+            teams_summary_dict["Total penalties"] = [n_penalties_1, n_penalties_2]
             
         pdf_game_teams_summary = pd.DataFrame(teams_summary_dict)
         return pdf_game_teams_summary
