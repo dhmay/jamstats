@@ -26,6 +26,7 @@ from jamstats.plots.jamplots import (
         get_bothteams_roster_html,
         get_current_skaters_html,
         get_officials_roster_html,
+        get_caller_dashboard_html
 )
 from jamstats.plots.skaterplots import (
     plot_jammer_stats_team1,
@@ -67,7 +68,7 @@ app.jamstats_plots = None
 
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
-        #"Game Summary": get_game_summary_html,
+        "Caller Dashboard": get_caller_dashboard_html,
         "Current Skaters": get_current_skaters_html,
         "Teams Summary": get_game_teams_summary_html,
         "Recent Penalties": get_recent_penalties_html,
@@ -99,14 +100,8 @@ PLOT_SECTION_NAMES_MAP = {
 }
 ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
 
-HTML_PLOT_NAMES = [
-    "Game Summary",
-    "Current Skaters",
-    "Teams Summary",
-    "Recent Penalties",
-    "Team Rosters",
-    "Officials Roster"
-]
+HTML_PLOT_NAMES = list(PLOT_SECTION_NAME_FUNC_MAP["Tables"].keys())
+print(HTML_PLOT_NAMES)
 PLOT_NAME_TYPE_MAP = {
     plot_name: "html" if plot_name in HTML_PLOT_NAMES else "figure"
     for plot_name in ALL_PLOT_NAMES

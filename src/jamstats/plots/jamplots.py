@@ -127,6 +127,50 @@ def get_officials_roster_html(derby_game: DerbyGame,
     return html
 
 
+def get_caller_dashboard_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
+    """Build a dashboard for the announcer
+
+    Args:
+        derby_game (DerbyGame): derby game
+        anonymize_names (bool, optional): anonymize names. Defaults to False.
+    
+    Returns:
+        str: html dashboard
+    """
+    # build stripped-down game summary table
+    pdf_game_teams_summary = derby_game.extract_game_teams_summary()
+    #pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
+    #pdf_game_teams_summary["Team"] = pdf_game_teams_summary.index
+    #pdf_game_teams_summary = pdf_game_teams_summary[["Team", 0, 1]]
+    #pdf_game_teams_summary = pdf_game_teams_summary[pdf_game_teams_summary.Team != "Team"]
+    styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
+    html_game_summary = styler.render()
+
+    # build current jam table
+    pdf_jams_sorted_desc = derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
+                                                                ascending=False)
+    pdf_jams_sorted_desc.index = range(len(pdf_jams_sorted_desc))
+    html_current_jam = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc.head(1),
+                                                  anonymize_names=anonymize_names)
+    
+    result =  "<p>" + html_game_summary + "</p><p>" + html_current_jam
+
+    if len(pdf_jams_sorted_desc) > 1:
+        second_most_recent_jam_html = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc[1:].head(1),
+                                                                 anonymize_names=anonymize_names)
+        result = result + second_most_recent_jam_html
+
+    result = result + "<p>Positions: P=Pivot, J=Jammer, B=Blocker<br/>"
+    result = result + "Position notes: (NI)=No Initial, (L)=Lead, (LO)=Lost, (SP)=Star Pass<p/>"
+    result = result + f"<table width=0% style='background-color: lightgray'><tr><td><br/>Penalty status:<ul>\
+        <li style='color: yellow; background-color: lightgray'>Not Yet: skater on way to box</li>\
+        <li style='color: red; background-color: lightgray'>Serving: skater in box</li>\
+        <li style='color: green; background-color: lightgray'>Served: skater has completed serving penalty</li>\
+        </li></ul></td></tr></table>"
+    result = result + "</p>"
+    return result
+
+
 def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
     """Get a table of the current skaters as html
 

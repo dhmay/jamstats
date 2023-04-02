@@ -41,10 +41,21 @@ td {
         </style>
     </head>
     <body>
-        <div style="float: top; padding: 1px 10px; height: 40px">
-        <button onclick="showHideLeft()" style="color: lightgray; padding: 0px 5px; max-height: 30px">-</button>
+    <div style="display: block">
+        <div style="display: inline-block; padding: 5px 10px; height: 80px; max-height: 50px; width: 100%">
+            <div  style="display: inline-block; width: 15%">
+                <button onclick="showHideLeft()" style="color: lightgray; padding: 0px 5px; max-height: 30px">-</button>
+            </div>
+            <div style="display: inline-block; background-color: lightgray; width: 80%; max-height: 50px">
+                Game Status: {{derby_game.game_status}}
+                <p id="newdata_avail" style="visibility: hidden; color: darkred; background-color: lightgray;">
+                    New game data available. Refreshing in {{min_refresh_secs}} seconds.
+                    <button onClick="window.location.reload();" style="color: darkred">Refresh Now</button>
+                </p>
+            </div>
         </div>
             <!--<div id="margin" style="float: left; width: 10; padding: 0 10px;"/>-->
+        <div>
             <div id="left" style="float: left; padding: 0px 10px; width: 15%">
                             <p>
                             <a href="https://jamstats.net"><img src="logo" width="175"></a>
@@ -85,11 +96,7 @@ td {
                 <table>
                     <tr>
                         <td width="100%" valign="top">
-                            <div style="background-color: lightgray">Game Status: {{derby_game.game_status}}</div></div>
-                            <p id="newdata_avail" style="visibility: hidden; color: darkred; background-color: lightgray;">
-                                New game data available. Refreshing in {{min_refresh_secs}} seconds.
-                                <button onClick="window.location.reload();" style="color: darkred">Refresh Now</button>
-                            </p>
+
                             <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
                             {% if plot_name in plots_allowed %}
                                 {% if plotname_type_map[plot_name] == "html" %}
@@ -103,6 +110,6 @@ td {
                         </td>
                     </tr>
                 </table>
-            </div>
+        </div>
     </body>
 </html>
