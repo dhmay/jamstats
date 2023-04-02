@@ -150,7 +150,7 @@ def get_caller_dashboard_html(derby_game: DerbyGame, anonymize_names: bool = Fal
         if column != "Team"
         else [pdf_game_teams_summary.loc[0, column],
               pdf_game_teams_summary.loc[1, column],
-              "Abs Difference"]
+              "Absolute Difference"]
         for column in pdf_game_teams_summary.columns
     })
     styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
@@ -354,6 +354,11 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
                                         on="Name", how="left")
     pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Penalty"]]
     pdf_team_current_skaters = pdf_team_current_skaters.fillna("")
+
+    pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={
+        "Position": "Pos",
+        "Number": "#",
+    })
 
     if anonymize_names:
         name_dict = build_anonymizer_map(set(pdf_team_current_skaters.Name))
@@ -923,16 +928,25 @@ def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
             .penalty_name.value_counts().reset_index().rename(
                 columns={"index": "Penalty", "penalty_name": "Count"}))
         pdf_team_penalty_counts["team"] = team
+        pdf_team_penalty_counts.sort_values("Penalty", inplace=True)
+        pdf_team_penalty_counts["team_number"] = 1 if team == derby_game.team_1_name else 2
         team_plot_pdfs.append(pdf_team_penalty_counts)
     
     pdf_penalty_counts = pd.concat(team_plot_pdfs)
-    pdf_penalty_counts = pdf_penalty_counts.sort_values("Penalty")
+    pdf_penalty_counts = pdf_penalty_counts.sort_values(["Penalty", "team_number"])
+
+    penalties_inorder = sorted(list(set(pdf_penalty_counts.Penalty)))
     
     f, ax = plt.subplots()
 
     if len(pdf_penalty_counts) > 0:
         sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts,
                     hue="team", ax=ax, palette=team_color_palette)
+        for i, row in pdf_penalty_counts.iterrows():
+            offset = .2 if row["team"] == derby_game.team_1_name else -.2
+            ax.text(.5, penalties_inorder.index(row["Penalty"]) + offset, row["Count"], size="small",
+                    horizontalalignment="center",
+                    verticalalignment="center")
     ax.set_title(f"Penalty counts") 
     ax.set_ylabel("")
 
