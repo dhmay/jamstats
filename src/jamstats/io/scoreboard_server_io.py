@@ -55,24 +55,33 @@ class ScoreboardClient:
         """Start the websocket client
         """
         protocol = "wss" if self.use_ssl else "ws"
-        ws = websocket.WebSocketApp(#f"ws://{self.scoreboard_server}:{self.scoreboard_port}?ssl=true&ssl_cert_reqs=CERT_NONE",
-            # this is the right url for wsproxy
-            f"{protocol}://{self.scoreboard_server}:{self.scoreboard_port}/WS/",
-                                    on_open=self.on_open,
-                                    on_message=self.on_message,
-                                    on_error=self.on_error,
-                                    on_close=self.on_close,
-                                    on_ping=self.on_ping)
-        mykwargs = {
-            "ping_interval": 30
-        }
-        if self.use_ssl:
-            mykwargs["sslopt"] = {"cert_reqs": ssl.CERT_NONE}
-        ws.run_forever(
-                      #, proxy_type="socks5", http_proxy_host=self.scoreboard_server
-                      **mykwargs
-                      )
-        self.ws = ws
+        n_iterations = 0
+        while True:
+            n_iterations += 1
+            if n_iterations > 1:
+                logger.info(f"Trying to reconnect to server, iteration {n_iterations}.")
+            ws = websocket.WebSocketApp(#f"ws://{self.scoreboard_server}:{self.scoreboard_port}?ssl=true&ssl_cert_reqs=CERT_NONE",
+                # this is the right url for wsproxy
+                f"{protocol}://{self.scoreboard_server}:{self.scoreboard_port}/WS/",
+                                        on_open=self.on_open,
+                                        on_message=self.on_message,
+                                        on_error=self.on_error,
+                                        on_close=self.on_close,
+                                        on_ping=self.on_ping)
+            self.ws = ws
+            mykwargs = {
+                "ping_interval": 30
+            }
+            if self.use_ssl:
+                mykwargs["sslopt"] = {"cert_reqs": ssl.CERT_NONE}
+            ws.run_forever(
+                        #, proxy_type="socks5", http_proxy_host=self.scoreboard_server
+                        **mykwargs
+                        )
+            logger.warn("Websocket connection closed. Waiting 1s and then reconnecting...")
+            time.sleep(1)
+            logger.warn("Reconnecting...")
+        
         
     def on_message(self, ws, message) -> None:
         """Attempt to parse a message. If it contains game state,
@@ -170,8 +179,6 @@ class ScoreboardClient:
             logger.warning(f"ws.close() failed: {e}")
         # wait a second
         time.sleep(1)
-        logger.warning("Attempting restart...")
-        self.start()
         
     def on_ping(self, ws):
         print("on_ping")
