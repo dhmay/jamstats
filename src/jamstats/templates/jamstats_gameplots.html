@@ -20,6 +20,14 @@
         console.log("refresh");
         location.reload();
     });
+    function showHideLeft() {
+        var x = document.getElementById("left");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
         </script>
         <noscript>
             <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
@@ -33,12 +41,11 @@ td {
         </style>
     </head>
     <body>
-        <div>
-                <p>
-                <table>
-                    <tr>
-                        <td width="5"></td> 
-                        <td width="20%" valign="top">
+        <div style="float: top; padding: 1px 10px; height: 40px">
+        <button onclick="showHideLeft()" style="color: lightgray; padding: 0px 5px; max-height: 30px">-</button>
+        </div>
+            <!--<div id="margin" style="float: left; width: 10; padding: 0 10px;"/>-->
+            <div id="left" style="float: left; padding: 0px 10px; width: 15%">
                             <p>
                             <a href="https://jamstats.net"><img src="logo" width="175"></a>
                             <br>
@@ -46,7 +53,6 @@ td {
                             <br>
                             by TheDM
                             </p>
-
                             {% for section in section_name_map %}
                                 <b>{{section}}</b><br/>
                                 {% for plot_name_forlink in section_name_map[section] %}
@@ -67,13 +73,18 @@ td {
                         </p>
                         <p>
                            Developed with
+                           <br>
                            <a target="_blank" href="https://www.seattlederbybrats.com/donations/">
                                <img src="{{ url_for('static',filename='sdb_logo.png') }}"
                                 alt="Seattle Derby Brats" width="150" align="left" valign="top"/>
                            </a>
                         </p>
-                        </td>
-                        <td width="80%" valign="top">
+                    </div>
+                        
+                    <div class="margin: auto">
+                <table>
+                    <tr>
+                        <td width="100%" valign="top">
                             <div style="background-color: lightgray">Game Status: {{derby_game.game_status}}</div></div>
                             <p id="newdata_avail" style="visibility: hidden; color: darkred; background-color: lightgray;">
                                 New game data available. Refreshing in {{min_refresh_secs}} seconds.
@@ -92,7 +103,6 @@ td {
                         </td>
                     </tr>
                 </table>
-                </p>
             </div>
     </body>
 </html>
