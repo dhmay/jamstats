@@ -233,11 +233,22 @@ def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
                                 else 'color: yellow' if "Not Yet" in val \
                                 else 'color: green' if "Served" in val \
                                 else ''
+    map_penaltycount_to_color = lambda val: 'color: red' if int(val) > 6 \
+                                else 'color: orange' if int(val) == 6 \
+                                else 'color: yellow' if int(val) == 5 \
+                                else ''
     table_htmls = []
     for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
         styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
         styler = styler.applymap(map_penalty_to_color,
-            subset=["Penalty"]).hide_index()
+            subset=["Penalty"])
+    table_htmls = []
+    for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
+        styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
+        styler = styler.applymap(map_penalty_to_color,
+            subset=["Penalty"])
+        styler = styler.applymap(map_penaltycount_to_color,
+            subset=["Pen. Count"]).hide_index()
         styler = styler.set_table_attributes("style='display:inline'").hide_index()
         table_htmls.append(styler.render())
 
@@ -320,6 +331,15 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"RosterNumber": "Number"})
     pdf_team_current_skaters.index = range(len(pdf_team_current_skaters))
 
+    # add skater penalty count
+    pdf_thisteam_penalties = derby_game.pdf_penalties[derby_game.pdf_penalties["team"] == team_name]
+    pdf_skater_penaltycount = pdf_thisteam_penalties.Name.value_counts().to_frame()
+    pdf_skater_penaltycount = pdf_skater_penaltycount.rename(columns={"Name": "Pen. Count"})
+    pdf_skater_penaltycount["Name"] = pdf_skater_penaltycount.index
+    pdf_team_current_skaters = pdf_team_current_skaters.merge(pdf_skater_penaltycount, on="Name", how="left")
+    pdf_team_current_skaters["Pen. Count"] = pdf_team_current_skaters["Pen. Count"].fillna(0)
+    pdf_team_current_skaters["Pen. Count"] = pdf_team_current_skaters["Pen. Count"].astype(int)
+
     # add penalties from this jam.
 
     # get all the recent penalties for this team
@@ -352,7 +372,7 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_recent_penalties = pdf_recent_penalties.rename(columns={"PenaltyAndStatus": "Penalty"})
     pdf_team_current_skaters = pd.merge(pdf_team_current_skaters, pdf_recent_penalties,
                                         on="Name", how="left")
-    pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Penalty"]]
+    pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Pen. Count", "Penalty"]]
     pdf_team_current_skaters = pdf_team_current_skaters.fillna("")
 
     pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={

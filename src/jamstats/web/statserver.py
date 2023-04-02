@@ -69,7 +69,7 @@ app.jamstats_plots = None
 PLOT_SECTION_NAME_FUNC_MAP = {
     "Tables": {
         "Caller Dashboard": get_caller_dashboard_html,
-        "Current Skaters": get_current_skaters_html,
+#        "Current Skaters": get_current_skaters_html,
         "Teams Summary": get_game_teams_summary_html,
         "Recent Penalties": get_recent_penalties_html,
         "Team Rosters": get_bothteams_roster_html,
