@@ -172,7 +172,7 @@ class ScoreboardClient:
         Args:
             ws (_type_): websocket
         """
-        logger.warning("Opened connection.")
+        logger.info("Opened connection.")
         self.send_custom_message(ws,
         {
           "action": "Register",

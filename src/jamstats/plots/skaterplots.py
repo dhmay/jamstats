@@ -158,6 +158,13 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
         # There's probably some more-pandas-y way to do this. I trie and failed.
         skaters_no_penalties = set(pdf_skater_data.Skater).difference(
             set(set(pdf_team_penalties.Skater)))
+        # add rows in the skaters table for skaters with penalties who didn't appear there.
+        missingskaters_with_penalties = set(pdf_team_penalties.Skater).difference(set(pdf_skater_data.Skater))
+        pdf_skater_data = pd.concat([pdf_skater_data, pd.DataFrame({
+            "Skater": list(missingskaters_with_penalties),
+            "Jams": [1] * len(missingskaters_with_penalties)
+        })])
+
         pdf_penalties_long = pd.DataFrame({
             "Skater": list(pdf_penalties_long.Skater) + list(skaters_no_penalties),
             "Penalty": list(pdf_penalties_long.Penalty) + [a_penalty] * len(skaters_no_penalties),
@@ -225,6 +232,12 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
         ax.set_ylabel("")
         ax.set_xlabel("Penalties")
         ax.set_yticks([])
+        # add numeric penalties
+        penalty_counts = list(pdf_skater_data.penalty_count)
+        for i in range(len(pdf_skater_data)):
+            ax.text(.5, i, penalty_counts[i], size="small",
+                    horizontalalignment="center",
+                    verticalalignment="center")
 
         ax = f.add_subplot(spec[2])
         sns.barplot(y="Skater", x="penalties_per_jam", data=pdf_skater_data, ax=ax, color="black")
