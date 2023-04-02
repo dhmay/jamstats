@@ -127,6 +127,60 @@ def get_officials_roster_html(derby_game: DerbyGame,
     return html
 
 
+def get_caller_dashboard_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
+    """Build a dashboard for the announcer
+
+    Args:
+        derby_game (DerbyGame): derby game
+        anonymize_names (bool, optional): anonymize names. Defaults to False.
+    
+    Returns:
+        str: html dashboard
+    """
+    # build stripped-down game summary table
+    pdf_game_teams_summary = derby_game.extract_game_teams_summary()
+    pdf_game_teams_summary = pdf_game_teams_summary.drop(columns=[
+        "Calloff", "NoInitial", "Skaters played"])
+    # add Absolute Difference row
+    pdf_game_teams_summary = pd.DataFrame({
+        column: [pdf_game_teams_summary.loc[0, column],
+                 pdf_game_teams_summary.loc[1, column],
+                 abs(pdf_game_teams_summary.loc[0, column] -
+                     pdf_game_teams_summary.loc[1, column])]
+        if column != "Team"
+        else [pdf_game_teams_summary.loc[0, column],
+              pdf_game_teams_summary.loc[1, column],
+              "Absolute Difference"]
+        for column in pdf_game_teams_summary.columns
+    })
+    styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
+    html_game_summary = styler.render()
+
+    # build current jam table
+    pdf_jams_sorted_desc = derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
+                                                                ascending=False)
+    pdf_jams_sorted_desc.index = range(len(pdf_jams_sorted_desc))
+    html_current_jam = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc.head(1),
+                                                  anonymize_names=anonymize_names)
+    
+    result =  "<p>" + html_game_summary + "</p><p>" + html_current_jam
+
+    if len(pdf_jams_sorted_desc) > 1:
+        second_most_recent_jam_html = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc[1:].head(1),
+                                                                 anonymize_names=anonymize_names)
+        result = result + second_most_recent_jam_html
+
+    result = result + "<p>Positions: P=Pivot, J=Jammer, B=Blocker<br/>"
+    result = result + "Position notes: (NI)=No Initial, (L)=Lead, (LO)=Lost, (SP)=Star Pass<p/>"
+    result = result + f"<table width=0% style='background-color: lightgray'><tr><td><br/>Penalty status:<ul>\
+        <li style='color: yellow; background-color: lightgray'>Not Yet: skater on way to box</li>\
+        <li style='color: red; background-color: lightgray'>Serving: skater in box</li>\
+        <li style='color: green; background-color: lightgray'>Served: skater has completed serving penalty</li>\
+        </li></ul></td></tr></table>"
+    result = result + "</p>"
+    return result
+
+
 def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
     """Get a table of the current skaters as html
 
@@ -179,11 +233,22 @@ def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
                                 else 'color: yellow' if "Not Yet" in val \
                                 else 'color: green' if "Served" in val \
                                 else ''
+    map_penaltycount_to_color = lambda val: 'color: red' if int(val) > 6 \
+                                else 'color: orange' if int(val) == 6 \
+                                else 'color: yellow' if int(val) == 5 \
+                                else ''
     table_htmls = []
     for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
         styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
         styler = styler.applymap(map_penalty_to_color,
-            subset=["Penalty"]).hide_index()
+            subset=["Penalty"])
+    table_htmls = []
+    for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
+        styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
+        styler = styler.applymap(map_penalty_to_color,
+            subset=["Penalty"])
+        styler = styler.applymap(map_penaltycount_to_color,
+            subset=["Pen. Count"]).hide_index()
         styler = styler.set_table_attributes("style='display:inline'").hide_index()
         table_htmls.append(styler.render())
 
@@ -266,6 +331,15 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={"RosterNumber": "Number"})
     pdf_team_current_skaters.index = range(len(pdf_team_current_skaters))
 
+    # add skater penalty count
+    pdf_thisteam_penalties = derby_game.pdf_penalties[derby_game.pdf_penalties["team"] == team_name]
+    pdf_skater_penaltycount = pdf_thisteam_penalties.Name.value_counts().to_frame()
+    pdf_skater_penaltycount = pdf_skater_penaltycount.rename(columns={"Name": "Pen. Count"})
+    pdf_skater_penaltycount["Name"] = pdf_skater_penaltycount.index
+    pdf_team_current_skaters = pdf_team_current_skaters.merge(pdf_skater_penaltycount, on="Name", how="left")
+    pdf_team_current_skaters["Pen. Count"] = pdf_team_current_skaters["Pen. Count"].fillna(0)
+    pdf_team_current_skaters["Pen. Count"] = pdf_team_current_skaters["Pen. Count"].astype(int)
+
     # add penalties from this jam.
 
     # get all the recent penalties for this team
@@ -298,8 +372,13 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_recent_penalties = pdf_recent_penalties.rename(columns={"PenaltyAndStatus": "Penalty"})
     pdf_team_current_skaters = pd.merge(pdf_team_current_skaters, pdf_recent_penalties,
                                         on="Name", how="left")
-    pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Penalty"]]
+    pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Pen. Count", "Penalty"]]
     pdf_team_current_skaters = pdf_team_current_skaters.fillna("")
+
+    pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={
+        "Position": "Pos",
+        "Number": "#",
+    })
 
     if anonymize_names:
         name_dict = build_anonymizer_map(set(pdf_team_current_skaters.Name))
@@ -869,16 +948,25 @@ def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
             .penalty_name.value_counts().reset_index().rename(
                 columns={"index": "Penalty", "penalty_name": "Count"}))
         pdf_team_penalty_counts["team"] = team
+        pdf_team_penalty_counts.sort_values("Penalty", inplace=True)
+        pdf_team_penalty_counts["team_number"] = 1 if team == derby_game.team_1_name else 2
         team_plot_pdfs.append(pdf_team_penalty_counts)
     
     pdf_penalty_counts = pd.concat(team_plot_pdfs)
-    pdf_penalty_counts = pdf_penalty_counts.sort_values("Penalty")
+    pdf_penalty_counts = pdf_penalty_counts.sort_values(["Penalty", "team_number"])
+
+    penalties_inorder = sorted(list(set(pdf_penalty_counts.Penalty)))
     
     f, ax = plt.subplots()
 
     if len(pdf_penalty_counts) > 0:
         sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts,
                     hue="team", ax=ax, palette=team_color_palette)
+        for i, row in pdf_penalty_counts.iterrows():
+            offset = .2 if row["team"] == derby_game.team_1_name else -.2
+            ax.text(.5, penalties_inorder.index(row["Penalty"]) + offset, row["Count"], size="small",
+                    horizontalalignment="center",
+                    verticalalignment="center")
     ax.set_title(f"Penalty counts") 
     ax.set_ylabel("")
 
