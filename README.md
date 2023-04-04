@@ -92,7 +92,7 @@ It's possible to use Jamstats from anywhere in the world to connect to a running
     * If not, pay attention to the port you're running your scoreboard on, and change from 8000 to that same port in wsproxy's config.ini file
 2. Your proxy can send your scoreboard data wherever you tell it to. On the other end, there needs to be another copy of wsproxy running.
     * With the default configuration, your proxy data will be sent to a new subdomain of `derbystats.eu`
-        * e.g., [https://wftdaccess.derbystats.eu/](https://wftdaccess.derbystats.eu/), but it will be something else unique to your scoreboard
+        * e.g., `https://jammer-lane.derbystats.eu/`, but it will *not be that*, it will be something else unique to your scoreboard
     * When you start wsproxy, it will tell you where the data is going. 
         * For example, `Display URL: https://jammer-lane.derbystats.eu`
         * Give this to the person who'll be running Jamstats remotely.
