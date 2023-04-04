@@ -17,6 +17,10 @@ The main reason to download and run Jamstats on your laptop is to connect to a l
 
 Do you already love Jamstats? [Tell us about it!](https://github.com/dhmay/jamstats/issues/new?assignees=&labels=testimonial&template=testimonial.md&title=)
 
+Jamstats was developed by [TheDM](https://github.com/dhmay), with [Seattle Derby Brats](https://www.seattlederbybrats.com/donations/). Like Jamstats? Consider a donation to SDB, a 501(c)(3) organization!
+<p align="left"><img src="https://github.com/dhmay/jamstats/blob/main/resources/sdb_logo_witebkgrnd.png"></p>
+
+
 
 #### Instructions
 
