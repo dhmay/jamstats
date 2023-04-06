@@ -353,9 +353,11 @@ def extract_nonteam_jam_data(pdf_jam_data: pd.DataFrame) -> pd.DataFrame:
         "PeriodClockElapsedEnd"] / 1000
 
     # Drop a bunch of useless columns
-    pdf_jams_summary = pdf_jams_summary.drop(columns=[
-    "Duration", "Id", "Next", "PeriodClockDisplayEnd", "Previous", "Readonly",
-    "PeriodClockElapsedEnd", "PeriodClockElapsedStart"])
+    useless_columns = [
+        "Duration", "Id", "Next", "PeriodClockDisplayEnd", "Previous", "Readonly",
+        "PeriodClockElapsedEnd", "PeriodClockElapsedStart"]
+    pdf_jams_summary = pdf_jams_summary.drop(columns=[x for x in useless_columns
+                                                      if x in pdf_jams_summary.columns])
 
     return pdf_jams_summary
 
@@ -506,6 +508,7 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary_withscoringtrips = pdf_ateamjams_summary.merge(
         pdf_scoringtrips, on="prd_jam")
     logger.debug(f"After adding scoring trips: {len(pdf_ateamjams_summary_withscoringtrips)}")
+    logger.debug(pdf_ateamjams_summary_withscoringtrips.columns)
     pdf_ateamjams_summary_kept = pdf_ateamjams_summary_withscoringtrips[
         ["prd_jam"] + TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename]
 

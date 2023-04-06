@@ -101,7 +101,6 @@ PLOT_SECTION_NAMES_MAP = {
 ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
 
 HTML_PLOT_NAMES = list(PLOT_SECTION_NAME_FUNC_MAP["Tables"].keys())
-print(HTML_PLOT_NAMES)
 PLOT_NAME_TYPE_MAP = {
     plot_name: "html" if plot_name in HTML_PLOT_NAMES else "figure"
     for plot_name in ALL_PLOT_NAMES

@@ -35,12 +35,12 @@ def read_game_data_json_file(filepath: str) -> Dict[str, Any]:
         Dict[str, Any]: Game JSON
     """
     try:
-        with open(filepath) as game_file:
+        with open(filepath, 'r', errors='replace') as game_file:
             game_json = json.load(game_file)
             return game_json
     except Exception as e:
         logger.warn("Failed to parse game JSON file. Trying Windows encoding...")
-        with io.open(filepath, 'r', encoding='windows-1252') as game_file:
+        with io.open(filepath, 'r', errors='replace', encoding='windows-1252') as game_file:
             game_json = json.load(game_file)
             return game_json
 
