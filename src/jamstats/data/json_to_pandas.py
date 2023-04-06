@@ -38,6 +38,7 @@ def load_json_derby_game(game_json) -> DerbyGame:
     pdf_roster = extract_roster(pdf_game_state,
                                 game_data_dict["team_1"],
                                 game_data_dict["team_2"])
+    logger.debug("Roster columns: " + str(pdf_roster.columns))
     pdf_ref_roster = extract_officials_roster(pdf_game_state, "Ref")
     pdf_nso_roster = extract_officials_roster(pdf_game_state, "Nso")
     logger.debug("Extracting jam data")
@@ -415,7 +416,7 @@ def extract_roster(pdf_game_state: pd.DataFrame,
         chunks[3] for chunks in pdf_game_state_roster.key_chunks]
     # dump a bunch of extraneous columns
     pdf_game_state_roster = pdf_game_state_roster[pdf_game_state_roster.roster_key.isin(
-        ["Id", "Name", "RosterNumber", "team"]
+        ["Id", "Name", "RosterNumber", "Number", "team"]
     )]
     pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
     logger.debug("pdf_roster columns: " + str(pdf_roster.columns) + 
@@ -477,7 +478,8 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_ateamjams_jammers,
         on="prd_jam", how="left")
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_roster.rename(
-        columns={"Id": "jammer_id", "Name": "jammer_name", "RosterNumber": "jammer_number"}),
+        columns={"Id": "jammer_id", "Name": "jammer_name", "RosterNumber": "jammer_number",
+                 "Number": "jammer_number"}),
         on="jammer_id", how="left")
     logger.debug(f"After adding jammer info: {len(pdf_ateamjams_summary)}")
 
@@ -488,7 +490,8 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_ateamjams_pivots,
         on="prd_jam", how="left")
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_roster.rename(
-        columns={"Id": "pivot_id", "Name": "pivot_name", "RosterNumber": "pivot_number"}),
+        columns={"Id": "pivot_id", "Name": "pivot_name", "RosterNumber": "pivot_number",
+                 "Number": "pivot_number"}),
         on="pivot_id", how="left")
     logger.debug(f"After adding pivot info: {len(pdf_ateamjams_summary)}")
 
@@ -678,7 +681,8 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
     pdf_penalties = pdf_penalties.rename(columns={"Code": "penalty_code"})
 
     logger.debug(f"    Before merging with roster: {len(pdf_penalties)}")
-    pdf_penalties = pdf_penalties.merge(pdf_roster[["Id", "Name", "RosterNumber", "team"]], on="Id")
+    rosternumber_col = "RosterNumber" if "RosterNumber" in pdf_roster else "Number"
+    pdf_penalties = pdf_penalties.merge(pdf_roster[["Id", "Name", rosternumber_col, "team"]], on="Id")
     logger.debug(f"    After merging with roster: {len(pdf_penalties)}")
 
     # add penalty names
