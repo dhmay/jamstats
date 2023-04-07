@@ -83,7 +83,7 @@ def index():
         print("displaying game plots")
         print(request.files)
         try:
-            game_file_contents = request.files['game_file'].read().decode("utf-8") 
+            game_file_contents = request.files['game_file'].read().decode("utf-8", errors="replace") 
             game_json = json.loads(game_file_contents)
             app.derby_game = load_json_derby_game(game_json)
         except Exception as e:
