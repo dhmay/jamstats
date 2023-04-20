@@ -24,10 +24,16 @@
         var x = document.getElementById("left");
         if (x.style.display === "none") {
             x.style.display = "block";
+            localStorage.setItem("left", "block");
         } else {
             x.style.display = "none";
+            localStorage.setItem("left", "none");
         }
     }
+    if (typeof(localStorage.getItem("left")) == "undefined") {
+        localStorage.setItem("left", "none");
+    }
+
         </script>
         <noscript>
             <meta http-equiv="refresh" content="{app.autorefresh_seconds}" />
@@ -111,5 +117,8 @@ td {
                     </tr>
                 </table>
         </div>
+        <script>
+                document.getElementById("left").style.display = localStorage.getItem("left");
+        </script>
     </body>
 </html>
