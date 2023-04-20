@@ -188,17 +188,12 @@ def plot_skater_stats(derby_game: DerbyGame, team_number: int,
         pdf_penalty_plot = pdf_penalty_plot.sort_values("skater_order", ascending=False)
         pdf_penalty_plot = pdf_penalty_plot.drop(columns=["skater_order"])
 
-        # sort skater data, too
-        
-        # this would be better done with a dataframe and a join. Eh.
-        pdf_skater_data["skater_order"] = [skater_penaltycount_map[skater]
-                                            for skater in pdf_skater_data.Skater]
-        pdf_skater_data = pdf_skater_data.sort_values("skater_order", ascending=False)
-        pdf_skater_data = pdf_skater_data.drop(columns=["skater_order"])
-
         # add penalties per jam
         pdf_skater_data["penalty_count"] = [skater_penaltycount_map[skater]
+                                            if skater in skater_penaltycount_map else 0
                                             for skater in pdf_skater_data.Skater]
+        # sort skater data, too
+        pdf_skater_data = pdf_skater_data.sort_values("penalty_count", ascending=False)
         pdf_skater_data["penalties_per_jam"] = (
             pdf_skater_data["penalty_count"] / pdf_skater_data["Jams"])
 
