@@ -202,6 +202,7 @@ def set_game(derby_game: DerbyGame):
 @app.route("/")
 def index():
     logger.debug("Index page requested")
+
     if app.scoreboard_server is not None:
         logger.debug(f"Scoreboard server is {app.scoreboard_server}")
         if app.scoreboard_client is None:

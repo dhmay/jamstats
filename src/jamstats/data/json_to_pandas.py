@@ -198,10 +198,37 @@ def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
     team_name_1 = cleanup_team_name(team_name_1)
     team_name_2 = cleanup_team_name(team_name_2)
 
+    # Get team jammer names and numbers
+    team_1_jammer_name = ""
+    team_2_jammer_name = ""
+    team_1_jammer_number = ""
+    team_2_jammer_number = ""
+    try:
+        team_1_jammer_name = pdf_game_state[pdf_game_state.key == "ScoreBoard.Team(1).Position(Jammer).Name"].value.iloc[0]
+        team_1_jammer_number = pdf_game_state[pdf_game_state.key == "ScoreBoard.Team(1).Position(Jammer).RosterNumber"].value.iloc[0]
+    except Exception:
+        pass
+    try:
+        team_2_jammer_name = pdf_game_state[pdf_game_state.key == "ScoreBoard.Team(2).Position(Jammer).Name"].value.iloc[0]
+        team_2_jammer_number = pdf_game_state[pdf_game_state.key == "ScoreBoard.Team(2).Position(Jammer).RosterNumber"].value.iloc[0]
+    except Exception:
+        pass
+
+    jam_is_running = False
+    try:
+        jam_is_running = pdf_game_state[pdf_game_state.key == 'ScoreBoard.Clock(Jam).Running'].value.iloc[0]
+    except Exception:
+        pass
+
     return {
         "game_status": game_status,
         "team_1": team_name_1,
-        "team_2": team_name_2
+        "team_2": team_name_2,
+        "team_1_jammer_name": team_1_jammer_name,
+        "team_2_jammer_name": team_2_jammer_name,
+        "team_1_jammer_number": team_1_jammer_number,
+        "team_2_jammer_number": team_2_jammer_number,
+        "jam_is_running": jam_is_running
     }
 
 def extract_jam_data(pdf_game_state: pd.DataFrame,
