@@ -4,6 +4,7 @@ import logging
 import traceback
 import ssl
 import time
+from pprint import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,22 @@ class ScoreboardClient:
                         for state_key in self.game_json_dict["state"]:
                             if state_key.startswith(key + "."):
                                 del self.game_json_dict["state"][state_key]
+
+                    # Special handling for current jammer. If the jam has just ended, null out
+                    # the current jammers. There are no known jammers until they're redefined
+                    # for the next jam.
+                    if 'ScoreBoard.Clock(Jam).Running' in message_game_state_dict and \
+                      not message_game_state_dict['ScoreBoard.Clock(Jam).Running']:
+                        for team_number in (1, 2):
+                            for akey in [
+                                f"ScoreBoard.Team({team_number}).Position(Jammer).Name",
+                                f"ScoreBoard.Team({team_number}).Position(Jammer).RosterNumber"
+                            ]:
+                                try:
+                                    del self.game_json_dict["state"][akey]
+                                except Exception:
+                                    pass
+
                     # now, add all the new data from the message.
                     for key in message_game_state_dict:
                         if message_game_state_dict[key] is not None:
@@ -145,6 +162,7 @@ class ScoreboardClient:
                 for key in message_game_state_dict:
                     if not key.startswith("ScoreBoard.CurrentGame.Clock") and key != "ScoreBoard.Version(release)":
                         self.game_state_dirty = True
+                        #pprint(message_dict, indent=4)
                         logger.debug(f"Setting game state dirty because {key}. Updating listeners.")
                         for listener in self.game_state_listeners:
                             listener.on_game_state_changed()
@@ -181,7 +199,6 @@ class ScoreboardClient:
         time.sleep(1)
         
     def on_ping(self, ws):
-        print("on_ping")
         self.send_custom_message(ws, { "action": "Ping" })
 
     def on_open(self, ws):

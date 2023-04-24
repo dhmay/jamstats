@@ -49,11 +49,12 @@ td {
     <body>
     <div style="display: block; width: 100%; min-width: 900px">
         <div style="display: inline-block; padding: 5px 10px; height: 80px; max-height: 50px; width: 100%">
-            <div  style="display: inline-block; width: 15%">
-                <button onclick="showHideLeft()" style="color: lightgray; padding: 0px 5px; max-height: 30px">-</button>
+            <div  style="display: inline-block; width: 15%; float: left">
+                <button onclick="showHideLeft()" style="color: lightgray; padding: 0px 5px; max-height: 50px">-</button>
             </div>
-            <div style="display: inline-block; background-color: lightgray; width: 80%; max-height: 50px">
-                Game Status: {{derby_game.game_status}}
+            <div style="display: inline-block; background-color: lightgray; width: 85%; max-height: 50px">
+                Game Status: {{derby_game.game_status}}<br>
+                Jam Clock Running? {{"Yes" if derby_game.game_data_dict["jam_is_running"] else "No"}}<br>
                 <p id="newdata_avail" style="visibility: hidden; color: darkred; background-color: lightgray;">
                     New game data available. Refreshing in {{min_refresh_secs}} seconds.
                     <button onClick="window.location.reload();" style="color: darkred">Refresh Now</button>
