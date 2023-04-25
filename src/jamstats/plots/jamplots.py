@@ -159,7 +159,7 @@ def get_caller_dashboard_html(derby_game: DerbyGame, anonymize_names: bool = Fal
     # if we're *not* in a jam, show the jammers for the next jam
     if not derby_game.game_data_dict["jam_is_running"]:
         next_jam_section = "\n<p><b>Next jam's jammers:</b><br>\n"
-        next_jam_section = next_jam_section + f"<table style='background-color: lightgray'><tr><th>{derby_game.team_1_name}</th><th>{derby_game.team_2_name}</th></tr>\n"
+        next_jam_section = next_jam_section + f"<table width=100% style='padding: 5px'><tr><th>{derby_game.team_1_name}</th><th>{derby_game.team_2_name}</th></tr>\n"
         next_jam_section += f"<tr><td>{derby_game.game_data_dict['team_1_jammer_number']} {derby_game.game_data_dict['team_1_jammer_name']}</td>\n"
         next_jam_section += f"<td>{derby_game.game_data_dict['team_2_jammer_number']} {derby_game.game_data_dict['team_2_jammer_name']}</td></tr>\n"
         next_jam_section += f"</table>\n"
@@ -271,8 +271,8 @@ def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
     team_1_jamscore = latest_jam_row_dict["JamScore_1"]
     team_2_jamscore = latest_jam_row_dict["JamScore_2"]
 
-    result = result + f"<table width=0%><tr><td><b>{derby_game.team_1_name}</b><br>Jam Score: {team_1_jamscore}<br>{table_htmls[0]}</td>"
-    result = result + f"<td><b>{derby_game.team_2_name}</b><br>Jam Score: {team_2_jamscore}<br>{table_htmls[1]}</td></tr></table>\n"    
+    result = result + f"<table width=0%><tr><td><h5>{derby_game.team_1_name}: {team_1_jamscore}</h5>{table_htmls[0]}</td>"
+    result = result + f"<td><h5>{derby_game.team_2_name}: {team_2_jamscore}</h5>{table_htmls[1]}</td></tr></table>\n"    
     return result
 
 
