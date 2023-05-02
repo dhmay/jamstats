@@ -1,0 +1,237 @@
+#!/usr/bin/env python
+
+__author__ = "Damon May"
+
+
+import argparse
+from jamstats.io.scoreboard_json_io import (
+    load_derby_game_from_json_file)
+from jamstats.io import tsv_io
+from jamstats.plots.plot_together import save_game_plots_to_pdf
+from jamstats.plots import plot_together, jamplots, skaterplots, plot_util
+from jamstats.util import resources
+from jamstats.data import json_to_pandas, game_data
+from jamstats.plots.plot_util import DEFAULT_THEME, VALID_THEMES
+from jamstats.util.resources import get_jamstats_version
+from jamstats.web import statserver
+from jamstats.io import scoreboard_server_io
+from jamstats.io.scoreboard_server_io import ScoreboardClient
+from jamstats.data.json_to_pandas import load_json_derby_game
+import logging
+import sys
+from os.path import exists
+from attrdict import AttrDict
+import time
+import sys, traceback
+import _thread
+import websocket
+
+logger = logging.Logger(__name__)
+
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
+
+print(f"jamstats version {get_jamstats_version()}, by Damon May")
+
+def cmdline_args():
+    parser = argparse.ArgumentParser()
+    result = add_and_parse_args(parser, is_gooey=False)
+    return result
+
+def add_and_parse_args(parser, is_gooey=False):
+    # this is necessary because, for some reason, by default Gooy will
+    # open a file save dialog rather than a file open dialog
+    file_read_kwargs = {"widget": "FileChooser"} if is_gooey else {}
+    parser.add_argument('--jsonfile', type=argparse.FileType('r'),
+                        help="Scoreboard JSON file to read. If this argument is specified, will read from a file. Either this or scoreboardserver must be specified.",
+                        **file_read_kwargs)
+
+    parser.add_argument('--scoreboardserver', type=str,
+                        help="server:port to connect to, e.g., localhost:8000. If this argument is specified, will connect to a server. Either this or jsonfile must be specified")
+    parser.add_argument('--outfile', type=argparse.FileType('w'),
+                        help='File to write. If this argument is specified, will write a PDF or TSV file. '
+                        'If ends with ".pdf", write plots to a PDF. If ".tsv" or ".txt" '
+                        'write data to tab-separated values file.')
+    parser.add_argument('--jamstatsport', type=int, default=8080,
+                        help='Port to serve to, if running webserver')
+    parser.add_argument('--jamstatsip', type=str,
+                        help='IP address to serve to, e.g., "192.168.4.21"',
+                        default="localhost")
+    parser.add_argument('--anonymize', action="store_true",
+                        help="Replace actual skater names with random pregenerated ones?")
+    parser.add_argument('--anonymizeteams', action="store_true",
+                        help="Replace team names with 'Team 1' and 'Team 2'?")
+    parser.add_argument('--debug', action="store_true",
+                        help="enable debug logging")
+    parser.add_argument('--theme', type=str,
+                        default=DEFAULT_THEME,
+                        choices=VALID_THEMES,
+                        help="Plot theme. This is how you make the plots dark.")
+    parser.add_argument("--mode", type=str, choices=["pdf", "web", "auto"], default="auto",
+                        help="Mode of operation. 'pdf' writes to a pdf file. 'web' runs a web server. " +
+                        " 'auto' infers the behavior by whether you specify a scoreboard server or a json file.")
+    parser.add_argument('--teamcolor1', type=str,
+                        help="Set the color for team 1. Can be of the form 'green' or of the form '#00FF00'")
+    parser.add_argument('--teamcolor2', type=str,
+                        help="Set the color for team 2. Can be of the form 'green' or of the form '#00FF00'")
+    parser.add_argument('--minrefreshseconds', type=int, default=statserver.GAME_STATE_UPDATE_MINSECS,
+                        help="Minimum number of seconds between scoreboard data refreshes.")
+    parser.add_argument('--ssl', action="store_true",
+                        help="Use SSL to connect to scoreboard? (Required for livederby.eu)")
+    if is_gooey:
+        print("Added args. Parsing args...")
+    args = parser.parse_args()
+    if is_gooey:
+        print(f"Parsed args: {args}")
+
+    if args.jsonfile is None and args.scoreboardserver is None:
+        print("Must specify either --jsonfile or --scoreboardserver")
+        sys.exit()
+    if args.jsonfile is not None and args.scoreboardserver is not None:
+        print("Must specify either --jsonfile or --scoreboardserver, but not both")
+        sys.exit()
+    return args
+
+def __main__():
+    if len(sys.argv) == 2 and sys.argv[1] != "-h" \
+      and sys.argv[1] != "-v" \
+      and not "scoreboardserver" in sys.argv[1].lower() \
+      and not sys.argv[1].startswith("--"):
+        # one arg, and not help or verbose, and not scoreboardserver, and not a -- arg.
+        # so try to treat it as a json file, and fail if it's not.
+        # This option makes it possible to drag-and-drop on Windows.
+        if exists(sys.argv[1]):
+            args = AttrDict()
+            args.jsonfile = open(sys.argv[1])
+            args.debug = False
+            args.scoreboardserver = None
+            args.anonymizeteams = False
+            args.anonymize = False
+            args.teamcolor1 = None
+            args.teamcolor2 = None
+            args.jamstatsport = None
+            args.outfile = None
+            args.theme = None
+            args.mode = "auto"
+        else:
+            sys.exit(f"File {sys.argv[1]} does not exist")
+    else:
+        args = cmdline_args()
+
+    if args.debug:
+        logger.warning("Enabling debug logging.")
+        logging.basicConfig(
+            format="hahah %(message)s",
+            level=logging.DEBUG,
+        )
+        logging.getLogger ('websockets.server').setLevel(logging.DEBUG)
+        logging.getLogger ('websockets.client').setLevel(logging.DEBUG)
+        loglevel = logging.DEBUG
+    else:
+        loglevel = logging.INFO
+    
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(loglevel)
+    stream_handler.setStream(sys.stdout)
+    for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data,
+                    plot_util, resources, scoreboard_server_io, statserver]:
+        mymodule.logger.setLevel(loglevel)
+        mymodule.logger.addHandler(stream_handler)
+
+    connect_to_server = False
+    scoreboard_client = None
+    scoreboardserver = None
+    scoreboardport = None
+    if args.scoreboardserver:
+        try:
+            connect_to_server = True
+            scoreboardserver, scoreboardport = args.scoreboardserver.split(":")
+            scoreboardport = int(scoreboardport)
+        except Exception as e:
+            print(f"Tried to interpret {args.scoreboardserver} as server:port but failed: {e}")
+            sys.exit(1)
+
+    derby_game = None
+    if connect_to_server:
+        derby_game = None
+        print(f"Connecting to server {scoreboardserver}, port {scoreboardport}...")
+        try:
+            scoreboard_client = ScoreboardClient(scoreboardserver, scoreboardport, use_ssl=args.ssl)
+            _thread.start_new_thread(scoreboard_client.start, ())
+        except Exception as e:
+            scoreboard_client = None
+            logger.warning(f"Failed to download in-game data from server {scoreboardserver}:{scoreboardport}: {e}")
+            formatted_lines = traceback.format_exc().splitlines()
+            for line in formatted_lines:
+                print("EXC: " + line)
+    else:
+        try:
+            derby_game = load_derby_game_from_json_file(args.jsonfile.name)
+        except Exception as e:
+            sys.exit(f"Failed to open file {args.jsonfile.name}: {e}")
+
+    if args.anonymizeteams and derby_game is not None:
+        print("Anonymizing teams.")
+        derby_game.anonymize_team_names()
+
+    if args.teamcolor1 is not None and derby_game is not None:
+        derby_game.set_team_color_1(args.teamcolor1)
+        print(f"Setting team 1 color to {args.teamcolor1}")
+    if args.teamcolor2 is not None and derby_game is not None:
+        derby_game.set_team_color_2(args.teamcolor2)
+        print(f"Setting team 2 color to {args.teamcolor2}")
+
+    if args.mode == 'auto':
+        if connect_to_server:
+            args.mode = 'web'
+        else:
+            args.mode = 'pdf'
+        print("Mode not specified. Inferred mode " + args.mode)
+    if args.mode == "web":
+        # start a webserver
+        kwargs = {
+            "anonymize_names": args.anonymize,
+            "theme": args.theme,
+            "jamstats_ip": args.jamstatsip,
+            "scoreboard_client": scoreboard_client,
+            "scoreboard_server": scoreboardserver,
+            "scoreboard_port": scoreboardport,
+            "min_refresh_secs": args.minrefreshseconds,
+        }
+        if derby_game is not None:
+            statserver.set_game(derby_game) 
+        statserver.start(args.jamstatsport, **kwargs)
+    else:  #pdf
+        if connect_to_server:
+            print("Connected to server. Waiting for game data...")
+            time.sleep(2)
+            if scoreboard_client.is_connected_to_server:
+                derby_game = load_json_derby_game(scoreboard_client.game_json_dict)
+                print("Loaded derby game from server.")
+            else:
+                print("Not yet connected to server.")
+        # write a file
+        if args.outfile is None:
+            in_filename = args.jsonfile.name
+            if in_filename.lower().endswith(".json"):
+                print(f"Output filepath not provided. "
+                    f"Using input filepath with extension .pdf instead of {in_filename[-5:]}")
+                out_filepath = in_filename[:-len(".json")] + ".pdf"
+            else:
+                sys.exit("Input file doesn't end with .json, so refusing to guess what output file you want."
+                    "  Please rename your input file or specify an output filepath. Quitting.")
+        else:
+            args.outfile.close()
+            out_filepath = args.outfile.name
+
+        if out_filepath.endswith(".tsv") or out_filepath.endswith(".txt"):
+            print("Writing TSV file...")
+            tsv_io.write_game_data_tsv(derby_game, out_filepath)
+        else:
+            print("Writing PDF file...")
+            save_game_plots_to_pdf(derby_game, out_filepath, anonymize_names=args.anonymize,
+                                theme=args.theme)
+        print(f"Wrote {out_filepath}")
+
+if __name__ == "__main__":
+    __main__()
