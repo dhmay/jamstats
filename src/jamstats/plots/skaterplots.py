@@ -18,6 +18,54 @@ import numpy as np
 logger = logging.Logger(__name__)
 
 
+def get_bothteams_jammertable_html(derby_game: DerbyGame,
+                                   anonymize_names: bool = False) -> str:
+
+    pdf_team1 = get_oneteam_jammer_pdf(derby_game, 1, anonymize_names=anonymize_names)
+    pdf_team2 = get_oneteam_jammer_pdf(derby_game, 2, anonymize_names=anonymize_names)
+    styler_1 = pdf_team1.style
+    styler_2 = pdf_team2.style
+    table_html_1 = styler_1.hide_index().render()
+    table_html_2 = styler_2.hide_index().render()
+    team1_tablecell_html = f"<H2>{derby_game.team_1_name} ({len(pdf_team1)})</H2>" + table_html_1
+    team2_tablecell_html = f"<H2>{derby_game.team_2_name} ({len(pdf_team2)})</H2>" + table_html_2
+    return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
+
+def get_oneteam_jammer_pdf(derby_game: DerbyGame, team_number: int,
+                           anonymize_names: bool = False) -> pd.DataFrame:
+    """Load a table of jammer data for one team
+
+    Args:
+        derby_game (DerbyGame): derby game
+        team_number (int): team number
+        anonymize_names (bool, optional): Aonymize names? Defaults to False.
+
+    Returns:
+
+    """
+    pdf_jammer_data = derby_game.build_team_jammersummary_df(team_number)
+    if anonymize_names:
+        logger.debug("Anonymizing skater names.")
+        name_dict = build_anonymizer_map(set(pdf_jammer_data.Jammer))
+        pdf_jammer_data["Jammer"] = [name_dict[skater]
+                                     for skater in pdf_jammer_data.Jammer] 
+    pdf_jammer_data["% Lead"] = (pdf_jammer_data["Proportion Lead"] * 100).astype(int)
+    pdf_jammer_data = pdf_jammer_data.drop(columns=["Proportion Lead"])
+
+    pdf_jammer_data = pdf_jammer_data.rename(columns={
+        "Lead Count": "Lead",
+        "Lost Count": "Lost",
+        "Total Score": "Points"
+    })
+    pdf_jammer_data = pdf_jammer_data[[
+        "Number", "Jammer", "Jams", "Points", "Lead", "% Lead", "Lost"
+    ]]
+    pdf_jammer_data = pdf_jammer_data.sort_values("Number")
+
+    return pdf_jammer_data
+
+
+
 def get_bothteams_skaterpenalties_html(derby_game: DerbyGame,
                                        anonymize_names: bool = False) -> str:
     """Get a html table of both teams' rosters
@@ -58,7 +106,7 @@ def get_bothteams_skaterpenalties_html(derby_game: DerbyGame,
 
 
 def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, team_name: str,
-                                      anonymize_names: bool=False) -> pd.DataFrame:
+                                          anonymize_names: bool=False) -> pd.DataFrame:
     """Build a dataframe of skater penalties for one team
 
     Args:

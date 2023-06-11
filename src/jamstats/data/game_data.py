@@ -214,23 +214,33 @@ class DerbyGame:
             team_number (int): Team number
         """
         jammer_col = f"jammer_name_{team_number}"
+        jammer_number_col = f"jammer_number_{team_number}"
         jamscore_col = f"JamScore_{team_number}"
         netpoints_col = f"net_points_{team_number}"
-        lead_col = f"Lead_{team_number}"
+        lead_prop_col = f"Lead_{team_number}"
+        lost_col = f"Lost_{team_number}"
         time_to_initial_col = f"first_scoring_pass_durations_{team_number}"
 
-        pdf_jammer_data = self.pdf_jams_data.groupby(jammer_col).agg({
+        # copy the lead column to use it in two ways
+        pdf_jammer_data = self.pdf_jams_data.copy()
+        pdf_jammer_data["Lead Count"] = pdf_jammer_data[lead_prop_col]
+
+        pdf_jammer_data = pdf_jammer_data.groupby([jammer_col, jammer_number_col]).agg({
             jamscore_col: "sum",
             netpoints_col: "mean",
             'Number': "count",
-            lead_col: "mean",
+            lead_prop_col: "mean",
+            "Lead Count": "sum",
+            lost_col: "sum",
             time_to_initial_col: "mean"}).reset_index()
 
         pdf_jammer_data = pdf_jammer_data.rename(columns={
             jammer_col: "Jammer",
+            jammer_number_col: "Number",
             jamscore_col: "Total Score",
             netpoints_col: "Mean Net Points",
-            lead_col: "Proportion Lead",
+            lead_prop_col: "Proportion Lead",
+            lost_col: "Lost Count",
             "Number": "Jams",
             time_to_initial_col: "Mean Time to Initial",
         })

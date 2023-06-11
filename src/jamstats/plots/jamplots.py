@@ -221,6 +221,7 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
         </li></ul></td></tr></table>"
     return result
 
+
 def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
                                anonymize_names: bool = False) -> str:
     """Get per-team tables of the skaters for a *single jam* as html

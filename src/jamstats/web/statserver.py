@@ -33,6 +33,7 @@ from jamstats.plots.skaterplots import (
     plot_skater_stats_team1,
     plot_skater_stats_team2,
     get_bothteams_skaterpenalties_html,
+    get_bothteams_jammertable_html
 )
 import matplotlib
 from datetime import datetime
@@ -73,6 +74,7 @@ PLOT_SECTION_NAME_FUNC_MAP = {
         "Teams Summary": get_game_teams_summary_html,
         "Recent Penalties": get_recent_penalties_html,
         "All Penalties": get_bothteams_skaterpenalties_html,
+        "Jammers": get_bothteams_jammertable_html,
         "Team Rosters": get_bothteams_roster_html,
         "Officials Roster": get_officials_roster_html,
     },
