@@ -12,6 +12,7 @@ import pandas as pd
 from matplotlib import gridspec
 import traceback
 from jamstats.plots.plot_util import build_anonymizer_map
+import numpy as np
 
 
 logger = logging.Logger(__name__)
@@ -32,17 +33,18 @@ def get_bothteams_skaterpenalties_html(derby_game: DerbyGame,
     pdf_team2_skaterpenalties = build_oneteam_skaterpenaltycounts_pdf(
         derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
 
-    #styler1 = pdf_team1_skaterpenalties.style.set_table_attributes("style='display:inline'").hide_index()
-    #styler2 = pdf_team2_skaterpenalties.style.set_table_attributes("style='display:inline'").hide_index()
-
-    map_penaltycount_to_color = lambda val: 'color: red' if int(val) > 6 \
-                                else 'color: orange' if int(val) == 6 \
-                                else 'color: yellow' if int(val) == 5 \
-                                else 'color: green'
+    # apply formatting. Change text color of each row based on penalty count
     table_htmls = []
     for pdf in [pdf_team1_skaterpenalties, pdf_team2_skaterpenalties]:
-        styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
-        styler = styler.applymap(map_penaltycount_to_color, subset=["Count"])
+        styler = pdf.style.set_properties(**{'color': 'green'})
+        red_rows = np.where(pdf['Count'] > 6, 'color: red', '')
+        styler = styler.apply(lambda _: red_rows)
+        orange_rows = np.where(pdf['Count'] == 6, 'color: orange', '')
+        styler = styler.apply(lambda _: orange_rows)
+        yellow_rows = np.where(pdf['Count'] == 5, 'color: yellow', '')
+        styler = styler.apply(lambda _: yellow_rows)
+        # gray background
+        styler = styler.set_properties(**{'background-color': '#999999'})
         styler = styler.set_table_attributes("style='display:inline'").hide_index()
         table_htmls.append(styler.render())
 
