@@ -12,9 +12,86 @@ import pandas as pd
 from matplotlib import gridspec
 import traceback
 from jamstats.plots.plot_util import build_anonymizer_map
+import numpy as np
 
 
 logger = logging.Logger(__name__)
+
+
+def get_bothteams_skaterpenalties_html(derby_game: DerbyGame,
+                                       anonymize_names: bool = False) -> str:
+    """Get a html table of both teams' rosters
+
+    Args:
+        derby_game (DerbyGame): a derby game
+
+    Returns:
+        str: html table
+    """
+    pdf_team1_skaterpenalties = build_oneteam_skaterpenaltycounts_pdf(
+        derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
+    pdf_team2_skaterpenalties = build_oneteam_skaterpenaltycounts_pdf(
+        derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
+
+    # apply formatting. Change text color of each row based on penalty count
+    table_htmls = []
+    for pdf in [pdf_team1_skaterpenalties, pdf_team2_skaterpenalties]:
+        styler = pdf.style.set_properties(**{'color': 'green'})
+        red_rows = np.where(pdf['Count'] > 6, 'color: red', '')
+        styler = styler.apply(lambda _: red_rows)
+        orange_rows = np.where(pdf['Count'] == 6, 'color: orange', '')
+        styler = styler.apply(lambda _: orange_rows)
+        yellow_rows = np.where(pdf['Count'] == 5, 'color: yellow', '')
+        styler = styler.apply(lambda _: yellow_rows)
+        # gray background
+        styler = styler.set_properties(**{'background-color': '#999999'})
+        styler = styler.set_table_attributes("style='display:inline'").hide_index()
+        table_htmls.append(styler.render())
+
+    table_html_1, table_html_2 = table_htmls
+
+    n_team1_penalties = sum(pdf_team1_skaterpenalties.Count)
+    n_team2_penalties = sum(pdf_team2_skaterpenalties.Count)
+    team1_tablecell_html = f"<H2>{derby_game.team_1_name} ({n_team1_penalties})</H2>" + table_html_1
+    team2_tablecell_html = f"<H2>{derby_game.team_2_name} ({n_team2_penalties})</H2>" + table_html_2
+    return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
+
+
+def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, team_name: str,
+                                      anonymize_names: bool=False) -> pd.DataFrame:
+    """Build a dataframe of skater penalties for one team
+
+    Args:
+        derby_game (DerbyGame): Derby game
+        team_name (str): Team name
+        anonymize_names (bool, optional): Anonymize names?. Defaults to False.
+
+    Returns:
+        pd.DataFrame: Table with skater penalties, one row per skater
+    """
+    
+    pdf_team_penalties = derby_game.pdf_penalties[
+        derby_game.pdf_penalties.team == team_name].copy()
+    pdf_team_penalties = pdf_team_penalties.rename(columns={
+        "Name": "Skater"
+    })
+
+    if anonymize_names:
+        logger.debug("Anonymizing skater names.")
+        name_dict = build_anonymizer_map(set(pdf_team_penalties.Skater))
+        pdf_team_penalties["Skater"] = [name_dict[skater]
+                                        for skater in pdf_team_penalties.Skater]   
+
+    pdf_penalties_long = (
+        pdf_team_penalties.groupby(['RosterNumber', 'Skater',]).size().reset_index())
+    pdf_penalties_long = pdf_penalties_long.rename(columns={
+        0: "Count"
+    })
+    pdf_penalties_long = pdf_penalties_long.sort_values("Count", ascending=False)
+    pdf_penalties_long = pdf_penalties_long.rename(columns={"RosterNumber": "Number"})
+
+    return pdf_penalties_long
+
 
 def plot_jammer_stats_team1(derby_game: DerbyGame,
                             anonymize_names: bool = False) -> Figure:
