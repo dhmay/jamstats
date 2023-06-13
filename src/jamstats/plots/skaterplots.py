@@ -57,10 +57,11 @@ def get_oneteam_jammer_pdf(derby_game: DerbyGame, team_number: int,
         "Lost Count": "Lost",
         "Total Score": "Points"
     })
+    pdf_jammer_data["Jammer"] = pdf_jammer_data.Number + "  " + pdf_jammer_data.Jammer
     pdf_jammer_data = pdf_jammer_data[[
-        "Number", "Jammer", "Jams", "Points", "Lead", "% Lead", "Lost"
+        "Jammer", "Jams", "Points", "Lead", "% Lead", "Lost"
     ]]
-    pdf_jammer_data = pdf_jammer_data.sort_values("Number")
+    pdf_jammer_data = pdf_jammer_data.sort_values("Jammer")
 
     return pdf_jammer_data
 
