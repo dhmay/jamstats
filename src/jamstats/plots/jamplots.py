@@ -77,12 +77,12 @@ def plot_jammers_by_team(derby_game: DerbyGame) -> Figure:
     wordwrap_x_labels(ax)
 
     pdf_jammer_summary_1 = pdf_jams_data.groupby(
-        "jammer_name_1").agg({"JamScore_1": "mean", "Number": "count"}).rename(
-        columns={"JamScore_1": "mean_jam_score", "Number": "n_jams"})
+        "jammer_name_1").agg({"jammer_points_1": "mean", "Number": "count"}).rename(
+        columns={"jammer_points_1": "mean_jam_score", "Number": "n_jams"})
     pdf_jammer_summary_1.index = range(len(pdf_jammer_summary_1))
     pdf_jammer_summary_2 = pdf_jams_data.groupby(
-        "jammer_name_2").agg({"JamScore_2": "mean", "Number": "count"}).rename(
-        columns={"JamScore_2": "mean_jam_score", "Number": "n_jams"}) 
+        "jammer_name_2").agg({"jammer_points_2": "mean", "Number": "count"}).rename(
+        columns={"jammer_points_2": "mean_jam_score", "Number": "n_jams"}) 
     pdf_jammer_summary_2.index = range(len(pdf_jammer_summary_2))
 
     ax =axes[2]
