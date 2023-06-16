@@ -215,17 +215,22 @@ class DerbyGame:
         """
         jammer_col = f"jammer_name_{team_number}"
         jammer_number_col = f"jammer_number_{team_number}"
-        jamscore_col = f"JamScore_{team_number}"
+        jamscore_col = f"jammer_points_{team_number}"
         netpoints_col = f"net_points_{team_number}"
         lead_prop_col = f"Lead_{team_number}"
         lost_col = f"Lost_{team_number}"
         time_to_initial_col = f"first_scoring_pass_durations_{team_number}"
 
-        # copy the lead column to use it in two ways
-        pdf_jammer_data = self.pdf_jams_data.copy()
-        pdf_jammer_data["Lead Count"] = pdf_jammer_data[lead_prop_col]
+        pdf_jams_data = self.pdf_jams_data.copy()
 
-        pdf_jammer_data = pdf_jammer_data.groupby([jammer_col, jammer_number_col]).agg({
+        # copy the lead column to use it in two ways. Same with score.
+        pdf_jams_data["Lead Count"] = pdf_jams_data[lead_prop_col].astype(int)
+        # fix up some types that sometimes get wrong
+        pdf_jams_data[lost_col] = pdf_jams_data[lost_col].astype(int)
+        
+
+
+        pdf_jammer_data = pdf_jams_data.groupby([jammer_col, jammer_number_col]).agg({
             jamscore_col: "sum",
             netpoints_col: "mean",
             'Number': "count",
@@ -244,6 +249,47 @@ class DerbyGame:
             "Number": "Jams",
             time_to_initial_col: "Mean Time to Initial",
         })
+
+        # now, make a row for anyone who was a pivot who became jammer via star pass
+
+        pdf_jams_with_star_passes = pdf_jams_data[pdf_jams_data[f"StarPass_{team_number}"]]
+        pivots_who_jammed = list(set(pdf_jams_with_star_passes[f"pivot_name_{team_number}"]))
+        jammers_who_only_pivotjammed = [x for x in pivots_who_jammed
+                                       if x not in set(pdf_jammer_data.Jammer)]
+        logger.debug(f"Team {team_number} jammers who only jammed as pivots: {len(jammers_who_only_pivotjammed)}")
+        n_jammers_who_only_pivotjammed = len(jammers_who_only_pivotjammed)
+        if n_jammers_who_only_pivotjammed > 0:
+            pdf_allpivot_data = self.pdf_jams_data[
+                [f"pivot_name_{team_number}", f"pivot_number_{team_number}"]
+            ].drop_duplicates()
+            pdf_allpivot_data = pdf_allpivot_data.rename(columns={
+                f"pivot_name_{team_number}": "Jammer",
+                f"pivot_number_{team_number}": "Number"
+            })
+            pdf_onlypivot_data = pdf_allpivot_data[pdf_allpivot_data["Jammer"].isin(
+                jammers_who_only_pivotjammed)].copy()
+            for column in [
+                "Total Score", "Mean Net Points", "Lead Count", "Proportion Lead", "Lost Count",
+                "Mean Time to Initial", "Jams", "mean_jam_score"
+            ]:
+                pdf_onlypivot_data[column] = 0
+            pdf_jammer_data = pd.concat([pdf_jammer_data, pdf_onlypivot_data])
+        
+        # now, add score and jam counts for all the pivots who took star passes
+        pdf_jams_data_starpassjams = pdf_jams_data[pdf_jams_data[f"StarPass_{team_number}"]]
+        pdf_jammer_data["jams_afterstarpass"] =  [
+            sum(pdf_jams_data_starpassjams[f"pivot_name_{team_number}"] == aname)
+            for aname in pdf_jammer_data.Jammer
+        ]
+        pdf_jammer_data["Jams"] = pdf_jammer_data["Jams"] + pdf_jammer_data["jams_afterstarpass"]
+        pdf_jammer_data = pdf_jammer_data.drop(columns=["jams_afterstarpass"])
+        pdf_jammer_data["points_afterstarpass"] = [
+            sum(pdf_jams_data_starpassjams[pdf_jams_data_starpassjams[f"pivot_name_{team_number}"] == aname][f"pivot_points_{team_number}"])
+            for aname in pdf_jammer_data.Jammer
+        ]
+        pdf_jammer_data["Total Score"] = pdf_jammer_data["Total Score"] + pdf_jammer_data["points_afterstarpass"]
+        pdf_jammer_data = pdf_jammer_data.drop(columns=["points_afterstarpass"])
+
         return pdf_jammer_data
 
 

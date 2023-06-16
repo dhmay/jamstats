@@ -14,7 +14,7 @@ logger = logging.Logger(__name__)
 TEAMJAM_SUMMARY_COLUMNS = [
     "Calloff", "Injury", "JamScore", "Lead",
     "Lost", "NoInitial", "StarPass", "TotalScore", "jammer_name", "jammer_number",
-    "pivot_name", "pivot_number",
+    "pivot_name", "pivot_number", "jammer_points", "pivot_points",
     "Skaters"]
 
 
@@ -470,7 +470,7 @@ def extract_roster(pdf_game_state: pd.DataFrame,
         chunks[3] for chunks in pdf_game_state_roster.key_chunks]
     # dump a bunch of extraneous columns
     pdf_game_state_roster = pdf_game_state_roster[pdf_game_state_roster.roster_key.isin(
-        ["Id", "Name", "RosterNumber", "Number", "team"]
+        ["Id", "Name", "RosterNumber", "Number", "team", "Pronouns"]
     )]
     pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
     logger.debug("pdf_roster columns: " + str(pdf_roster.columns) + 
@@ -566,12 +566,22 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
         pdf_scoringtrips, on="prd_jam")
     logger.debug(f"After adding scoring trips: {len(pdf_ateamjams_summary_withscoringtrips)}")
     logger.debug(pdf_ateamjams_summary_withscoringtrips.columns)
+
+    # calculate points earned by jammer and by pivot (in case of star pass)
+    pdf_ateamjams_summary_withscoringtrips["jammer_points"] = (
+        pdf_ateamjams_summary_withscoringtrips["JamScore"] -
+        pdf_ateamjams_summary_withscoringtrips["AfterSPScore"])
+    pdf_ateamjams_summary_withscoringtrips["pivot_points"] = (
+        pdf_ateamjams_summary_withscoringtrips["AfterSPScore"])
+
     pdf_ateamjams_summary_kept = pdf_ateamjams_summary_withscoringtrips[
         ["prd_jam"] + TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename]
 
     pdf_ateamjams_summary_kept_colsrenamed = pdf_ateamjams_summary_kept.rename(
         columns={col: f"{col}_{team_number}"
                  for col in TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename})
+
+
 
     return pdf_ateamjams_summary_kept_colsrenamed.sort_values("prd_jam")
 
@@ -629,6 +639,7 @@ def parse_scoringtrip_data(pdf_ateamjams_data: pd.DataFrame) -> pd.DataFrame:
     jams = []
     scoring_pass_counts = []
     first_scoring_pass_durations_seconds = []
+    logger.debug("Parsing scoring trips...")
     for prd_jam in sorted(list(set(pdf_ateamjams_data.prd_jam))):
         pdf_thisjam = pdf_ateamjams_data[pdf_ateamjams_data.prd_jam == prd_jam]
         thisjam_keys = set(pdf_thisjam.key)
@@ -642,10 +653,16 @@ def parse_scoringtrip_data(pdf_ateamjams_data: pd.DataFrame) -> pd.DataFrame:
         # "time to lead" (time between the start whistle and the lead jammer getting lead)
         # is stored as the Duration of ScoringTrip(1), which is a fake "scoring" trip
         # representing the initial pass.
-        first_trip_duration_key = [x for x in thisjam_scoringtrip_keys
-                                   if x.endswith("ScoringTrip(1).Duration")][0]
-        first_trip_duration_seconds = int(list(
-            pdf_thisjam[pdf_thisjam.key == first_trip_duration_key].value)[0]) / 1000
+        # At least once, I've seen a file with a jam with no ScoringTrip(1), so putting
+        # in a try block. 
+        try:
+            first_trip_duration_key = [x for x in thisjam_scoringtrip_keys
+                                    if x.endswith("ScoringTrip(1).Duration")][0]
+            first_trip_duration_seconds = int(list(
+                pdf_thisjam[pdf_thisjam.key == first_trip_duration_key].value)[0]) / 1000
+        except Exception:
+            logger.warn(f"Jam {prd_jam}, missing first trip data, setting TTI to 0")
+            first_trip_duration_seconds = 0
         first_scoring_pass_durations_seconds.append(
             first_trip_duration_seconds
         )
