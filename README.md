@@ -2,7 +2,7 @@
     <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
 </p>
 
-Tools for displaying roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and 5.x). 
+Tools for displaying roller derby game data from the [CRG scoreboard](https://github.com/rollerderby/scoreboard) (versions 4.x and later). 
 
 You can build jamstats plots from game JSON files **online!** No need to install anything. Check out [jamstats.net](https://jamstats.net). 
 
