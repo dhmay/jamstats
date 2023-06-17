@@ -476,14 +476,6 @@ def plot_game_teams_summary_table(derby_game: DerbyGame, anonymize_names=False) 
     return f
 
 
-def get_team1_roster_html(derby_game: DerbyGame,
-                          anonymize_names: bool = False) -> str:
-    return get_team_roster_html(derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
-
-def get_team2_roster_html(derby_game: DerbyGame,
-                          anonymize_names: bool = False) -> str:
-    return get_team_roster_html(derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
-
 def get_bothteams_roster_html(derby_game: DerbyGame,
                               anonymize_names: bool = False) -> str:
     """Get a html table of both teams' rosters
@@ -502,6 +494,7 @@ def get_bothteams_roster_html(derby_game: DerbyGame,
     pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
     styler = pdf_bothteams_roster.style.set_table_attributes("style='display:inline'").hide_index()
     return styler.render()
+
 
 def get_team_roster_html(derby_game: DerbyGame, team_name: str) -> str:
     """Build html table out of team roster
@@ -557,13 +550,21 @@ def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str,
         str: formatted team roster
     """
     pdf_team_roster = derby_game.pdf_roster[derby_game.pdf_roster.team == team_name]
-    pdf_team_roster = pdf_team_roster[["RosterNumber", "Name"]]
+    roster_cols = ["RosterNumber", "Name"]
+    roster_has_pronouns = "Pronouns" in pdf_team_roster.columns
+    if roster_has_pronouns:
+        roster_cols.append("Pronouns")
+    pdf_team_roster = pdf_team_roster[roster_cols]
     pdf_team_roster = pdf_team_roster.rename(columns={"Name": "Name", "RosterNumber": "Number"})
     if anonymize_names:
         name_dict = build_anonymizer_map(set(pdf_team_roster.Name))
         pdf_team_roster["Name"] = [name_dict[skater] for skater in pdf_team_roster.Name]  
     pdf_team_roster = pdf_team_roster.sort_values("Number")
     pdf_team_roster[f"{team_name} Skater"] = pdf_team_roster["Number"].astype(str) + " " + pdf_team_roster["Name"]
+    if roster_has_pronouns:
+        pdf_team_roster[f"{team_name} Skater"] = (
+            pdf_team_roster[f"{team_name} Skater"] + " (" + pdf_team_roster["Pronouns"] + ")")
+        pdf_team_roster = pdf_team_roster.drop(columns=["Pronouns"])
 
     team_number = 1 if team_name == derby_game.team_1_name else 2
     if show_jammers_and_pivots:
