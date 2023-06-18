@@ -228,8 +228,6 @@ class DerbyGame:
         # fix up some types that sometimes get wrong
         pdf_jams_data[lost_col] = pdf_jams_data[lost_col].astype(int)
         
-
-
         pdf_jammer_data = pdf_jams_data.groupby([jammer_col, jammer_number_col]).agg({
             jamscore_col: "sum",
             netpoints_col: "mean",
@@ -270,9 +268,10 @@ class DerbyGame:
                 jammers_who_only_pivotjammed)].copy()
             for column in [
                 "Total Score", "Mean Net Points", "Lead Count", "Proportion Lead", "Lost Count",
-                "Mean Time to Initial", "Jams", "mean_jam_score"
+                "Jams", "mean_jam_score"
             ]:
                 pdf_onlypivot_data[column] = 0
+            pdf_onlypivot_data["Mean Time to Initial"] = None
             pdf_jammer_data = pd.concat([pdf_jammer_data, pdf_onlypivot_data])
         
         # now, add score and jam counts for all the pivots who took star passes

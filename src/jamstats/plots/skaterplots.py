@@ -69,7 +69,7 @@ def get_oneteam_jammer_pdf(derby_game: DerbyGame, team_number: int,
 
 def get_bothteams_skaterpenalties_html(derby_game: DerbyGame,
                                        anonymize_names: bool = False) -> str:
-    """Get a html table of both teams' rosters
+    """Get a html table of both teams' penalties
 
     Args:
         derby_game (DerbyGame): a derby game
