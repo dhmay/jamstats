@@ -14,7 +14,7 @@ So, why download Jamstats and run it on your laptop? To connect to a live game o
 
 * Get up-to-date game data from a live scoreboard
 * Visualize points per jam, lead, mean net points, calloffs, time to initial pass, penalties and much more
-* Read in JSON files from completed games or connect to a running scoreboard
+* Read in JSON files from completed games
 * Save plots as PDF files, or start a webserver that anyone on your network can browse to
 
 Do you already love Jamstats? [Tell us about it!](https://github.com/dhmay/jamstats/issues/new?assignees=&labels=testimonial&template=testimonial.md&title=)
