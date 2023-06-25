@@ -967,11 +967,25 @@ def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
         pdf_team_penalty_counts.sort_values("Penalty", inplace=True)
         pdf_team_penalty_counts["team_number"] = 1 if team == derby_game.team_1_name else 2
         team_plot_pdfs.append(pdf_team_penalty_counts)
+
     
     pdf_penalty_counts = pd.concat(team_plot_pdfs)
+    # insert zeros
+    rows_to_insert = []
+    for penalty in set(pdf_penalty_counts.Penalty).difference(set(team_plot_pdfs[0].Penalty)):
+        rows_to_insert.append({
+            "Penalty": penalty, "team_number": 1, "team": derby_game.team_1_name, "Count": 0
+        })
+    for penalty in set(pdf_penalty_counts.Penalty).difference(set(team_plot_pdfs[1].Penalty)):
+        rows_to_insert.append({
+            "Penalty": penalty, "team_number": 2, "team": derby_game.team_2_name, "Count": 0
+        })
+    pdf_penalty_counts = pd.concat([pdf_penalty_counts,
+                    pd.DataFrame(rows_to_insert)])
     pdf_penalty_counts = pdf_penalty_counts.sort_values(["Penalty", "team_number"])
 
     penalties_inorder = sorted(list(set(pdf_penalty_counts.Penalty)))
+    print(pdf_penalty_counts)
     
     f, ax = plt.subplots()
 
@@ -979,8 +993,9 @@ def plot_team_penalty_counts(derby_game: DerbyGame) -> Figure:
         sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts,
                     hue="team", ax=ax, palette=team_color_palette)
         for i, row in pdf_penalty_counts.iterrows():
-            offset = .2 if row["team"] == derby_game.team_1_name else -.2
-            ax.text(.5, penalties_inorder.index(row["Penalty"]) + offset, row["Count"], size="small",
+            offset = -.2 if row["team_number"] == 1 else .2
+            ax.text(.5, penalties_inorder.index(row["Penalty"]) + offset,
+                    row["Count"], size="small",
                     horizontalalignment="center",
                     verticalalignment="center")
     ax.set_title(f"Penalty counts") 
