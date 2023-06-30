@@ -8,6 +8,9 @@ from matplotlib import pyplot as plt
 from typing import Any, Iterable, Dict
 from textwrap import wrap
 import random
+from matplotlib.pyplot import Figure
+
+from abc import ABCMeta, abstractmethod
 
 logger = logging.Logger(__name__)
 
@@ -24,8 +27,33 @@ VALID_THEMES = [
 # default maximum length of x labels
 DEFAULT_XLABEL_MAX_LEN = 15
 
-resource_file_dict = {
-}
+
+class DerbyPlot(ABCMeta):
+    """Base class for all plots
+    """
+    def __init__(self) -> None:
+        self.name = "DerbyPlot"
+        pass
+
+    def get_name(self) -> str:
+        """Get the name of the plot.
+        Returns:
+            str: name
+        """
+        return self.name
+
+    @abstractmethod
+    def plot(self, derby_game: DerbyGame) -> Figure: 
+        """Plot the plot using the passed-in DerbyGame.
+
+        Args:
+            derby_game (DerbyGame): Derby Game
+
+        Returns:
+            Figure: matplotlib figure
+        """
+        pass
+
 
 def prepare_to_plot(theme:str = DEFAULT_THEME) -> None:
     """Prepare Seaborn to make pretty plots.

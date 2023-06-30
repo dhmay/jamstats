@@ -71,7 +71,7 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
     json_major_version = get_json_major_version(game_dict)
     logger.debug(f"Found CRG version {json_major_version}")
     if json_major_version != 4:
-        # v5.0 adds a "Game(<game_id>)" chunk to almost every key. Get rid of that.
+        # v5.0+ adds a "Game(<game_id>)" chunk to almost every key. Get rid of that.
 
         # In-process games have both "CurrentGame" fields and fields
         # annotated with a game identifier. Complete games don't have
@@ -457,7 +457,7 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     logger.debug("Roster rows by team:")
     logger.debug(pdf_game_state_roster.team.value_counts())
     if json_major_version != 4:
-        # Version 4 stored the team name. Version 5 stores the number,
+        # Version 4 stored the team name. Version 5+ stores the number,
         # so translate.
         pdf_game_state_roster["team"] = [team_name_1 if team == "1"
                                          else team_name_2 if team == "2"
