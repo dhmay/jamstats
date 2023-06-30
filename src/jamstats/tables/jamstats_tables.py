@@ -1,25 +1,44 @@
 from jamstats.data.game_data import DerbyGame
 from jamstats.plots.plot_util import build_anonymizer_map
+from jamstats.plots.basic_plots import format_team_roster_fordisplay
+from jamstats.tables.table_util import DerbyTable, DerbyHTMLElement
 import pandas as pd
 import logging
+import numpy as np
+from pandas.io.formats.style import Styler
 
 DEFAULT_N_RECENT_PENALTIES = 10
 
-
 logger = logging.Logger(__name__)
 
-def get_bothteams_jammertable_html(derby_game: DerbyGame,
-                                   anonymize_names: bool = False) -> str:
 
-    pdf_team1 = get_oneteam_jammer_pdf(derby_game, 1, anonymize_names=anonymize_names)
-    pdf_team2 = get_oneteam_jammer_pdf(derby_game, 2, anonymize_names=anonymize_names)
-    styler_1 = pdf_team1.style
-    styler_2 = pdf_team2.style
-    table_html_1 = styler_1.hide_index().render()
-    table_html_2 = styler_2.hide_index().render()
-    team1_tablecell_html = f"<H2>{derby_game.team_1_name} ({len(pdf_team1)})</H2>" + table_html_1
-    team2_tablecell_html = f"<H2>{derby_game.team_2_name} ({len(pdf_team2)})</H2>" + table_html_2
-    return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
+class BothTeamsJammersTable(DerbyHTMLElement):
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Jammers"
+        self.description = "Summary tables with jammers for both teams"
+
+    def build_html(self, derby_game: DerbyGame) -> str: 
+        """Build the table HTML
+
+        Args:
+            derby_game (DerbyGame): Derby Game
+
+        Returns:
+            str: HTML
+        """
+        pdf_team1 = get_oneteam_jammer_pdf(derby_game, 1, anonymize_names=self.anonymize_names)
+        pdf_team2 = get_oneteam_jammer_pdf(derby_game, 2, anonymize_names=self.anonymize_names)
+        styler_1 = pdf_team1.style
+        styler_2 = pdf_team2.style
+        table_html_1 = styler_1.hide_index().render()
+        table_html_2 = styler_2.hide_index().render()
+        team1_tablecell_html = f"<H2>{derby_game.team_1_name} ({len(pdf_team1)})</H2>" + table_html_1
+        team2_tablecell_html = f"<H2>{derby_game.team_2_name} ({len(pdf_team2)})</H2>" + table_html_2
+        return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
+
 
 def get_oneteam_jammer_pdf(derby_game: DerbyGame, team_number: int,
                            anonymize_names: bool = False) -> pd.DataFrame:
@@ -55,43 +74,52 @@ def get_oneteam_jammer_pdf(derby_game: DerbyGame, team_number: int,
 
     return pdf_jammer_data
 
-def get_bothteams_skaterpenalties_html(derby_game: DerbyGame,
-                                       anonymize_names: bool = False) -> str:
-    """Get a html table of both teams' penalties
 
-    Args:
-        derby_game (DerbyGame): a derby game
+class BothTeamsSkaterPenaltiesTable(DerbyHTMLElement):
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Jammers"
+        self.description = "Summary tables with penalties per skater for both teams"
 
-    Returns:
-        str: html table
-    """
-    pdf_team1_skaterpenalties = build_oneteam_skaterpenaltycounts_pdf(
-        derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
-    pdf_team2_skaterpenalties = build_oneteam_skaterpenaltycounts_pdf(
-        derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
+    def build_html(self, derby_game: DerbyGame) -> str: 
+        """ Get a html table of both teams' penalties
 
-    # apply formatting. Change text color of each row based on penalty count
-    table_htmls = []
-    for pdf in [pdf_team1_skaterpenalties, pdf_team2_skaterpenalties]:
-        styler = pdf.style.set_properties(**{'color': 'green'})
-        red_rows = np.where(pdf['Count'] > 6, 'color: red', '')
-        styler = styler.apply(lambda _: red_rows)
-        orange_rows = np.where(pdf['Count'] == 6, 'color: orange', '')
-        styler = styler.apply(lambda _: orange_rows)
-        yellow_rows = np.where(pdf['Count'] == 5, 'color: yellow', '')
-        styler = styler.apply(lambda _: yellow_rows)
-        # gray background
-        styler = styler.set_properties(**{'background-color': '#999999'})
-        styler = styler.set_table_attributes("style='display:inline'").hide_index()
-        table_htmls.append(styler.render())
+        Args:
+            derby_game (DerbyGame): Derby Game
 
-    table_html_1, table_html_2 = table_htmls
+        Returns:
+            str: HTML
+        """
 
-    n_team1_penalties = sum(pdf_team1_skaterpenalties.Count)
-    n_team2_penalties = sum(pdf_team2_skaterpenalties.Count)
-    team1_tablecell_html = f"<H2>{derby_game.team_1_name} ({n_team1_penalties})</H2>" + table_html_1
-    team2_tablecell_html = f"<H2>{derby_game.team_2_name} ({n_team2_penalties})</H2>" + table_html_2
-    return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
+        pdf_team1_skaterpenalties = build_oneteam_skaterpenaltycounts_pdf(
+            derby_game, derby_game.team_1_name, anonymize_names=self.anonymize_names)
+        pdf_team2_skaterpenalties = build_oneteam_skaterpenaltycounts_pdf(
+            derby_game, derby_game.team_2_name, anonymize_names=self.anonymize_names)
+
+        # apply formatting. Change text color of each row based on penalty count
+        table_htmls = []
+        for pdf in [pdf_team1_skaterpenalties, pdf_team2_skaterpenalties]:
+            styler = pdf.style.set_properties(**{'color': 'green'})
+            red_rows = np.where(pdf['Count'] > 6, 'color: red', '')
+            styler = styler.apply(lambda _: red_rows)
+            orange_rows = np.where(pdf['Count'] == 6, 'color: orange', '')
+            styler = styler.apply(lambda _: orange_rows)
+            yellow_rows = np.where(pdf['Count'] == 5, 'color: yellow', '')
+            styler = styler.apply(lambda _: yellow_rows)
+            # gray background
+            styler = styler.set_properties(**{'background-color': '#999999'})
+            styler = styler.set_table_attributes("style='display:inline'").hide_index()
+            table_htmls.append(styler.render())
+
+        table_html_1, table_html_2 = table_htmls
+
+        n_team1_penalties = sum(pdf_team1_skaterpenalties.Count)
+        n_team2_penalties = sum(pdf_team2_skaterpenalties.Count)
+        team1_tablecell_html = f"<H2>{derby_game.team_1_name} ({n_team1_penalties})</H2>" + table_html_1
+        team2_tablecell_html = f"<H2>{derby_game.team_2_name} ({n_team2_penalties})</H2>" + table_html_2
+        return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
 
 
 def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, team_name: str,
@@ -130,91 +158,102 @@ def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, team_name: str,
     return pdf_penalties_long
 
 
-def get_officials_roster_html(derby_game: DerbyGame,
-                              anonymize_names: bool = False) -> str:
-    """Get a table of the officials as html
-
-    Args:
-        derby_game (DerbyGame): derby game
-
-    Returns:
-        str: html table
+class OfficialsRosterTable(DerbyTable):
+    """Table with ref and NSO rosters
     """
-    html = "<table><tr><td valign='top'><H3>Referees</H3>"
-    if len(derby_game.pdf_ref_roster) == 0:
-        html = html + "No Data"
-    else:
-        html = html + derby_game.pdf_ref_roster.style.hide_index().to_html()
-    html = html + "</td><td><td valign='top'><H3>NSOs</H3>"
-    if len(derby_game.pdf_nso_roster) == 0:
-        html = html + "No Data"
-    else:
-        html = html + derby_game.pdf_nso_roster.style.hide_index().to_html()
-    html = html + "</td></tr></table>"
-    return html
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Officials Roster"
+        self.description = "Rosters of referees and NSOs"
+
+    def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
+        """Combine the referee and NSO rosters into one table
+
+        Args:
+            derby_game (DerbyGame): Derby Game
+
+        Returns:
+            pd.DataFrame: Table with all officials
+        """
+        pdf_allofficials_roster = pd.concat([derby_game.pdf_ref_roster,
+                                             derby_game.pdf_nso_roster], axis=1)
+        #TODO: make nice column names
+        pdf_allofficials_roster = pdf_allofficials_roster.fillna("")
 
 
-def get_caller_dashboard_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
-    """Build a dashboard for the announcer
-
-    Args:
-        derby_game (DerbyGame): derby game
-        anonymize_names (bool, optional): anonymize names. Defaults to False.
-    
-    Returns:
-        str: html dashboard
+class CallerDashboard(DerbyHTMLElement):
+    """Caller Dashboard
     """
-    # build stripped-down game summary table
-    pdf_game_teams_summary = derby_game.extract_game_teams_summary()
-    pdf_game_teams_summary = pdf_game_teams_summary.drop(columns=[
-        "Calloff", "NoInitial", "Skaters played"])
-    # add Absolute Difference row
-    pdf_game_teams_summary = pd.DataFrame({
-        column: [pdf_game_teams_summary.loc[0, column],
-                 pdf_game_teams_summary.loc[1, column],
-                 abs(pdf_game_teams_summary.loc[0, column] -
-                     pdf_game_teams_summary.loc[1, column])]
-        if column != "Team"
-        else [pdf_game_teams_summary.loc[0, column],
-              pdf_game_teams_summary.loc[1, column],
-              "Difference (absolute)"]
-        for column in pdf_game_teams_summary.columns
-    })
-    styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
-    html_game_summary = styler.render()
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Caller Dashboard"
+        self.description = "Dashboard with info for announcers in one place"
 
-    # if we're *not* in a jam, show the jammers for the next jam
-    if not derby_game.game_data_dict["jam_is_running"]:
-        next_jam_section = "\n<p><b>Next jam's jammers:</b><br>\n"
-        next_jam_section = next_jam_section + f"<table width=100% style='padding: 5px'><tr><th>{derby_game.team_1_name}</th><th>{derby_game.team_2_name}</th></tr>\n"
-        next_jam_section += f"<tr><td>{derby_game.game_data_dict['team_1_jammer_number']} {derby_game.game_data_dict['team_1_jammer_name']}</td>\n"
-        next_jam_section += f"<td>{derby_game.game_data_dict['team_2_jammer_number']} {derby_game.game_data_dict['team_2_jammer_name']}</td></tr>\n"
-        next_jam_section += f"</table>\n"
-        html_game_summary = html_game_summary + next_jam_section
+    def build_html(self, derby_game: DerbyGame) -> str: 
+        """Build the HTML
+
+        Args:
+            derby_game (DerbyGame): Derby Game
+
+        Returns:
+            str: HTML
+        """
+        # build stripped-down game summary table
+        pdf_game_teams_summary = derby_game.extract_game_teams_summary()
+        pdf_game_teams_summary = pdf_game_teams_summary.drop(columns=[
+            "Calloff", "NoInitial", "Skaters played"])
+        # add Absolute Difference row
+        pdf_game_teams_summary = pd.DataFrame({
+            column: [pdf_game_teams_summary.loc[0, column],
+                    pdf_game_teams_summary.loc[1, column],
+                    abs(pdf_game_teams_summary.loc[0, column] -
+                        pdf_game_teams_summary.loc[1, column])]
+            if column != "Team"
+            else [pdf_game_teams_summary.loc[0, column],
+                pdf_game_teams_summary.loc[1, column],
+                "Difference (absolute)"]
+            for column in pdf_game_teams_summary.columns
+        })
+        styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
+        html_game_summary = styler.render()
+
+        # if we're *not* in a jam, show the jammers for the next jam
+        if not derby_game.game_data_dict["jam_is_running"]:
+            next_jam_section = "\n<p><b>Next jam's jammers:</b><br>\n"
+            next_jam_section = next_jam_section + f"<table width=100% style='padding: 5px'><tr><th>{derby_game.team_1_name}</th><th>{derby_game.team_2_name}</th></tr>\n"
+            next_jam_section += f"<tr><td>{derby_game.game_data_dict['team_1_jammer_number']} {derby_game.game_data_dict['team_1_jammer_name']}</td>\n"
+            next_jam_section += f"<td>{derby_game.game_data_dict['team_2_jammer_number']} {derby_game.game_data_dict['team_2_jammer_name']}</td></tr>\n"
+            next_jam_section += f"</table>\n"
+            html_game_summary = html_game_summary + next_jam_section
+            
+        # build most-recent jam table
+        pdf_jams_sorted_desc = derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
+                                                                    ascending=False)
+        pdf_jams_sorted_desc.index = range(len(pdf_jams_sorted_desc))
+        html_current_jam = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc.head(1),
+                                                    anonymize_names=self.anonymize_names)
         
-    # build most-recent jam table
-    pdf_jams_sorted_desc = derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
-                                                                ascending=False)
-    pdf_jams_sorted_desc.index = range(len(pdf_jams_sorted_desc))
-    html_current_jam = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc.head(1),
-                                                  anonymize_names=anonymize_names)
-    
-    result =  "<p>" + html_game_summary + "</p><p>" + html_current_jam
+        result =  "<p>" + html_game_summary + "</p><p>" + html_current_jam
 
-    if len(pdf_jams_sorted_desc) > 1:
-        second_most_recent_jam_html = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc[1:].head(1),
-                                                                 anonymize_names=anonymize_names)
-        result = result + second_most_recent_jam_html
+        if len(pdf_jams_sorted_desc) > 1:
+            second_most_recent_jam_html = get_singlejam_skaters_html(
+                derby_game, pdf_jams_sorted_desc[1:].head(1),
+                anonymize_names=self.anonymize_names)
+            result = result + second_most_recent_jam_html
 
-    result = result + "<p>Positions: P=Pivot, J=Jammer, B=Blocker<br/>"
-    result = result + "Position notes: (NI)=No Initial, (L)=Lead, (LO)=Lost, (SP)=Star Pass<p/>"
-    result = result + f"<table width=0% style='background-color: lightgray'><tr><td><br/>Penalty status:<ul>\
-        <li style='color: yellow; background-color: lightgray'>Not Yet: skater on way to box</li>\
-        <li style='color: red; background-color: lightgray'>Serving: skater in box</li>\
-        <li style='color: green; background-color: lightgray'>Served: skater has completed serving penalty</li>\
-        </li></ul></td></tr></table>"
-    result = result + "</p>"
-    return result
+        result = result + "<p>Positions: P=Pivot, J=Jammer, B=Blocker<br/>"
+        result = result + "Position notes: (NI)=No Initial, (L)=Lead, (LO)=Lost, (SP)=Star Pass<p/>"
+        result = result + f"<table width=0% style='background-color: lightgray'><tr><td><br/>Penalty status:<ul>\
+            <li style='color: yellow; background-color: lightgray'>Not Yet: skater on way to box</li>\
+            <li style='color: red; background-color: lightgray'>Serving: skater in box</li>\
+            <li style='color: green; background-color: lightgray'>Served: skater has completed serving penalty</li>\
+            </li></ul></td></tr></table>"
+        result = result + "</p>"
+        return result
 
 
 def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
@@ -233,7 +272,6 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
                                                       anonymize_names=anonymize_names)
     result = most_recent_jam_html
     if len(pdf_jams_sorted_desc) > 1:
-        
         result = result + "<br/><H4>Previous jam:</H4>"
         second_most_recent_jam_html = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc[1:].head(1),
                                                                  anonymize_names=anonymize_names)
@@ -308,7 +346,7 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
                              pdf_one_jam: pd.DataFrame,
                              anonymize_names: bool = False,
                              include_alljam_serving_penalties: bool = True) -> pd.DataFrame:
-    """Get a table of one team's current skaters as html
+    """Get a table of one team's current skaters
 
     Args:
         derby_game (DerbyGame): derby game
@@ -442,88 +480,106 @@ def get_game_summary_html(derby_game: DerbyGame) -> str:
     return styler.render()
 
 
-def plot_game_summary_table(derby_game: DerbyGame) -> Figure:
-    """Make a table figure out of the game summary dataframe,
-    suitable for writing to a .pdf
-
-    Args:
-        derby_game (DerbyGame): a derby game
-
-    Returns:
-        Figure: table figure
+class GameSummaryTable(DerbyTable):
+    """Table of game summary information
     """
-    pdf_game_summary = derby_game.extract_game_summary()
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Game Summary"
+        self.description = "Basic summary data about the game"
 
-    f = plt.figure(figsize=(8,6))
-    ax = plt.subplot(111)
-    ax.axis('off')
-    ax.table(cellText=pdf_game_summary.values,
-             colLabels=pdf_game_summary.columns, bbox=[0,0,1,1])
-    return f
+    def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
+        """Make a table figure out of the game summary dataframe,
+        suitable for writing to a .pdf
+
+        Args:
+            derby_game (DerbyGame): a derby game
+
+        Returns:
+            Figure: table figure
+        """
+        pdf_game_summary = derby_game.extract_game_summary()
+        return pdf_game_summary
 
 
-def plot_game_teams_summary_table(derby_game: DerbyGame, anonymize_names=False) -> Figure:
-    """Make a table figure out of the teams summary dataframe,
-    suitable for writing to a .pdf
-
-    Args:
-        derby_game (DerbyGame): a derby game
-
-    Returns:
-        Figure: table figure
+class GameTeamsSummaryTable(DerbyTable):
+    """Table of game teams summary information
     """
-    pdf_game_teams_summary = derby_game.extract_game_teams_summary().transpose()
-    pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
-    pdf_game_teams_summary["asdf"] = pdf_game_teams_summary.index
-    pdf_game_teams_summary = pdf_game_teams_summary[["asdf", 0, 1]]
-    f = plt.figure(figsize=(8, 10))
-    ax = plt.subplot(111)
-    ax.axis('off')
-    ax.table(cellText=pdf_game_teams_summary.values,
-            colLabels=None, bbox=[0,0,1,1])
-    return f
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Game Teams Summary"
+        self.description = "Basic summary data about the teams"
+
+    def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
+        """Make a table figure out of the game summary dataframe,
+        suitable for writing to a .pdf
+
+        Args:
+            derby_game (DerbyGame): a derby game
+
+        Returns:
+            Figure: table figure
+        """
+        pdf_game_teams_summary = derby_game.extract_game_teams_summary().transpose()
+        pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
+        pdf_game_teams_summary["asdf"] = pdf_game_teams_summary.index
+        pdf_game_teams_summary = pdf_game_teams_summary[["asdf", 0, 1]]
+        return pdf_game_teams_summary
 
 
-def get_game_teams_summary_html(derby_game: DerbyGame, anonymize_names: bool = False) -> str:
-    """Get a game teams summary table as html
-
-    Args:
-        derby_game (DerbyGame): derby game
-
-    Returns:
-        str: html table
+class RecentPenaltiesTable(DerbyTable):
+    """Table with most recent penalties
     """
-    pdf_game_teams_summary = derby_game.extract_game_teams_summary().transpose()
-    pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
-    pdf_game_teams_summary["Team"] = pdf_game_teams_summary.index
-    pdf_game_teams_summary = pdf_game_teams_summary[["Team", 0, 1]]
-    pdf_game_teams_summary = pdf_game_teams_summary.rename(columns={0: derby_game.team_1_name,
-                                                                    1: derby_game.team_2_name})
-    pdf_game_teams_summary = pdf_game_teams_summary[pdf_game_teams_summary.Team != "Team"]
-    styler = pdf_game_teams_summary.style.set_table_attributes("style='display:inline'").hide_index()
-    return styler.render()
+    def __init__(self, 
+                 n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
+                 anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Officials Roster"
+        self.description = "Rosters of referees and NSOs"
+        self.n_penalties_for_table = n_penalties_for_table
 
+    def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
+        """Make table out of most recent penalties
 
-def get_recent_penalties_html(derby_game: DerbyGame,
-                              n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
-                              anonymize_names: bool = False) -> str:
-    """Make html table out of most recent penalties"""
-    pdf_recent_penalties = make_recent_penalties_dataframe(derby_game,
-                                                           n_penalties_for_table=n_penalties_for_table)
-    if anonymize_names:
-        name_dict = build_anonymizer_map(set(pdf_recent_penalties.Name))
-        pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Name] 
-    # add colors
-    map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
-        else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \
-        else ''
-    styler = pdf_recent_penalties.style.applymap(map_team_to_color, subset=["Team"]).hide_index()
+        Args:
+            derby_game (DerbyGame): Derby Game
 
-    # if either team is white, don't use white background.
-    # This will break if white plays gray
-    #if derby_game.team_color_1.lower() == "#ffffff" or derby_game.team_color_2.lower() == "#ffffff":
-    #    styler = styler.set_properties(**{'background-color': 'gray'})
-    return styler.render(index=False)
+        Returns:
+            pd.DataFrame: Table with all officials
+        """
+        pdf_recent_penalties = make_recent_penalties_dataframe(
+            derby_game, n_penalties_for_table=self.n_penalties_for_table)
+        if self.anonymize_names:
+            name_dict = build_anonymizer_map(set(pdf_recent_penalties.Name))
+            pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Name] 
+        # add colors
+
+    def build_html(self, derby_game: DerbyGame) -> str: 
+        """Build the table HTML: prepare the data, then style it.
+
+        Args:
+            derby_game (DerbyGame): Derby Game
+
+        Returns:
+            Figure: matplotlib figure
+        """
+        pdf_recent_penalties = self.prepare_table_dataframe(derby_game)
+        map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
+            else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \
+            else ''
+        styler = pdf_recent_penalties.style.applymap(map_team_to_color, subset=["Team"]).hide_index()
+
+        # if either team is white, don't use white background.
+        # This will break if white plays gray
+        #if derby_game.team_color_1.lower() == "#ffffff" or derby_game.team_color_2.lower() == "#ffffff":
+        #    styler = styler.set_properties(**{'background-color': 'gray'})
+        return styler.render(index=False)
 
 
 def make_recent_penalties_dataframe(derby_game: DerbyGame,
@@ -560,36 +616,57 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
     return pdf_recent_penalties 
 
 
-def get_bothteams_roster_html(derby_game: DerbyGame,
-                              anonymize_names: bool = False) -> str:
-    """Get a html table of both teams' rosters
-
-    Args:
-        derby_game (DerbyGame): a derby game
-
-    Returns:
-        str: html table
+class BothTeamsRosterTable(DerbyTable):
+    """Table with ref and NSO rosters
     """
-    pdf_team1_roster = format_team_roster_fordisplay(derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
-    pdf_team1_roster.index = range(len(pdf_team1_roster))
-    pdf_team2_roster = format_team_roster_fordisplay(derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
-    pdf_team2_roster.index = range(len(pdf_team2_roster))
-    pdf_bothteams_roster = pd.concat([pdf_team1_roster, pdf_team2_roster], axis=1)
-    pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
-    styler = pdf_bothteams_roster.style.set_table_attributes("style='display:inline'").hide_index()
-    return styler.render()
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Team Rosters"
+        self.description = "Rosters of both teams"
 
+    def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
+        """Combine the referee and NSO rosters into one table
 
-def get_team_roster_html(derby_game: DerbyGame, team_name: str) -> str:
-    """Build html table out of team roster
+        Args:
+            derby_game (DerbyGame): Derby Game
 
-    Args:
-        derby_game (DerbyGame): derby game
-        team_name (str): team name
+        Returns:
+            pd.DataFrame: Table with all officials
+        """
+        pdf_team1_roster = format_team_roster_fordisplay(derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
+        pdf_team1_roster.index = range(len(pdf_team1_roster))
+        pdf_team2_roster = format_team_roster_fordisplay(derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
+        pdf_team2_roster.index = range(len(pdf_team2_roster))
+        pdf_bothteams_roster = pd.concat([pdf_team1_roster, pdf_team2_roster], axis=1)
+        pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
+        return pdf_bothteams_roster
 
-    Returns:
-        str: HTML table
+class OneTeamRosterTable(DerbyTable):
+    """Table with ref and NSO rosters
     """
-    pdf_team_roster = format_team_roster_fordisplay(derby_game, team_name)
-    styler = pdf_team_roster.style.set_table_attributes("style='display:inline'").hide_index()
-    return styler.render()
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False,
+                 ) -> None:
+        super().__init__(self, anonymize_names=anonymize_names,
+                         anonymize_teams=anonymize_teams)
+        self.name = "Team Rosters"
+        self.description = "Rosters of both teams"
+
+    def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
+        """Combine the referee and NSO rosters into one table
+
+        Args:
+            derby_game (DerbyGame): Derby Game
+
+        Returns:
+            pd.DataFrame: Table with all officials
+        """
+        pdf_team1_roster = format_team_roster_fordisplay(derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
+        pdf_team1_roster.index = range(len(pdf_team1_roster))
+        pdf_team2_roster = format_team_roster_fordisplay(derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
+        pdf_team2_roster.index = range(len(pdf_team2_roster))
+        pdf_bothteams_roster = pd.concat([pdf_team1_roster, pdf_team2_roster], axis=1)
+        pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
+        return pdf_bothteams_roster
