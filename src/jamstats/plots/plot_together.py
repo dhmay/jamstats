@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 from jamstats.data.game_data import DerbyGame
 import logging
 from jamstats.tables.jamstats_tables import (
+    GameSummaryTable,
     GameTeamsSummaryTable,
     BothTeamsRosterWithJammerAndPivot,
 )
@@ -35,6 +36,8 @@ from PIL import Image
 import io
 
 ELEMENTS_CLASSES = [
+    # basic tables
+    GameSummaryTable,
     GameTeamsSummaryTable,
     # basic plots
     CumScoreByJamPlot,
