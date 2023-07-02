@@ -16,6 +16,7 @@ logger = logging.Logger(__name__)
 class BothTeamsJammersTable(DerbyHTMLElement):
     name: str = "Jammers"
     description: str = "Summary tables with jammers for both teams"
+    section: str = "Tables"
 
     def build_html(self, derby_game: DerbyGame) -> str: 
         """Build the table HTML
@@ -75,6 +76,7 @@ def get_oneteam_jammer_pdf(derby_game: DerbyGame, team_number: int,
 class BothTeamsSkaterPenaltiesTable(DerbyHTMLElement):
     name: str = "All Penalties"
     description: str = "Summary tables with penalties per skater for both teams"
+    section: str = "Tables"
 
     def build_html(self, derby_game: DerbyGame) -> str: 
         """ Get a html table of both teams' penalties
@@ -115,7 +117,7 @@ class BothTeamsSkaterPenaltiesTable(DerbyHTMLElement):
         return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
 
 
-def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, teamname: str,
+def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, team_name: str,
                                           anonymize_names: bool=False) -> pd.DataFrame:
     """Build a dataframe of skater penalties for one team
 
@@ -179,6 +181,7 @@ class CallerDashboard(DerbyHTMLElement):
     """
     name: str = "Caller Dashboard"
     description: str = "Dashboard with info for callers in one place"
+    section: str = "Tables"
 
     def build_html(self, derby_game: DerbyGame) -> str: 
         """Build the HTML
