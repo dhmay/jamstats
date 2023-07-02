@@ -22,8 +22,13 @@ from jamstats.tables.jamstats_tables import (
     BothTeamsRosterTable,
 )
 from jamstats.plots.basic_plots import (
+    CumScoreByJamPlot,
     JammerStatsPlotTeam1,
     JammerStatsPlotTeam2,
+    SkaterStatsPlotTeam1,
+    SkaterStatsPlotTeam2,
+    PenaltyCountsPlotByTeam,
+    SimpleLeadSummaryPlot,
 )
 
 import matplotlib
@@ -66,9 +71,15 @@ ELEMENTS_CLASSES = [
     BothTeamsJammersTable,
     BothTeamsRosterTable,
     OfficialsRosterTable,
+    CumScoreByJamPlot,
     JammerStatsPlotTeam1,
     JammerStatsPlotTeam2,
+    SkaterStatsPlotTeam1,
+    SkaterStatsPlotTeam2,
+    PenaltyCountsPlotByTeam,
+    SimpleLeadSummaryPlot,
 ]
+
 
 ELEMENT_NAME_CLASS_MAP = {element_class.name: element_class for element_class in ELEMENTS_CLASSES}
 

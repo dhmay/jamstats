@@ -1,6 +1,5 @@
 from jamstats.data.game_data import DerbyGame
 from jamstats.plots.plot_util import build_anonymizer_map
-from jamstats.plots.basic_plots import format_team_roster_fordisplay
 from jamstats.tables.table_util import DerbyTable, DerbyHTMLElement
 import pandas as pd
 import logging
@@ -625,3 +624,71 @@ class BothTeamsRosterTable(DerbyTable):
         pdf_bothteams_roster = pd.concat([pdf_team1_roster, pdf_team2_roster], axis=1)
         pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
         return pdf_bothteams_roster
+
+
+class BothTeamsRosterWithJammerAndPivot(DerbyTable):
+    """team roster dataframe with jammers and pivots
+    """
+    name: str = "Team Rosters with Jammers and Pivots"
+    description: str = "Rosters of both teams, with Jammers and pivots indicated"
+    can_show_before_game_start: bool = False
+
+    def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
+        pdf_team_roster1 = format_team_roster_fordisplay(derby_game, derby_game.team_1_name,
+                                                        show_jammers_and_pivots=True)
+        pdf_team_roster1.index = range(len(pdf_team_roster1))
+        pdf_team_roster2 = format_team_roster_fordisplay(derby_game, derby_game.team_2_name,
+                                                        show_jammers_and_pivots=True)
+        pdf_team_roster2.index = range(len(pdf_team_roster2))
+
+        pdf_bothteams_roster = pd.concat([pdf_team_roster1, pdf_team_roster2], axis=1)
+        return pdf_bothteams_roster
+
+
+def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str,
+                                  anonymize_names: str = False,
+                                  show_jammers_and_pivots: bool = False) -> str:
+    """Format team roster for display
+
+    Args:
+        derby_game (DerbyGame): derby game
+        team_name (str): team name
+
+    Returns:
+        str: formatted team roster
+    """
+    pdf_team_roster = derby_game.pdf_roster[derby_game.pdf_roster.team == team_name]
+    roster_cols = ["RosterNumber", "Name"]
+    roster_has_pronouns = "Pronouns" in pdf_team_roster.columns
+    if roster_has_pronouns:
+        roster_cols.append("Pronouns")
+    pdf_team_roster = pdf_team_roster[roster_cols]
+    pdf_team_roster = pdf_team_roster.rename(columns={"Name": "Name", "RosterNumber": "Number"})
+    if anonymize_names:
+        name_dict = build_anonymizer_map(set(pdf_team_roster.Name))
+        pdf_team_roster["Name"] = [name_dict[skater] for skater in pdf_team_roster.Name]  
+    pdf_team_roster = pdf_team_roster.sort_values("Number")
+    pdf_team_roster[f"{team_name} Skater"] = pdf_team_roster["Number"].astype(str) + " " + pdf_team_roster["Name"]
+    if roster_has_pronouns:
+        pdf_team_roster[f"{team_name} Skater"] = (
+            pdf_team_roster[f"{team_name} Skater"] + " (" + pdf_team_roster["Pronouns"] + ")")
+        pdf_team_roster = pdf_team_roster.drop(columns=["Pronouns"])
+
+    team_number = 1 if team_name == derby_game.team_1_name else 2
+    if show_jammers_and_pivots:
+        pdf_jammer_counts = pd.DataFrame(derby_game.pdf_jams_data[f"jammer_number_{team_number}"].value_counts())
+        pdf_jammer_counts = pdf_jammer_counts.rename(columns={f"jammer_number_{team_number}": "Jammed"})
+        pdf_jammer_counts["Number"] = pdf_jammer_counts.index
+        pdf_team_roster = pdf_team_roster.merge(pdf_jammer_counts, on="Number", how="left")
+        pdf_team_roster["Jammed"] = pdf_team_roster["Jammed"].fillna(0).astype(int)
+        # now do pivot
+        pdf_pivot_counts = pd.DataFrame(derby_game.pdf_jams_data[f"pivot_number_{team_number}"].value_counts())
+        pdf_pivot_counts = pdf_pivot_counts.rename(columns={f"pivot_number_{team_number}": "Pivoted"})
+        pdf_pivot_counts["Number"] = pdf_pivot_counts.index
+        pdf_team_roster = pdf_team_roster.merge(pdf_pivot_counts, on="Number", how="left")
+        pdf_team_roster["Pivoted"] = pdf_team_roster["Pivoted"].fillna(0).astype(int)
+
+    pdf_team_roster = pdf_team_roster.drop(columns=["Number", "Name"])
+
+
+    return pdf_team_roster
