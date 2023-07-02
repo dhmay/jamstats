@@ -7,8 +7,8 @@ import argparse
 from jamstats.io.scoreboard_json_io import (
     load_derby_game_from_json_file)
 from jamstats.io import tsv_io
-from jamstats.plots.plot_together import save_game_plots_to_pdf
-from jamstats.plots import plot_together, jamplots, skaterplots, plot_util
+#from jamstats.plots.plot_together import save_game_plots_to_pdf
+from jamstats.plots import basic_plots, advanced_plots, plot_util
 from jamstats.util import resources
 from jamstats.data import json_to_pandas, game_data
 from jamstats.plots.plot_util import DEFAULT_THEME, VALID_THEMES
@@ -146,7 +146,7 @@ def __main__():
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(loglevel)
     stream_handler.setStream(sys.stdout)
-    for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data,
+    for mymodule in [basic_plots, advanced_plots, json_to_pandas, game_data,
                     plot_util, resources, scoreboard_server_io, statserver]:
         mymodule.logger.setLevel(loglevel)
         mymodule.logger.addHandler(stream_handler)

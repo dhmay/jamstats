@@ -9,8 +9,9 @@ from typing import Any, Iterable, Dict
 from textwrap import wrap
 import random
 from matplotlib.pyplot import Figure
+from pandas.api.types import CategoricalDtype
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 logger = logging.Logger(__name__)
 
@@ -27,13 +28,36 @@ VALID_THEMES = [
 # default maximum length of x labels
 DEFAULT_XLABEL_MAX_LEN = 15
 
+# ordered dtype so we can sort easily by penalty status
+PENALTYSTATUS_ORDER_DTYPE = cat_size_order = CategoricalDtype(
+    ['Serving', 'Not Yet', 'Served'], 
+    ordered=True
+)
 
-class DerbyPlot(ABCMeta):
-    """Base class for all plots
+class DerbyElement(ABC):
+    """Base class for all HTML elements
     """
-    def __init__(self) -> None:
-        self.name = "DerbyPlot"
-        pass
+    name: str = "DerbyElement"
+    description: str = "A Derby Element (plot, table, etc.)"
+    section: str = "Miscellaneous"
+    can_show_before_game_start: bool = False
+
+class DerbyPlot(DerbyElement):
+    name: str = "DerbyPlot"
+    description: str = "A Derby Plot"
+    section: str = "Plots"
+    can_render_html: bool = False
+
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        """Initialize the plot.
+
+        Args:
+            anonymize_names (bool, optional): Anonymize skater names? Defaults to False.
+            anonymize_teams (bool, optional): Anonymize team names? Defaults to False.
+        """
+        self.anonymize_names = anonymize_names
+        self.anonymize_teams = anonymize_teams
 
     def get_name(self) -> str:
         """Get the name of the plot.
@@ -53,6 +77,7 @@ class DerbyPlot(ABCMeta):
             Figure: matplotlib figure
         """
         pass
+
 
 
 def prepare_to_plot(theme:str = DEFAULT_THEME) -> None:

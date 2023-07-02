@@ -6,6 +6,7 @@ import pandas as pd
 import logging
 import numpy as np
 from pandas.io.formats.style import Styler
+from jamstats.plots.plot_util import (convert_millis_to_min_sec_str, PENALTYSTATUS_ORDER_DTYPE)
 
 DEFAULT_N_RECENT_PENALTIES = 10
 
@@ -13,12 +14,8 @@ logger = logging.Logger(__name__)
 
 
 class BothTeamsJammersTable(DerbyHTMLElement):
-    def __init__(self, anonymize_names: bool = False,
-                 anonymize_teams: bool = False) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
-                         anonymize_teams=anonymize_teams)
-        self.name = "Jammers"
-        self.description = "Summary tables with jammers for both teams"
+    name: str = "Jammers"
+    description: str = "Summary tables with jammers for both teams"
 
     def build_html(self, derby_game: DerbyGame) -> str: 
         """Build the table HTML
@@ -76,12 +73,8 @@ def get_oneteam_jammer_pdf(derby_game: DerbyGame, team_number: int,
 
 
 class BothTeamsSkaterPenaltiesTable(DerbyHTMLElement):
-    def __init__(self, anonymize_names: bool = False,
-                 anonymize_teams: bool = False) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
-                         anonymize_teams=anonymize_teams)
-        self.name = "Jammers"
-        self.description = "Summary tables with penalties per skater for both teams"
+    name: str = "All Penalties"
+    description: str = "Summary tables with penalties per skater for both teams"
 
     def build_html(self, derby_game: DerbyGame) -> str: 
         """ Get a html table of both teams' penalties
@@ -122,7 +115,7 @@ class BothTeamsSkaterPenaltiesTable(DerbyHTMLElement):
         return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
 
 
-def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, team_name: str,
+def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, teamname: str,
                                           anonymize_names: bool=False) -> pd.DataFrame:
     """Build a dataframe of skater penalties for one team
 
@@ -161,12 +154,9 @@ def build_oneteam_skaterpenaltycounts_pdf(derby_game: DerbyGame, team_name: str,
 class OfficialsRosterTable(DerbyTable):
     """Table with ref and NSO rosters
     """
-    def __init__(self, anonymize_names: bool = False,
-                 anonymize_teams: bool = False) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
-                         anonymize_teams=anonymize_teams)
-        self.name = "Officials Roster"
-        self.description = "Rosters of referees and NSOs"
+    name: str = "Officials Roster"
+    description: str = "Table with ref and NSO rosters"
+    can_show_before_game_start: bool = True
 
     def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
         """Combine the referee and NSO rosters into one table
@@ -177,21 +167,18 @@ class OfficialsRosterTable(DerbyTable):
         Returns:
             pd.DataFrame: Table with all officials
         """
-        pdf_allofficials_roster = pd.concat([derby_game.pdf_ref_roster,
-                                             derby_game.pdf_nso_roster], axis=1)
-        #TODO: make nice column names
+        pdf_allofficials_roster = pd.concat([
+            derby_game.pdf_ref_roster.rename(columns={"Name": "Referee"}),
+            derby_game.pdf_nso_roster.rename(columns={"Name": "NSO"})], axis=1)
         pdf_allofficials_roster = pdf_allofficials_roster.fillna("")
+        return pdf_allofficials_roster
 
 
 class CallerDashboard(DerbyHTMLElement):
     """Caller Dashboard
     """
-    def __init__(self, anonymize_names: bool = False,
-                 anonymize_teams: bool = False) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
-                         anonymize_teams=anonymize_teams)
-        self.name = "Caller Dashboard"
-        self.description = "Dashboard with info for announcers in one place"
+    name: str = "Caller Dashboard"
+    description: str = "Dashboard with info for callers in one place"
 
     def build_html(self, derby_game: DerbyGame) -> str: 
         """Build the HTML
@@ -265,6 +252,7 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
     Returns:
         str: html table
     """
+    
     pdf_jams_sorted_desc = derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"], ascending=False)
     pdf_jams_sorted_desc.index = range(len(pdf_jams_sorted_desc))
 
@@ -483,12 +471,8 @@ def get_game_summary_html(derby_game: DerbyGame) -> str:
 class GameSummaryTable(DerbyTable):
     """Table of game summary information
     """
-    def __init__(self, anonymize_names: bool = False,
-                 anonymize_teams: bool = False) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
-                         anonymize_teams=anonymize_teams)
-        self.name = "Game Summary"
-        self.description = "Basic summary data about the game"
+    name: str = "Game Summary"
+    description: str = "Basic summary data about the game"
 
     def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
         """Make a table figure out of the game summary dataframe,
@@ -507,12 +491,8 @@ class GameSummaryTable(DerbyTable):
 class GameTeamsSummaryTable(DerbyTable):
     """Table of game teams summary information
     """
-    def __init__(self, anonymize_names: bool = False,
-                 anonymize_teams: bool = False) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
-                         anonymize_teams=anonymize_teams)
-        self.name = "Game Teams Summary"
-        self.description = "Basic summary data about the teams"
+    name: str = "Teams Summary"
+    description: str = "Basic summary data about the teams"
 
     def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
         """Make a table figure out of the game summary dataframe,
@@ -534,14 +514,15 @@ class GameTeamsSummaryTable(DerbyTable):
 class RecentPenaltiesTable(DerbyTable):
     """Table with most recent penalties
     """
+    name: str = "Recent Penalties"
+    description: str = "Most recent penalties"
+
     def __init__(self, 
                  n_penalties_for_table: int = DEFAULT_N_RECENT_PENALTIES,
                  anonymize_names: bool = False,
                  anonymize_teams: bool = False) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
+        super(RecentPenaltiesTable, self).__init__(anonymize_names=anonymize_names,
                          anonymize_teams=anonymize_teams)
-        self.name = "Officials Roster"
-        self.description = "Rosters of referees and NSOs"
         self.n_penalties_for_table = n_penalties_for_table
 
     def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
@@ -558,7 +539,7 @@ class RecentPenaltiesTable(DerbyTable):
         if self.anonymize_names:
             name_dict = build_anonymizer_map(set(pdf_recent_penalties.Name))
             pdf_recent_penalties["Name"] = [name_dict[skater] for skater in pdf_recent_penalties.Name] 
-        # add colors
+        return pdf_recent_penalties
 
     def build_html(self, derby_game: DerbyGame) -> str: 
         """Build the table HTML: prepare the data, then style it.
@@ -619,12 +600,9 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
 class BothTeamsRosterTable(DerbyTable):
     """Table with ref and NSO rosters
     """
-    def __init__(self, anonymize_names: bool = False,
-                 anonymize_teams: bool = False) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
-                         anonymize_teams=anonymize_teams)
-        self.name = "Team Rosters"
-        self.description = "Rosters of both teams"
+    name: str = "Team Rosters"
+    description: str = "Rosters of both teams"
+    can_show_before_game_start: bool = True
 
     def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
         """Combine the referee and NSO rosters into one table
@@ -635,37 +613,11 @@ class BothTeamsRosterTable(DerbyTable):
         Returns:
             pd.DataFrame: Table with all officials
         """
-        pdf_team1_roster = format_team_roster_fordisplay(derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
+        pdf_team1_roster = format_team_roster_fordisplay(
+            derby_game, derby_game.team_1_name, anonymize_names=self.anonymize_names)
         pdf_team1_roster.index = range(len(pdf_team1_roster))
-        pdf_team2_roster = format_team_roster_fordisplay(derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
-        pdf_team2_roster.index = range(len(pdf_team2_roster))
-        pdf_bothteams_roster = pd.concat([pdf_team1_roster, pdf_team2_roster], axis=1)
-        pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
-        return pdf_bothteams_roster
-
-class OneTeamRosterTable(DerbyTable):
-    """Table with ref and NSO rosters
-    """
-    def __init__(self, anonymize_names: bool = False,
-                 anonymize_teams: bool = False,
-                 ) -> None:
-        super().__init__(self, anonymize_names=anonymize_names,
-                         anonymize_teams=anonymize_teams)
-        self.name = "Team Rosters"
-        self.description = "Rosters of both teams"
-
-    def prepare_table_dataframe(self, derby_game: DerbyGame) -> pd.DataFrame: 
-        """Combine the referee and NSO rosters into one table
-
-        Args:
-            derby_game (DerbyGame): Derby Game
-
-        Returns:
-            pd.DataFrame: Table with all officials
-        """
-        pdf_team1_roster = format_team_roster_fordisplay(derby_game, derby_game.team_1_name, anonymize_names=anonymize_names)
-        pdf_team1_roster.index = range(len(pdf_team1_roster))
-        pdf_team2_roster = format_team_roster_fordisplay(derby_game, derby_game.team_2_name, anonymize_names=anonymize_names)
+        pdf_team2_roster = format_team_roster_fordisplay(
+            derby_game, derby_game.team_2_name, anonymize_names=self.anonymize_names)
         pdf_team2_roster.index = range(len(pdf_team2_roster))
         pdf_bothteams_roster = pd.concat([pdf_team1_roster, pdf_team2_roster], axis=1)
         pdf_bothteams_roster = pdf_bothteams_roster.fillna("")
