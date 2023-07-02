@@ -508,8 +508,12 @@ class GameTeamsSummaryTable(DerbyTable):
         """
         pdf_game_teams_summary = derby_game.extract_game_teams_summary().transpose()
         pdf_game_teams_summary = pdf_game_teams_summary.rename({"n_scoring_trips": "Scoring trips"})
-        pdf_game_teams_summary["asdf"] = pdf_game_teams_summary.index
-        pdf_game_teams_summary = pdf_game_teams_summary[["asdf", 0, 1]]
+        pdf_game_teams_summary["Value"] = pdf_game_teams_summary.index
+        pdf_game_teams_summary = pdf_game_teams_summary[["Value", 0, 1]]
+        pdf_game_teams_summary = pdf_game_teams_summary.rename(columns={
+            0: derby_game.team_1_name,
+            1: derby_game.team_2_name,
+        })
         return pdf_game_teams_summary
 
 

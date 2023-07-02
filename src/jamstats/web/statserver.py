@@ -31,6 +31,13 @@ from jamstats.plots.basic_plots import (
     SimpleLeadSummaryPlot,
 )
 
+from jamstats.plots.advanced_plots import (
+    PerJamDataPeriod1Plot,
+    PerJamDataPeriod2Plot,
+    TimeToInitialPassPlot,
+    JammersByTeamPlot,
+)
+
 import matplotlib
 from datetime import datetime
 import io
@@ -71,6 +78,7 @@ ELEMENTS_CLASSES = [
     BothTeamsJammersTable,
     BothTeamsRosterTable,
     OfficialsRosterTable,
+    # basic plots
     CumScoreByJamPlot,
     JammerStatsPlotTeam1,
     JammerStatsPlotTeam2,
@@ -78,6 +86,11 @@ ELEMENTS_CLASSES = [
     SkaterStatsPlotTeam2,
     PenaltyCountsPlotByTeam,
     SimpleLeadSummaryPlot,
+    # advanced plots
+    PerJamDataPeriod1Plot,
+    PerJamDataPeriod2Plot,
+    TimeToInitialPassPlot,
+    JammersByTeamPlot,
 ]
 
 
