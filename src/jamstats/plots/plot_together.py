@@ -1,7 +1,6 @@
 __author__ = "Damon May"
 
 from typing import List
-from matplotlib.figure import Figure
 from jamstats.data.game_data import DerbyGame
 import logging
 from jamstats.tables.jamstats_tables import (
@@ -28,7 +27,6 @@ from jamstats.plots.advanced_plots import (
 from jamstats.plots.plot_util import prepare_to_plot, DEFAULT_THEME
 from jamstats.util.resources import (
     get_jamstats_logo_image,
-    get_jamstats_version
 )
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
@@ -58,17 +56,10 @@ ELEMENTS_CLASSES = [
 
 logger = logging.Logger(__name__)
 
-def save_game_plots_to_pdf(derby_game: DerbyGame,
-                           out_filepath: str,
-                           anonymize_names: bool = False,
-                           theme: str = DEFAULT_THEME) -> None:
-    """Read in a jams .tsv file, make all the plots, write to a .pdf
 
-    Args:
-        in_filepath (str): jams .tsv filepath
-        out_filepath (str): output .pdf filepath
-        anonymize_names (bool): anonymize skater names
-    """
+def make_all_plots(derby_game: DerbyGame,
+                   anonymize_names: bool = False,
+                   theme: str = DEFAULT_THEME) -> List[plt.Figure]:
     prepare_to_plot(theme=theme)
     figures = []
     for element_class in ELEMENTS_CLASSES:
@@ -84,7 +75,21 @@ def save_game_plots_to_pdf(derby_game: DerbyGame,
         if aclass.section == "Tables":
             newax = f.add_axes([0.425,0.9,0.15,0.15], anchor='SE', zorder=1)
             newax.axis('off')
-            newax.imshow(im)
+            newax.imshow(im)    
+    return figures
+
+def save_game_plots_to_pdf(derby_game: DerbyGame,
+                           out_filepath: str,
+                           anonymize_names: bool = False,
+                           theme: str = DEFAULT_THEME) -> None:
+    """Read in a jams .tsv file, make all the plots, write to a .pdf
+
+    Args:
+        in_filepath (str): jams .tsv filepath
+        out_filepath (str): output .pdf filepath
+        anonymize_names (bool): anonymize skater names
+    """
+    figures = make_all_plots(derby_game, anonymize_names=anonymize_names, theme=theme)
 
     pdfout = PdfPages(out_filepath)
     logging.debug(f"Saving {len(figures)} figures to {out_filepath}")

@@ -4,11 +4,9 @@ __author__ = "Damon May"
 
 
 import argparse
-from jamstats.io.scoreboard_json_io import (
-    load_derby_game_from_json_file, load_inprogress_game_from_server)
-from jamstats.io import tsv_io
 from jamstats.plots.plot_together import save_game_plots_to_pdf
-from jamstats.plots import plot_together, jamplots, skaterplots, plot_util
+from jamstats.plots import plot_together, basic_plots, advanced_plots, plot_util
+from jamstats.tables import jamstats_tables
 from jamstats.util import resources
 from jamstats.data import json_to_pandas, game_data
 from jamstats.plots.plot_util import DEFAULT_THEME, VALID_THEMES
@@ -41,7 +39,7 @@ if args.debug:
     stream_handler.setStream(sys.stdout)
 
     logger.warning("Enabling debug logging.")
-    for mymodule in [plot_together, jamplots, skaterplots, json_to_pandas, game_data,
+    for mymodule in [plot_together, basic_plots, advanced_plots, jamstats_tables, json_to_pandas, game_data,
                      plot_util, resources, jamstats_web]:
         mymodule.logger.setLevel(logging.DEBUG)
         mymodule.logger.addHandler(stream_handler)
