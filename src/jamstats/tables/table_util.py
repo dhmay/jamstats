@@ -3,10 +3,12 @@ __author__ = "Damon May"
 
 from jamstats.data.game_data import DerbyGame
 import logging
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 import pandas as pd
 from pandas.io.formats.style import Styler
 from jamstats.plots.plot_util import DerbyElement
+from matplotlib.figure import Figure
+from matplotlib import pyplot as plt
 
 logger = logging.Logger(__name__)
 
@@ -79,4 +81,18 @@ class DerbyTable(DerbyHTMLElement):
         pdf_table = self.prepare_table_dataframe(derby_game)
         styler = self.prepare_table_styler(derby_game, pdf_table)
         return styler.to_html()
+
+    def plot(self, derby_game: DerbyGame, width=8, height=8) -> Figure: 
+        """Plot the table using the passed-in DerbyGame.
+
+        Args:
+            derby_game (DerbyGame): Derby Game
+        """
+        pdf_table = self.prepare_table_dataframe(derby_game)
+        f = plt.figure(figsize=(width, height))
+        ax = plt.subplot(111)
+        ax.axis('off')
+        ax.table(cellText=pdf_table.values,
+                colLabels=pdf_table.columns, bbox=[0,0,1,1])
+        return f
 

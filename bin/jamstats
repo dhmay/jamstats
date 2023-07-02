@@ -25,7 +25,7 @@ from attrdict import AttrDict
 import time
 import sys, traceback
 import _thread
-import websocket
+from jamstats.plots.plot_together import save_game_plots_to_pdf
 
 logger = logging.Logger(__name__)
 

@@ -604,7 +604,7 @@ def make_recent_penalties_dataframe(derby_game: DerbyGame,
 
 
 class BothTeamsRosterTable(DerbyTable):
-    """Table with ref and NSO rosters
+    """Table with rosters for both teams
     """
     name: str = "Team Rosters"
     description: str = "Rosters of both teams"
