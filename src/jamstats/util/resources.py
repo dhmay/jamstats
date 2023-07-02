@@ -59,14 +59,14 @@ def get_resource(resource_filename: str) -> Any:
     if resource_filename not in resource_file_dict:
         if hasattr(sys, '_MEIPASS'):
             # we appear to be running from a pyinstaller bundle
-            logger.debug("Loading image from MEIPASS")
+            #logger.debug("Loading image from MEIPASS")
             bundle_dir = getattr(sys, '_MEIPASS')
             path_to_logo = os.path.abspath(os.path.join(bundle_dir, resource_filename))
             with open(path_to_logo, 'rb' if is_binary else 'r') as f:
                 resource_file_dict[resource_filename] = f.read()
         else:
             # we appear to be running from source
-            logger.debug("Loading image from source")
+            #logger.debug("Loading image from source")
             with importlib_resources.path('jamstats.resources', resource_filename) as path:
                 contents = path.read_bytes() if is_binary else path.read_text()
                 resource_file_dict[resource_filename] = contents

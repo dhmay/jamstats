@@ -17,6 +17,7 @@ class DerbyHTMLElement(DerbyElement):
     name: str = "DerbyHTMLElement"
     description: str = "A Derby HTML Element"
     can_render_html: bool = True
+    section = "Miscellaneous"
 
     def __init__(self, anonymize_names: bool = False,
                  anonymize_teams: bool = False) -> None:

@@ -12,91 +12,95 @@ from jamstats.plots.plot_util import (
     wordwrap_x_labels
 )
 import matplotlib.patches as mpatches
-from jamstats.plots.plot_util import build_anonymizer_map
-
-from pandas.api.types import CategoricalDtype
+from jamstats.plots.plot_util import build_anonymizer_map, DerbyPlot
+from matplotlib.pyplot import Figure
 
 
 logger = logging.Logger(__name__)
 
 
-# ordered dtype so we can sort easily by penalty status
-PENALTYSTATUS_ORDER_DTYPE = cat_size_order = CategoricalDtype(
-    ['Serving', 'Not Yet', 'Served'], 
-    ordered=True
-)
+class JammerStatsPlotOneTeam(DerbyPlot):
+    name = "JammerStatsPlotOneTeam"
+    description = "Jammer stats for one team"
+    section = "Basic Plots"
 
-def plot_jammer_stats_team1(derby_game: DerbyGame,
-                            anonymize_names: bool = False) -> Figure:
-    return plot_jammer_stats(derby_game, 1, anonymize_names=anonymize_names)
+    def __init__(self, team_number: int, anonymize_names: bool = False) -> None:
+        super(JammerStatsPlotOneTeam, self).__init__(anonymize_names=anonymize_names)
+        self.team_number = team_number
+
+    def plot(self, derby_game: DerbyGame) -> Figure:
+        """Plot jammer stats for one team's jammers
+
+        Args:
+            derby_game (DerbyGame): derby game
+            team_number (int): team number
+            anonymize_names (bool): anonymize skater names
+
+        Returns:
+            Figure: figure
+        """
+        team_name = derby_game.team_1_name if self.team_number == 1 else derby_game.team_2_name
+        pdf_jammer_data = derby_game.build_team_jammersummary_df(self.team_number)
+
+        if self.anonymize_names:
+            logger.debug("Anonymizing skater names.")
+            name_dict = build_anonymizer_map(set(pdf_jammer_data.Jammer))
+            pdf_jammer_data["Jammer"] = [name_dict[jammer] for jammer in pdf_jammer_data.Jammer]
+
+        pdf_jammer_data = pdf_jammer_data.sort_values(["Jams", "Total Score"], ascending=False)
+
+        f, (ax0, ax1, ax2, ax3, ax4) = plt.subplots(1, 5)
+
+        # build a palette that'll be the same for both teams
+        max_n_jammers = max([len(set(derby_game.pdf_jams_data.jammer_name_1)),
+                            len(set(derby_game.pdf_jams_data.jammer_name_2))])
+        mypalette = sns.color_palette("rainbow", n_colors=max_n_jammers)
+
+        ax = ax0
+        sns.barplot(y="Jammer", x="Jams", data=pdf_jammer_data, ax=ax, palette=mypalette)
+        ax.set_ylabel("")
+
+        ax = ax1
+        sns.barplot(y="Jammer", x="Total Score", data=pdf_jammer_data, ax=ax, palette=mypalette)
+        ax.set_yticks([])
+        ax.set_ylabel("")
+
+        ax = ax2
+        sns.barplot(y="Jammer", x="Mean Net Points",
+                data=pdf_jammer_data, ax=ax, palette=mypalette)
+        ax.set_xlabel("Mean Net Points/Jam\n(own - opposing)")
+        ax.set_yticks([])
+        ax.set_ylabel("")
+
+        ax = ax3
+        sns.barplot(y="Jammer", x="Proportion Lead", data=pdf_jammer_data, ax=ax, palette=mypalette)
+        ax.set_xlim(0,1)
+        ax.set_yticks([])
+        ax.set_ylabel("")
+
+        ax = ax4
+        sns.barplot(y="Jammer", x="Mean Time to Initial", data=pdf_jammer_data, ax=ax, palette=mypalette)
+        ax.set_yticks([])
+        ax.set_ylabel("")
+
+        f.set_size_inches(16, min(2 + len(pdf_jammer_data), 11))
+        f.suptitle(f"Jammer Stats: {team_name}")
+        f.tight_layout()
+
+        return f
 
 
-def plot_jammer_stats_team2(derby_game: DerbyGame,
-                            anonymize_names: bool = False) -> Figure:
-    return plot_jammer_stats(derby_game, 2, anonymize_names=anonymize_names)
+class JammerStatsPlotTeam1(JammerStatsPlotOneTeam):
+    name: str = "Team 1 Jammers"
+    description: str = "Jammer stats for team 1"
+    def __init__(self, anonymize_names: bool = False) -> None:
+        super(JammerStatsPlotTeam1, self).__init__(1, anonymize_names=anonymize_names)
 
-
-def plot_jammer_stats(derby_game: DerbyGame, team_number: int,
-                      anonymize_names: bool = False) -> Figure:
-    """Plot jammer stats for one team's jammers
-
-    Args:
-        derby_game (DerbyGame): derby game
-        team_number (int): team number
-        anonymize_names (bool): anonymize skater names
-
-    Returns:
-        Figure: figure
-    """
-    team_name = derby_game.team_1_name if team_number == 1 else derby_game.team_2_name
-    pdf_jammer_data = derby_game.build_team_jammersummary_df(team_number)
-
-    if anonymize_names:
-        logger.debug("Anonymizing skater names.")
-        name_dict = build_anonymizer_map(set(pdf_jammer_data.Jammer))
-        pdf_jammer_data["Jammer"] = [name_dict[jammer] for jammer in pdf_jammer_data.Jammer]
-
-    pdf_jammer_data = pdf_jammer_data.sort_values(["Jams", "Total Score"], ascending=False)
-
-    f, (ax0, ax1, ax2, ax3, ax4) = plt.subplots(1, 5)
-
-    # build a palette that'll be the same for both teams
-    max_n_jammers = max([len(set(derby_game.pdf_jams_data.jammer_name_1)),
-                         len(set(derby_game.pdf_jams_data.jammer_name_2))])
-    mypalette = sns.color_palette("rainbow", n_colors=max_n_jammers)
-
-    ax = ax0
-    sns.barplot(y="Jammer", x="Jams", data=pdf_jammer_data, ax=ax, palette=mypalette)
-    ax.set_ylabel("")
-
-    ax = ax1
-    sns.barplot(y="Jammer", x="Total Score", data=pdf_jammer_data, ax=ax, palette=mypalette)
-    ax.set_yticks([])
-    ax.set_ylabel("")
-
-    ax = ax2
-    sns.barplot(y="Jammer", x="Mean Net Points",
-            data=pdf_jammer_data, ax=ax, palette=mypalette)
-    ax.set_xlabel("Mean Net Points/Jam\n(own - opposing)")
-    ax.set_yticks([])
-    ax.set_ylabel("")
-
-    ax = ax3
-    sns.barplot(y="Jammer", x="Proportion Lead", data=pdf_jammer_data, ax=ax, palette=mypalette)
-    ax.set_xlim(0,1)
-    ax.set_yticks([])
-    ax.set_ylabel("")
-
-    ax = ax4
-    sns.barplot(y="Jammer", x="Mean Time to Initial", data=pdf_jammer_data, ax=ax, palette=mypalette)
-    ax.set_yticks([])
-    ax.set_ylabel("")
-
-    f.set_size_inches(16, min(2 + len(pdf_jammer_data), 11))
-    f.suptitle(f"Jammer Stats: {team_name}")
-    f.tight_layout()
-
-    return f
+class JammerStatsPlotTeam2(JammerStatsPlotOneTeam):
+    name: str = "Team 2 Jammers"
+    description: str = "Jammer stats for team 2"
+    def __init__(self, anonymize_names: bool = False) -> None:
+        super(JammerStatsPlotTeam2, self).__init__(1, anonymize_names=anonymize_names)
 
 
 def plot_roster_with_jammerpivot(derby_game: DerbyGame) -> Figure:

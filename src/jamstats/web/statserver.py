@@ -8,7 +8,6 @@ from jamstats.util.resources import (
 )
 from jamstats.data.json_to_pandas import load_json_derby_game
 from jamstats.io.scoreboard_server_io import ScoreboardClient, GameStateListener
-import inspect
 import time
 import threading
 import traceback
@@ -21,6 +20,10 @@ from jamstats.tables.jamstats_tables import (
     GameTeamsSummaryTable,
     RecentPenaltiesTable,
     BothTeamsRosterTable,
+)
+from jamstats.plots.basic_plots import (
+    JammerStatsPlotTeam1,
+    JammerStatsPlotTeam2,
 )
 
 import matplotlib
@@ -63,6 +66,8 @@ ELEMENTS_CLASSES = [
     BothTeamsJammersTable,
     BothTeamsRosterTable,
     OfficialsRosterTable,
+    JammerStatsPlotTeam1,
+    JammerStatsPlotTeam2,
 ]
 
 ELEMENT_NAME_CLASS_MAP = {element_class.name: element_class for element_class in ELEMENTS_CLASSES}
@@ -338,6 +343,7 @@ def plot_figure(plot_name: str):
     Args:
         plot_name (str): name of plot to plot
     """
+    logger.debug(f"plot_figure: {plot_name}")
     if app.derby_game is None:
         return "No derby game set."
 
@@ -349,16 +355,9 @@ def plot_figure(plot_name: str):
     if should_rebuild: 
         logger.debug(f"Rebuilding {plot_name}")
 
-        plotfunc = PLOT_NAME_FUNC_MAP[plot_name]
-
-        # add anonymize arg if the function has it
-        kwargs = {}
-        sig = inspect.signature(plotfunc)
-
-        if "anonymize_names" in sig.parameters:
-            kwargs["anonymize_names"] = app.anonymize_names
-
-        f = plotfunc(app.derby_game, **kwargs)
+        plot_class = ELEMENT_NAME_CLASS_MAP[plot_name]
+        plot_obj = plot_class(anonymize_names=app.anonymize_names)
+        f = plot_obj.plot(app.derby_game)
 
         app.plotname_image_map[plot_name] = f
         app.plotname_time_map[plot_name] = datetime.now() 
