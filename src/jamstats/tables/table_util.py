@@ -41,7 +41,8 @@ class DerbyHTMLElement(DerbyElement):
 
 class DerbyTable(DerbyHTMLElement):
     """Base class for all Tables.
-    A DerbyTable is a special HTMLElement that represents the data in a Pandas DataFrame.
+    A DerbyTable is a special HTMLElement that represents the data in a Pandas DataFrame and
+    can be rendered as an HTML table or plotted as a figure.
     """
     name = "DerbyTable"
     description = "A Derby Table"

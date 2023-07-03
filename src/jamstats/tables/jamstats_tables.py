@@ -456,20 +456,6 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     return pdf_team_current_skaters
 
 
-def get_game_summary_html(derby_game: DerbyGame) -> str:
-    """Get a game summary table as html
-
-    Args:
-        derby_game (DebyGame): derby game
-
-    Returns:
-        str: html table
-    """
-    pdf_game_summary = derby_game.extract_game_summary()
-    styler = pdf_game_summary.style.set_table_attributes("style='display:inline'").hide_index()
-    return styler.render()
-
-
 class GameSummaryTable(DerbyTable):
     """Table of game summary information
     """

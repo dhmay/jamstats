@@ -70,6 +70,12 @@ app.socketio = None
 logger.info("Flask app built.")
 app.jamstats_plots = None
 
+# This list of elements defines which elements will be shown in the UI.
+# It also defines the order in which elements are shown, but that's *not*
+# necessarily the order they appear here. Stictly, it's:
+# * by section, in the order in which sections appear in this list
+# * by the order defined here *within* each section.
+# ELEMENT_NAME_CLASS_MAP, etc., are defined by parsing this list.
 ELEMENTS_CLASSES = [
     CallerDashboard,
     GameTeamsSummaryTable,
@@ -93,20 +99,16 @@ ELEMENTS_CLASSES = [
     JammersByTeamPlot,
 ]
 
-
+# map from element name to element class
 ELEMENT_NAME_CLASS_MAP = {element_class.name: element_class for element_class in ELEMENTS_CLASSES}
 
+# which elements should be shown before the game starts?
 ELEMENT_NAMES_TO_SHOW_BEFORE_GAME_START = [
     name for name in ELEMENT_NAME_CLASS_MAP
      if ELEMENT_NAME_CLASS_MAP[name].can_show_before_game_start
 ]
 
-PLOT_SECTION_NAME_FUNC_MAP = {
-}
-PLOT_NAME_FUNC_MAP = {}
-for section_name, amap in PLOT_SECTION_NAME_FUNC_MAP.items():
-    for name, func in amap.items():
-        PLOT_NAME_FUNC_MAP[name] = func
+# map from section name to element names in the section
 SECTION_ELEMENTNAMES_MAP = {}
 for element_name, element_class in ELEMENT_NAME_CLASS_MAP.items():
     section_name = element_class.section
@@ -114,8 +116,8 @@ for element_name, element_class in ELEMENT_NAME_CLASS_MAP.items():
         SECTION_ELEMENTNAMES_MAP[section_name] = []
     SECTION_ELEMENTNAMES_MAP[section_name].append(element_name)
 
+# all element names
 ALL_ELEMENT_NAMES = list(ELEMENT_NAME_CLASS_MAP.keys())
-
 
 class UpdateWebclientGameStateListener(GameStateListener):
     def __init__(self, min_refresh_secs, socketio):
@@ -272,7 +274,6 @@ def index():
                    .replace("Team 2", app.derby_game.team_2_name))
         for element_name in ELEMENT_NAME_CLASS_MAP.keys()
     }
-    logger.debug(f"about to render template with ELEMENT_NAME_CLASS_MAP={ELEMENT_NAME_CLASS_MAP}")
 
     # determine which plots we're allowed to show
     elements_allowed = list(ELEMENT_NAME_CLASS_MAP.keys())

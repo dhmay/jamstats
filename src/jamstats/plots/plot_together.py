@@ -78,6 +78,7 @@ def make_all_plots(derby_game: DerbyGame,
             newax.imshow(im)    
     return figures
 
+
 def save_game_plots_to_pdf(derby_game: DerbyGame,
                            out_filepath: str,
                            anonymize_names: bool = False,

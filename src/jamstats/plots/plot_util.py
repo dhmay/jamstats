@@ -35,7 +35,14 @@ PENALTYSTATUS_ORDER_DTYPE = cat_size_order = CategoricalDtype(
 )
 
 class DerbyElement(ABC):
-    """Base class for all HTML elements
+    """Base class for all HTML elements and plots. This class represents something that
+    can be rendered to represent information about a derby game.
+
+    name: name that will be used to refer to this element in code and on screen
+    description: description of the element, freeform
+    section: section of the UI where this element will be displayed
+    can_show_before_game_start: can this element be displayed before the game starts? At time of
+        writing, this is only true for the rosters
     """
     name: str = "DerbyElement"
     description: str = "A Derby Element (plot, table, etc.)"
@@ -43,6 +50,8 @@ class DerbyElement(ABC):
     can_show_before_game_start: bool = False
 
 class DerbyPlot(DerbyElement):
+    """Base class for all plots.
+    """
     name: str = "DerbyPlot"
     description: str = "A Derby Plot"
     section: str = "Plots"
@@ -77,7 +86,6 @@ class DerbyPlot(DerbyElement):
             Figure: matplotlib figure
         """
         pass
-
 
 
 def prepare_to_plot(theme:str = DEFAULT_THEME) -> None:
