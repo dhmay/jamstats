@@ -74,7 +74,7 @@ td {
                             {% for section in section_name_map %}
                                 <b>{{section}}</b><br/>
                                 {% for plot_name_forlink in section_name_map[section] %}
-                                    {% if plot_name_forlink == plot_name %}
+                                    {% if plot_name_forlink == element_name %}
                                         {{plotname_displayname_map[plot_name_forlink]}}
                                     {% else %}
                                         <a href='/?plot_name={{plot_name_forlink}}'>
@@ -104,15 +104,15 @@ td {
                     <tr>
                         <td width="100%" valign="top">
 
-                            <p><b>{{plotname_displayname_map[plot_name]}}</b></p>
-                            {% if plot_name in plots_allowed %}
-                                {% if plotname_type_map[plot_name] == "html" %}
-                                    <p>{{plotname_func_map[plot_name](derby_game, anonymize_names=anonymize_names) | safe}}</object></p>
+                            <p><b>{{plotname_displayname_map[element_name]}}</b></p>
+                            {% if element_name in plots_allowed %}
+                                {% if element.can_render_html %}
+                                    <p>{{element.build_html(derby_game) | safe}}</object></p>
                                 {% else %}
-                                    <p><img src="fig/{{plot_name}}" style="max-width:1000px;max-height:1000px"/>
+                                    <p><img src="fig/{{element_name}}" style="max-width:1000px;max-height:1000px"/>
                                 {% endif %}
                             {% else %}
-                                <p><H2>Game hasn't started yet</H2></p>
+                                <p><H2>Can't display {{plotname_displayname_map[element_name]}} right now</H2></p>
                             {% endif %}
                         </td>
                     </tr>

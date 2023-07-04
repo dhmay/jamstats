@@ -8,6 +8,10 @@ from matplotlib import pyplot as plt
 from typing import Any, Iterable, Dict
 from textwrap import wrap
 import random
+from matplotlib.pyplot import Figure
+from pandas.api.types import CategoricalDtype
+
+from abc import ABC, abstractmethod
 
 logger = logging.Logger(__name__)
 
@@ -24,8 +28,65 @@ VALID_THEMES = [
 # default maximum length of x labels
 DEFAULT_XLABEL_MAX_LEN = 15
 
-resource_file_dict = {
-}
+# ordered dtype so we can sort easily by penalty status
+PENALTYSTATUS_ORDER_DTYPE = cat_size_order = CategoricalDtype(
+    ['Serving', 'Not Yet', 'Served'], 
+    ordered=True
+)
+
+class DerbyElement(ABC):
+    """Base class for all HTML elements and plots. This class represents something that
+    can be rendered to represent information about a derby game.
+
+    name: name that will be used to refer to this element in code and on screen
+    description: description of the element, freeform
+    section: section of the UI where this element will be displayed
+    can_show_before_game_start: can this element be displayed before the game starts? At time of
+        writing, this is only true for the rosters
+    """
+    name: str = "DerbyElement"
+    description: str = "A Derby Element (plot, table, etc.)"
+    section: str = "Miscellaneous"
+    can_show_before_game_start: bool = False
+
+class DerbyPlot(DerbyElement):
+    """Base class for all plots.
+    """
+    name: str = "DerbyPlot"
+    description: str = "A Derby Plot"
+    section: str = "Plots"
+    can_render_html: bool = False
+
+    def __init__(self, anonymize_names: bool = False,
+                 anonymize_teams: bool = False) -> None:
+        """Initialize the plot.
+
+        Args:
+            anonymize_names (bool, optional): Anonymize skater names? Defaults to False.
+            anonymize_teams (bool, optional): Anonymize team names? Defaults to False.
+        """
+        self.anonymize_names = anonymize_names
+        self.anonymize_teams = anonymize_teams
+
+    def get_name(self) -> str:
+        """Get the name of the plot.
+        Returns:
+            str: name
+        """
+        return self.name
+
+    @abstractmethod
+    def plot(self, derby_game: DerbyGame) -> Figure: 
+        """Plot the plot using the passed-in DerbyGame.
+
+        Args:
+            derby_game (DerbyGame): Derby Game
+
+        Returns:
+            Figure: matplotlib figure
+        """
+        pass
+
 
 def prepare_to_plot(theme:str = DEFAULT_THEME) -> None:
     """Prepare Seaborn to make pretty plots.

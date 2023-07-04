@@ -8,33 +8,36 @@ from jamstats.util.resources import (
 )
 from jamstats.data.json_to_pandas import load_json_derby_game
 from jamstats.io.scoreboard_server_io import ScoreboardClient, GameStateListener
-import inspect
 import time
 import threading
 import traceback
-from engineio.async_drivers import gevent
 
-from jamstats.plots.jamplots import (
-        get_game_teams_summary_html,
-        plot_cumulative_score_by_jam,
-        plot_jam_lead_and_scores_period1,    
-        plot_jam_lead_and_scores_period2,
-        plot_jammers_by_team,
-        plot_lead_summary,
-        plot_team_penalty_counts,
-        get_recent_penalties_html,
-        get_bothteams_roster_html,
-        get_officials_roster_html,
-        get_caller_dashboard_html
+from jamstats.tables.jamstats_tables import (
+    BothTeamsJammersTable,
+    BothTeamsSkaterPenaltiesTable,
+    OfficialsRosterTable,
+    CallerDashboard,
+    GameTeamsSummaryTable,
+    RecentPenaltiesTable,
+    BothTeamsRosterTable,
 )
-from jamstats.plots.skaterplots import (
-    plot_jammer_stats_team1,
-    plot_jammer_stats_team2,
-    plot_skater_stats_team1,
-    plot_skater_stats_team2,
-    get_bothteams_skaterpenalties_html,
-    get_bothteams_jammertable_html
+from jamstats.plots.basic_plots import (
+    CumScoreByJamPlot,
+    JammerStatsPlotTeam1,
+    JammerStatsPlotTeam2,
+    SkaterStatsPlotTeam1,
+    SkaterStatsPlotTeam2,
+    PenaltyCountsPlotByTeam,
+    SimpleLeadSummaryPlot,
 )
+
+from jamstats.plots.advanced_plots import (
+    PerJamDataPeriod1Plot,
+    PerJamDataPeriod2Plot,
+    TimeToInitialPassPlot,
+    JammersByTeamPlot,
+)
+
 import matplotlib
 from datetime import datetime
 import io
@@ -67,52 +70,54 @@ app.socketio = None
 logger.info("Flask app built.")
 app.jamstats_plots = None
 
-PLOT_SECTION_NAME_FUNC_MAP = {
-    "Tables": {
-        "Caller Dashboard": get_caller_dashboard_html,
-#        "Current Skaters": get_current_skaters_html,
-        "Teams Summary": get_game_teams_summary_html,
-        "Recent Penalties": get_recent_penalties_html,
-        "All Penalties": get_bothteams_skaterpenalties_html,
-        "Jammers": get_bothteams_jammertable_html,
-        "Team Rosters": get_bothteams_roster_html,
-        "Officials Roster": get_officials_roster_html,
-    },
-    "Basic Plots": {
-        "Score by Jam": plot_cumulative_score_by_jam,
-        "Team Penalty Counts": plot_team_penalty_counts,
-        "Team 1 Jammers": plot_jammer_stats_team1,
-        "Team 2 Jammers": plot_jammer_stats_team2,
-        "Team 1 Skaters": plot_skater_stats_team1,
-        "Team 2 Skaters": plot_skater_stats_team2,
-    },
-    "Advanced Plots": {
-        "Lead Summary": plot_lead_summary,
-        "Jam Details (Period 1)": plot_jam_lead_and_scores_period1,
-        "Jam Details (Period 2)": plot_jam_lead_and_scores_period2,
-        "Jammer Summary": plot_jammers_by_team,
-    }
-    #    "Jam Duration": histogram_jam_duration,
-}
-PLOT_NAME_FUNC_MAP = {}
-for section_name, amap in PLOT_SECTION_NAME_FUNC_MAP.items():
-    for name, func in amap.items():
-        PLOT_NAME_FUNC_MAP[name] = func
-PLOT_SECTION_NAMES_MAP = {
-    section: list(amap.keys()) for section, amap in PLOT_SECTION_NAME_FUNC_MAP.items()
-}
-ALL_PLOT_NAMES = list(PLOT_NAME_FUNC_MAP.keys())
-
-HTML_PLOT_NAMES = list(PLOT_SECTION_NAME_FUNC_MAP["Tables"].keys())
-PLOT_NAME_TYPE_MAP = {
-    plot_name: "html" if plot_name in HTML_PLOT_NAMES else "figure"
-    for plot_name in ALL_PLOT_NAMES
-}
-
-PLOT_NAMES_TO_SHOW_BEFORE_GAME_START = [
-    "Team Rosters",
-    "Officials Roster",
+# This list of elements defines which elements will be shown in the UI.
+# It also defines the order in which elements are shown, but that's *not*
+# necessarily the order they appear here. Stictly, it's:
+# * by section, in the order in which sections appear in this list
+# * by the order defined here *within* each section.
+# ELEMENT_NAME_CLASS_MAP, etc., are defined by parsing this list.
+ELEMENTS_CLASSES = [
+    CallerDashboard,
+    GameTeamsSummaryTable,
+    RecentPenaltiesTable,
+    BothTeamsSkaterPenaltiesTable,
+    BothTeamsJammersTable,
+    BothTeamsRosterTable,
+    OfficialsRosterTable,
+    # basic plots
+    CumScoreByJamPlot,
+    JammerStatsPlotTeam1,
+    JammerStatsPlotTeam2,
+    SkaterStatsPlotTeam1,
+    SkaterStatsPlotTeam2,
+    PenaltyCountsPlotByTeam,
+    SimpleLeadSummaryPlot,
+    # advanced plots
+    PerJamDataPeriod1Plot,
+    PerJamDataPeriod2Plot,
+    TimeToInitialPassPlot,
+    JammersByTeamPlot,
 ]
+
+# map from element name to element class
+ELEMENT_NAME_CLASS_MAP = {element_class.name: element_class for element_class in ELEMENTS_CLASSES}
+
+# which elements should be shown before the game starts?
+ELEMENT_NAMES_TO_SHOW_BEFORE_GAME_START = [
+    name for name in ELEMENT_NAME_CLASS_MAP
+     if ELEMENT_NAME_CLASS_MAP[name].can_show_before_game_start
+]
+
+# map from section name to element names in the section
+SECTION_ELEMENTNAMES_MAP = {}
+for element_name, element_class in ELEMENT_NAME_CLASS_MAP.items():
+    section_name = element_class.section
+    if section_name not in SECTION_ELEMENTNAMES_MAP:
+        SECTION_ELEMENTNAMES_MAP[section_name] = []
+    SECTION_ELEMENTNAMES_MAP[section_name].append(element_name)
+
+# all element names
+ALL_ELEMENT_NAMES = list(ELEMENT_NAME_CLASS_MAP.keys())
 
 class UpdateWebclientGameStateListener(GameStateListener):
     def __init__(self, min_refresh_secs, socketio):
@@ -196,7 +201,6 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     #app.run(host=app.ip, port=port, debug=debug)
 
 
-
 def set_game(derby_game: DerbyGame):
     app.derby_game = derby_game
     app.game_update_time = datetime.now()
@@ -262,33 +266,40 @@ def index():
 
     game_update_time_str = app.game_update_time.strftime("%Y-%m-%d, %H:%M:%S")
 
-    plot_name = request.args["plot_name"] if "plot_name" in request.args else "Team Rosters"
+    element_name = request.args["plot_name"] if "plot_name" in request.args else "Team Rosters"
 
-    plotname_displayname_map = {
-        plotname: (plotname.replace("Team 1", app.derby_game.team_1_name)
-                   .replace("Team 2", app.derby_game.team_2_name))
-        for plotname in ALL_PLOT_NAMES
-    }
+    if app.derby_game is not None:
+        plotname_displayname_map = {
+            element_name: (element_name.replace("Team 1", app.derby_game.team_1_name)
+                    .replace("Team 2", app.derby_game.team_2_name))
+            for element_name in ELEMENT_NAME_CLASS_MAP.keys()
+        }
 
-    # determine which plots we're allowed to show
-    plots_allowed = list(plotname_displayname_map.keys())
-    if app.derby_game.game_status == "Prepared":
-        # game hasn't started yet. Only show the plots we're supposed to show
-        # before the game starts
-        plots_allowed = PLOT_NAMES_TO_SHOW_BEFORE_GAME_START
+        # determine which plots we're allowed to show
+        elements_allowed = list(ELEMENT_NAME_CLASS_MAP.keys())
+        if app.derby_game.game_status == "Prepared":
+            # game hasn't started yet. Only show the plots we're supposed to show
+            # before the game starts
+            elements_allowed = ELEMENT_NAMES_TO_SHOW_BEFORE_GAME_START
 
-    return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
-                           game_update_time_str=game_update_time_str,
-                           jamstats_ip=app.ip, jamstats_port=app.port,
-                           plot_name=plot_name,
-                           section_name_map=PLOT_SECTION_NAMES_MAP,
-                           plotname_displayname_map=plotname_displayname_map,
-                           plotname_type_map=PLOT_NAME_TYPE_MAP,
-                           plotname_func_map=PLOT_NAME_FUNC_MAP,
-                           derby_game=app.derby_game,
-                           min_refresh_secs=app.min_refresh_secs,
-                           anonymize_names=app.anonymize_names,
-                           plots_allowed=plots_allowed)
+        element_class = ELEMENT_NAME_CLASS_MAP[element_name]
+        logger.debug(f"About to render class {element_class}")
+        element = element_class(anonymize_names=app.anonymize_names)
+
+        return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
+                            game_update_time_str=game_update_time_str,
+                            jamstats_ip=app.ip, jamstats_port=app.port,
+                            element=element,
+                            element_name=element_name,
+                            section_name_map=SECTION_ELEMENTNAMES_MAP,
+                            plotname_displayname_map=plotname_displayname_map,
+                            element_name_class_map=ELEMENT_NAME_CLASS_MAP,
+                            derby_game=app.derby_game,
+                            min_refresh_secs=app.min_refresh_secs,
+                            anonymize_names=app.anonymize_names,
+                            plots_allowed=elements_allowed)
+    else:
+        return show_error("No active derby game.")
 
 
 def show_error(error_message: str):
@@ -359,6 +370,7 @@ def plot_figure(plot_name: str):
     Args:
         plot_name (str): name of plot to plot
     """
+    logger.debug(f"plot_figure: {plot_name}")
     if app.derby_game is None:
         return "No derby game set."
 
@@ -370,16 +382,9 @@ def plot_figure(plot_name: str):
     if should_rebuild: 
         logger.debug(f"Rebuilding {plot_name}")
 
-        plotfunc = PLOT_NAME_FUNC_MAP[plot_name]
-
-        # add anonymize arg if the function has it
-        kwargs = {}
-        sig = inspect.signature(plotfunc)
-
-        if "anonymize_names" in sig.parameters:
-            kwargs["anonymize_names"] = app.anonymize_names
-
-        f = plotfunc(app.derby_game, **kwargs)
+        plot_class = ELEMENT_NAME_CLASS_MAP[plot_name]
+        plot_obj = plot_class(anonymize_names=app.anonymize_names)
+        f = plot_obj.plot(app.derby_game)
 
         app.plotname_image_map[plot_name] = f
         app.plotname_time_map[plot_name] = datetime.now() 
