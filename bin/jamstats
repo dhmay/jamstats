@@ -26,6 +26,7 @@ import time
 import sys, traceback
 import _thread
 from jamstats.plots.plot_together import save_game_plots_to_pdf
+from datetime import datetime
 
 logger = logging.Logger(__name__)
 
@@ -211,8 +212,8 @@ def __main__():
             "scoreboard_port": scoreboardport,
             "min_refresh_secs": args.minrefreshseconds,
         }
-        if derby_game is not None:
-            statserver.set_game(derby_game) 
+        # even if derby_game is None, this is necessary to init the object and set the time
+        statserver.set_game(derby_game) 
         statserver.start(args.jamstatsport, **kwargs)
     else:  #pdf
         if connect_to_server:

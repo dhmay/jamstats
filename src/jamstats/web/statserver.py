@@ -201,7 +201,6 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     #app.run(host=app.ip, port=port, debug=debug)
 
 
-
 def set_game(derby_game: DerbyGame):
     app.derby_game = derby_game
     app.game_update_time = datetime.now()
@@ -269,35 +268,38 @@ def index():
 
     element_name = request.args["plot_name"] if "plot_name" in request.args else "Team Rosters"
 
-    plotname_displayname_map = {
-        element_name: (element_name.replace("Team 1", app.derby_game.team_1_name)
-                   .replace("Team 2", app.derby_game.team_2_name))
-        for element_name in ELEMENT_NAME_CLASS_MAP.keys()
-    }
+    if app.derby_game is not None:
+        plotname_displayname_map = {
+            element_name: (element_name.replace("Team 1", app.derby_game.team_1_name)
+                    .replace("Team 2", app.derby_game.team_2_name))
+            for element_name in ELEMENT_NAME_CLASS_MAP.keys()
+        }
 
-    # determine which plots we're allowed to show
-    elements_allowed = list(ELEMENT_NAME_CLASS_MAP.keys())
-    if app.derby_game.game_status == "Prepared":
-        # game hasn't started yet. Only show the plots we're supposed to show
-        # before the game starts
-        elements_allowed = ELEMENT_NAMES_TO_SHOW_BEFORE_GAME_START
+        # determine which plots we're allowed to show
+        elements_allowed = list(ELEMENT_NAME_CLASS_MAP.keys())
+        if app.derby_game.game_status == "Prepared":
+            # game hasn't started yet. Only show the plots we're supposed to show
+            # before the game starts
+            elements_allowed = ELEMENT_NAMES_TO_SHOW_BEFORE_GAME_START
 
-    element_class = ELEMENT_NAME_CLASS_MAP[element_name]
-    logger.debug(f"About to render class {element_class}")
-    element = element_class(anonymize_names=app.anonymize_names)
+        element_class = ELEMENT_NAME_CLASS_MAP[element_name]
+        logger.debug(f"About to render class {element_class}")
+        element = element_class(anonymize_names=app.anonymize_names)
 
-    return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
-                           game_update_time_str=game_update_time_str,
-                           jamstats_ip=app.ip, jamstats_port=app.port,
-                           element=element,
-                           element_name=element_name,
-                           section_name_map=SECTION_ELEMENTNAMES_MAP,
-                           plotname_displayname_map=plotname_displayname_map,
-                           element_name_class_map=ELEMENT_NAME_CLASS_MAP,
-                           derby_game=app.derby_game,
-                           min_refresh_secs=app.min_refresh_secs,
-                           anonymize_names=app.anonymize_names,
-                           plots_allowed=elements_allowed)
+        return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
+                            game_update_time_str=game_update_time_str,
+                            jamstats_ip=app.ip, jamstats_port=app.port,
+                            element=element,
+                            element_name=element_name,
+                            section_name_map=SECTION_ELEMENTNAMES_MAP,
+                            plotname_displayname_map=plotname_displayname_map,
+                            element_name_class_map=ELEMENT_NAME_CLASS_MAP,
+                            derby_game=app.derby_game,
+                            min_refresh_secs=app.min_refresh_secs,
+                            anonymize_names=app.anonymize_names,
+                            plots_allowed=elements_allowed)
+    else:
+        return show_error("No active derby game.")
 
 
 def show_error(error_message: str):
