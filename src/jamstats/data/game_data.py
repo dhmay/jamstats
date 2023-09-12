@@ -250,7 +250,8 @@ class DerbyGame:
 
         # now, make a row for anyone who was a pivot who became jammer via star pass
 
-        pdf_jams_with_star_passes = pdf_jams_data[pdf_jams_data[f"StarPass_{team_number}"]]
+        pdf_jams_with_star_passes = pdf_jams_data[pdf_jams_data[
+            f"StarPass_{team_number}"] == True]
         pivots_who_jammed = list(set(pdf_jams_with_star_passes[f"pivot_name_{team_number}"]))
         jammers_who_only_pivotjammed = [x for x in pivots_who_jammed
                                        if x not in set(pdf_jammer_data.Jammer)]

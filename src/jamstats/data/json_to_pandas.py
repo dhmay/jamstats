@@ -326,7 +326,7 @@ def extract_jam_data(pdf_game_state: pd.DataFrame,
 
 
 def build_jam_dataframe(pdf_game_state: pd.DataFrame) -> pd.DataFrame:
-   # Jam-level data all lives under the "Period" structure
+    # Jam-level data all lives under the "Period" structure
     pdf_period = pdf_game_state.loc[
         pdf_game_state.keychunk_1.str.startswith("Period")].copy()
     # All the "Period" fields have at least 3 chunks
@@ -340,7 +340,10 @@ def build_jam_dataframe(pdf_game_state: pd.DataFrame) -> pd.DataFrame:
 
     # Make sure all the "Jam" fields have at least 4 chunks. Defensive coding
     # against a bug erevrav reported 20230311
+    len_before = len(pdf_jam_data)
     pdf_jam_data = pdf_jam_data[[len(x) >= 4 for x in pdf_jam_data.key_chunks]]
+    if len(pdf_jam_data) != len_before:
+        logger.info(f"Found {len_before - len(pdf_jam_data)} jam rows with fewer than 4 chunks. Dropping them.")
 
     pdf_jam_data["keychunk_3"] = [x[3] for x in pdf_jam_data.key_chunks]
 
@@ -545,9 +548,15 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
         on="prd_jam", how="left")
     pdf_ateamjams_summary = pdf_ateamjams_summary.merge(pdf_roster.rename(
         columns={"Id": "pivot_id", "Name": "pivot_name", "RosterNumber": "pivot_number",
-                 "Number": "pivot_number"}),
+                 "Number": "pivot_number"})[["pivot_id", "pivot_name", "pivot_number"]],
         on="pivot_id", how="left")
+    # sometimes there's no pivot info, but we need the empty columns
+    for col in ["pivot_id", "pivot_name", "pivot_number"]:
+        if col not in pdf_ateamjams_summary.columns:
+            logger.debug(f"Adding empty pivot columns {col} to team {team_number}")
+            pdf_ateamjams_summary[col] = None
     logger.debug(f"After adding pivot info: {len(pdf_ateamjams_summary)}")
+    logger.debug(f"{pdf_ateamjams_summary.columns}")
 
     # add list of skater names per jam
     pdf_jam_skater_lists = extract_team_perjam_skaters(pdf_ateamjams_data, pdf_roster)
