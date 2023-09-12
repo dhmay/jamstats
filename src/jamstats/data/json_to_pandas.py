@@ -478,6 +478,13 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     pdf_roster = pdf_game_state_roster.pivot(index="skater", columns="roster_key", values="value")
     logger.debug("pdf_roster columns: " + str(pdf_roster.columns) + 
                  ". Before dropping nulls, length: " + str(len(pdf_roster)))
+    # paranoia. Somehow a quadmedia game had no Id column, so if that happens
+    # write out a message
+    if "Id" not in pdf_roster.columns:
+        error_message = "No Id column in roster. This is a bug in the game file."
+        error_message += "Roster columns: " + str(pdf_roster.columns)
+        logger.error(error_message)
+        raise ValueError(error_message)
     pdf_roster = pdf_roster[pdf_roster.Id.notnull()]
     logger.debug("After dropping nulls, length: " + str(len(pdf_roster)))
 
