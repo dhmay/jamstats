@@ -85,6 +85,9 @@ td {
                                 {% endfor %}
                             <br/>
                             {% endfor %}
+                        {% if can_dl_game_json %}
+                        <p><a href="download_game_json">Download Game JSON</a></p>
+                        {% endif %}
                         <p>jamstats server/port:
                                 <br/>
                                 {{jamstats_ip}}:{{jamstats_port}}
@@ -109,7 +112,7 @@ td {
                                 {% if element.can_render_html %}
                                     <p>{{element.build_html(derby_game) | safe}}</object></p>
                                 {% else %}
-                                    <p><img src="fig/{{element_name}}" style="max-width:1000px;max-height:1000px"/>
+                                    <p><iframe src="/fig/{{element_name}}" width="1000px", height="1000px" style="border:0"></p>
                                 {% endif %}
                             {% else %}
                                 <p><H2>Can't display {{plotname_displayname_map[element_name]}} right now</H2></p>

@@ -1,5 +1,6 @@
 __author__ = "Damon May"
 
+import json
 from flask import (Flask, request, render_template_string, render_template, send_file)
 from jamstats.data.game_data import DerbyGame
 from jamstats.plots.plot_util import prepare_to_plot
@@ -235,7 +236,7 @@ def index():
                 else:
                     app.scoreboard_client = None
                     logger.debug("Not connected to server.")
-                    return show_error("Error getting game from server. Will retry.")
+                    return show_error_page("Error getting game from server. Will retry.")
             except Exception as e:
                 app.scoreboard_client = None
                 logger.error("Failed to download in-game data from server "
@@ -244,7 +245,7 @@ def index():
                     traceback.print_stack()
                 except Exception as e2:
                     logger.warning(f"Exception while printing stack: {e2}")
-                return show_error("Exception while connecting to server. Will retry")
+                return show_error_page("Exception while connecting to server. Will retry")
         else:
             logger.debug("Scoreboard client already exists. Checking for new game data...")
             if app.scoreboard_client.game_state_dirty:
@@ -260,7 +261,7 @@ def index():
                     formatted_lines = traceback.format_exc().splitlines()
                     for line in formatted_lines:
                         logger.warning("EXC: " + line)
-                    return show_error("Error connecting to server. Will retry")
+                    return show_error_page("Error connecting to server. Will retry")
             else:
                 logger.debug("No new game data. Using existing game data.")
 
@@ -286,7 +287,10 @@ def index():
         logger.debug(f"About to render class {element_class}")
         element = element_class(anonymize_names=app.anonymize_names)
 
-        return render_template("jamstats_gameplots.html", jamstats_version=get_jamstats_version(),
+        can_dl_game_json = app.scoreboard_client is not None and app.scoreboard_client.game_json_dict is not None
+        try:
+            return render_template("jamstats_gameplots.html",
+                            jamstats_version=get_jamstats_version(),
                             game_update_time_str=game_update_time_str,
                             jamstats_ip=app.ip, jamstats_port=app.port,
                             element=element,
@@ -297,13 +301,53 @@ def index():
                             derby_game=app.derby_game,
                             min_refresh_secs=app.min_refresh_secs,
                             anonymize_names=app.anonymize_names,
-                            plots_allowed=elements_allowed)
+                            plots_allowed=elements_allowed,
+                            can_dl_game_json=can_dl_game_json)
+        except Exception as e:
+            logger.error(f"Exception while rendering template: {e}")
+            formatted_lines = traceback.format_exc().splitlines()
+            for line in formatted_lines:
+                logger.error("EXC: " + line)
+            return show_error_page(f"Error rendering {element_name}.")
     else:
-        return show_error("No active derby game.")
+        return show_error_page("No active derby game.")
 
 
-def show_error(error_message: str):
-    """show an error response
+
+@app.route("/download_game_json")
+def download_game_json():
+    """Download the game JSON.
+
+    """
+    game_json_str = json.dumps(app.scoreboard_client.game_json_dict, indent=4)
+    in_memory_file = io.BytesIO()
+    in_memory_file.write(game_json_str.encode())
+    in_memory_file.seek(0)
+    return send_file(in_memory_file, mimetype='text/json',
+                     as_attachment=True, download_name='derby_game.json')    
+
+
+def get_error_element_html(error_message: str):
+    optional_dl_link_html = ""
+    if app.scoreboard_client is not None and app.scoreboard_client.game_json_dict is not None:
+        optional_dl_link_html = '''
+            JamStats may have encountered something it doesn't know how to handle.<br>
+            Please download the game JSON file and send it to the JamStats developer.<br>
+            Click <a href="/download_game_json">here</a> download the game JSON file.<br>
+            Then, please log an issue <a href="https://github.com/dhmay/jamstats/issues">here</a>
+            and upload the file along with a brief description of what happened.
+            </p>
+        '''
+    return f'''
+            <p>
+                <H2>{error_message}</H2>
+            <p>
+            {optional_dl_link_html}
+    '''
+    
+
+def show_error_page(error_message: str):
+    """show an error response as an entire HTML page
 
     Args:
         error_message (str): error message
@@ -326,13 +370,20 @@ def show_error(error_message: str):
                 <br>
                 Jamstats version {get_jamstats_version()}
             </p>
-            <p>
-            <H2>{error_message}</H2>
-            </p>
+            {get_error_element_html(error_message)}
         </body>
     </html>
                 '''
                 )
+
+
+def show_error_element(error_message: str):
+    """show an error response as an element of a rendered page
+
+    Args:
+        error_message (str): error message
+    """
+    return render_template_string(get_error_element_html(error_message))
 
 
 @app.route("/logo")
@@ -371,25 +422,38 @@ def plot_figure(plot_name: str):
         plot_name (str): name of plot to plot
     """
     logger.debug(f"plot_figure: {plot_name}")
-    if app.derby_game is None:
-        return "No derby game set."
 
-    should_rebuild = True
-    if plot_name in app.plotname_time_map:
-        mtime = app.plotname_time_map[plot_name]
-        if mtime >= app.game_update_time:
-            should_rebuild = False
-    if should_rebuild: 
-        logger.debug(f"Rebuilding {plot_name}")
+    try:
+        if app.derby_game is None:
+            return "No derby game set."
 
-        plot_class = ELEMENT_NAME_CLASS_MAP[plot_name]
-        plot_obj = plot_class(anonymize_names=app.anonymize_names)
-        f = plot_obj.plot(app.derby_game)
+        should_rebuild = True
+        if plot_name in app.plotname_time_map:
+            mtime = app.plotname_time_map[plot_name]
+            if mtime >= app.game_update_time:
+                should_rebuild = False
+        if should_rebuild: 
+            logger.debug(f"Rebuilding {plot_name}")
 
-        app.plotname_image_map[plot_name] = f
-        app.plotname_time_map[plot_name] = datetime.now() 
-    f = app.plotname_image_map[plot_name]
-    buf = io.BytesIO()
-    f.savefig(buf, format="png")
-    buf.seek(0)
-    return send_file(buf, mimetype='image/png')
+            plot_class = ELEMENT_NAME_CLASS_MAP[plot_name]
+            plot_obj = plot_class(anonymize_names=app.anonymize_names)
+            f = plot_obj.plot(app.derby_game)
+
+            app.plotname_image_map[plot_name] = f
+            app.plotname_time_map[plot_name] = datetime.now() 
+        f = app.plotname_image_map[plot_name]
+        buf = io.BytesIO()
+        f.savefig(buf, format="png")
+        buf.seek(0)
+        app.image_buf = buf
+        return '<p><img src="/current_plot" style="max-width:1000px;max-height:1000px"/>'
+    except Exception as e:
+        logger.error(f"Exception while rendering plot {plot_name}: {e}")
+        return show_error_element(f"Error rendering {element_name}: {e}")
+
+@app.route("/current_plot")
+def show_current_plot():
+    """Show the current plot.
+
+    """
+    return send_file(app.image_buf, mimetype='image/png')

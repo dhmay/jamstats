@@ -107,8 +107,6 @@ class JammerStatsPlotTeam2(JammerStatsPlotOneTeam):
 
 
 
-
-
 class CumScoreByJamPlot(DerbyPlot):
     name: str = "Score by Jam"
     description: str = "Cumulative game score by jam"
