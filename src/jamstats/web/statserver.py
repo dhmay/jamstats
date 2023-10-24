@@ -47,9 +47,9 @@ import socket
 import sys, os
 from flask_socketio import SocketIO
 
-#attempt to fix windows issue
-#from gevent import monkey
-#monkey.patch_all()
+#attempt to fix windows async issue
+from gevent import monkey
+monkey.patch_all()
 
 GAME_STATE_UPDATE_MINSECS = 2
 
