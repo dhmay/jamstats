@@ -27,7 +27,8 @@ import sys, traceback
 import _thread
 from jamstats.plots.plot_together import save_game_plots_to_pdf
 from datetime import datetime
-import engineio, socketio, flask_socketio, threading, time, queue, eventlet, gevent, six, urllib3
+import engineio, socketio, flask_socketio, threading, time, queue #, eventlet
+import gevent, six, urllib3
 
 logger = logging.Logger(__name__)
 
