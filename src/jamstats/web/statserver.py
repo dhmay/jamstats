@@ -12,6 +12,7 @@ from jamstats.io.scoreboard_server_io import ScoreboardClient, GameStateListener
 import time
 import threading
 import traceback
+from engineio.async_drivers import gevent
 
 from jamstats.tables.jamstats_tables import (
     BothTeamsJammersTable,
@@ -190,7 +191,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     # for communicating with clients
     
     logger.debug("Starting SocketIO Flask app...")
-    app.socketio = SocketIO(app)
+    app.socketio = SocketIO(app, async_mode="gevent")
 
     # add listener to update webclient when game state changes
     if scoreboard_client is not None:
