@@ -7,7 +7,7 @@ setup(
     author='Damon May',
     package_dir={"":"src"},
     include_package_data=True,
-    packages=find_packages('src', exclude=['test']) + ['engineio', 'socketio', 'flask_socketio', 'threading', 'time', 'queue'],
+    packages=find_packages('src', exclude=['test']) + ['engineio', 'socketio', 'flask_socketio', 'threading', 'time', 'queue', 'eventlet', 'gevent', 'uwsgi', 'six', 'urllib3'],
     scripts=['bin/jamstats', 'bin/jamstats-nogui'],
     install_requires=['pandas>=1.3.4', 'seaborn>=0.11.2', 'flask>=2.2.2', 'attrdict>=2.0.1',
                       'wxpython==4.2.0',
