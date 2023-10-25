@@ -1,3 +1,4 @@
+
 <p align="center">
     <img src="https://github.com/dhmay/jamstats/blob/main/resources/jamstats_logo.png" width="300">
 </p>
