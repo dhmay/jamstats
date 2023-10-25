@@ -38,7 +38,7 @@ jobs:
       
       - name: Package Application (windows)
         if: runner.os == 'Windows'
-        run:  cd src; pyinstaller ../bin/jamstats --onefile -i ..\resources\jamstats_icon.ico --paths=. --add-data "..\resources\jamstats_logo.png;." --add-data "..\resources\jamstats_version.txt;." --add-data "jamstats\templates;templates" --add-data "jamstats\static;static" --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=-dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.rdtypes --hidden-import=dns.asyncbackend --hidden-import=dns.asyncquery; cd .. 
+        run:  cd src; pyinstaller ../bin/jamstats --onefile -i ..\resources\jamstats_icon.ico --paths=. --add-data "..\resources\jamstats_logo.png;." --add-data "..\resources\jamstats_version.txt;." --add-data "jamstats\templates;templates" --add-data "jamstats\static;static" --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=-dns.namedict --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.rdtypes --hidden-import=dns.asyncbackend --hidden-import=dns.asyncquery --hidden-import=dns.asyncresolver --hidden-import=dns.versioned; cd .. 
              
       - name: Package Application (linux)
         if: runner.os == 'Linux'
