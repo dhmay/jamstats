@@ -25,8 +25,8 @@ from attrdict import AttrDict
 import time
 import sys, traceback
 import _thread
+import websocket  # no used here but necessary to avoi async error
 from jamstats.plots.plot_together import save_game_plots_to_pdf
-from datetime import datetime
 
 logger = logging.Logger(__name__)
 
