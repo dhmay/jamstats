@@ -191,6 +191,8 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     # for communicating with clients
     
     logger.debug("Starting SocketIO Flask app...")
+    # setting async_mode="gevent" here doesn't hurt, but it doesn't seem necessary.
+    # Might be something to try if we get async problems again.
     app.socketio = SocketIO(app) #, async_mode="gevent")
 
     # add listener to update webclient when game state changes

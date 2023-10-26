@@ -38,6 +38,13 @@ jobs:
       
       - name: Package Application (windows)
         if: runner.os == 'Windows'
+	# all these hidden-import args are necessary to avoid Issue #159, "invalid async_mode specified".
+	# I got the idea to add them from this thread:
+	# https://stackoverflow.com/questions/63254533/why-does-pyinstaller-fail-to-package-eventlet
+	# Note the "in 2023 I also have to add..." response and the one after it. This is a house of cards, and 
+	# I hope I'm able to keep Flask-in-PyInstaller working as time goes by. Someday it might be necessary
+	# to pin an earlier version of... I'm not sure what. eventlet, flask maybe... I tried that in 10/2023,
+	# but I couldn't get it to work, probably didn't find the right packages to pin.
         run:  cd src; pyinstaller ../bin/jamstats --onefile -i ..\resources\jamstats_icon.ico --paths=. --add-data "..\resources\jamstats_logo.png;." --add-data "..\resources\jamstats_version.txt;." --add-data "jamstats\templates;templates" --add-data "jamstats\static;static" --hidden-import=eventlet.hubs.epolls --hidden-import=eventlet.hubs.kqueue --hidden-import=eventlet.hubs.selects --hidden-import=dns --hidden-import=dns.dnssec --hidden-import=dns.e164 --hidden-import=dns.hash --hidden-import=dns.tsigkeyring --hidden-import=dns.update --hidden-import=dns.version --hidden-import=dns.zone --hidden-import=dns.rdtypes --hidden-import=dns.asyncbackend --hidden-import=dns.asyncquery --hidden-import=dns.asyncresolver --hidden-import=dns.versioned --hidden-import=dns.namedict; cd .. 
              
       - name: Package Application (linux)
