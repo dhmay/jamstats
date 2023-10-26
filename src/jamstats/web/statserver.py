@@ -191,7 +191,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     # for communicating with clients
     
     logger.debug("Starting SocketIO Flask app...")
-    app.socketio = SocketIO(app, async_mode="gevent")
+    app.socketio = SocketIO(app) #, async_mode="gevent")
 
     # add listener to update webclient when game state changes
     if scoreboard_client is not None:
