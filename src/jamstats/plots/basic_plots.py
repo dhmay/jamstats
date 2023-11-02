@@ -260,7 +260,6 @@ class PenaltyCountsPlotByTeam(DerbyPlot):
         pdf_penalty_counts = pdf_penalty_counts.sort_values(["Penalty", "team_number"])
 
         penalties_inorder = sorted(list(set(pdf_penalty_counts.Penalty)))
-        print(pdf_penalty_counts)
         
         f, ax = plt.subplots()
 
