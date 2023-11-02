@@ -63,9 +63,12 @@ def make_all_plots(derby_game: DerbyGame,
     prepare_to_plot(theme=theme)
     figures = []
     for element_class in ELEMENTS_CLASSES:
-        element = element_class(anonymize_names=anonymize_names)
-        f = element.plot(derby_game)
-        figures.append(f)
+        try:
+            element = element_class(anonymize_names=anonymize_names)
+            f = element.plot(derby_game)
+            figures.append(f)
+        except Exception as e:
+            logger.error(f"Error plotting {element_class.name}: {e}")
 
     # add logo to tables.
     im_bytes = get_jamstats_logo_image()

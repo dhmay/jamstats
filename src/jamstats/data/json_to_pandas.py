@@ -583,6 +583,12 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
     logger.debug(f"After adding scoring trips: {len(pdf_ateamjams_summary_withscoringtrips)}")
     logger.debug(pdf_ateamjams_summary_withscoringtrips.columns)
 
+    # 20231101: somehow in a new CRG version these columns started being 'O'
+    for column in ["JamScore", "AfterSPScore", "TotalScore"]:
+        pdf_ateamjams_summary_withscoringtrips[column] = pdf_ateamjams_summary_withscoringtrips[column].astype(int)
+    for column in ["Lead"]:
+        pdf_ateamjams_summary_withscoringtrips[column] = pdf_ateamjams_summary_withscoringtrips[column].astype(bool)
+
     # calculate points earned by jammer and by pivot (in case of star pass)
     pdf_ateamjams_summary_withscoringtrips["jammer_points"] = (
         pdf_ateamjams_summary_withscoringtrips["JamScore"] -
@@ -596,8 +602,6 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
     pdf_ateamjams_summary_kept_colsrenamed = pdf_ateamjams_summary_kept.rename(
         columns={col: f"{col}_{team_number}"
                  for col in TEAMJAM_SUMMARY_COLUMNS + scoringtrip_cols_to_rename})
-
-
 
     return pdf_ateamjams_summary_kept_colsrenamed.sort_values("prd_jam")
 

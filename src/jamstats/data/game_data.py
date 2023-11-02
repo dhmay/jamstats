@@ -36,10 +36,9 @@ class DerbyGame:
         self.pdf_team_colors = pdf_team_colors
 
         logger.debug("Handling team colors")
-        if pdf_team_colors is None:
-            self.team_color_1 = sns.color_palette()[0]
-            self.team_color_2 = sns.color_palette()[1]
-        else:
+        self.team_color_1 = sns.color_palette()[0]
+        self.team_color_2 = sns.color_palette()[1]
+        if pdf_team_colors is not None:
             try:
                 team_color_dict = dict(zip(pdf_team_colors.team, pdf_team_colors.color))
                 if "1" in team_color_dict and "2" in team_color_dict:
@@ -50,6 +49,8 @@ class DerbyGame:
                     # v4 format, team names
                     self.team_color_1 = team_color_dict[self.team_1_name]
                     self.team_color_2 = team_color_dict[self.team_2_name]
+                # try to make a palette with the team colors. If this fails, use the default
+                sns.color_palette([self.team_color_1, self.team_color_2])
             except Exception as e:
                 logger.debug("Failed to find teams in color definitions. Using default colors.")
                 self.team_color_1 = sns.color_palette()[0]
