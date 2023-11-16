@@ -440,22 +440,21 @@ def plot_figure(plot_name: str):
             plot_class = ELEMENT_NAME_CLASS_MAP[plot_name]
             plot_obj = plot_class(anonymize_names=app.anonymize_names)
             f = plot_obj.plot(app.derby_game)
-
             app.plotname_image_map[plot_name] = f
             app.plotname_time_map[plot_name] = datetime.now() 
-        f = app.plotname_image_map[plot_name]
-        buf = io.BytesIO()
-        f.savefig(buf, format="png")
-        buf.seek(0)
-        app.image_buf = buf
-        return '<p><img src="/current_plot" style="max-width:1000px;max-height:1000px"/>'
+        
+        return f'<p><img src="/plot/{plot_name}" style="max-width:1000px;max-height:1000px"/>'
     except Exception as e:
         logger.error(f"Exception while rendering plot {plot_name}: {e}")
-        return show_error_element(f"Error rendering {element_name}: {e}")
+        return show_error_element(f"Error rendering {plot_name}: {e}")
 
-@app.route("/current_plot")
-def show_current_plot():
-    """Show the current plot.
-
+@app.route("/plot/<plot_name>")
+def show_current_plot(plot_name: str):
+    """Render and shw the current plot.
+    It would be much better if we didn't need to render every time.
     """
-    return send_file(app.image_buf, mimetype='image/png')
+    f = app.plotname_image_map[plot_name]
+    buf = io.BytesIO()
+    f.savefig(buf, format="png")
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
