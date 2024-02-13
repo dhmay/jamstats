@@ -20,7 +20,6 @@ from jamstats.data.json_to_pandas import load_json_derby_game
 import logging
 import sys
 from os.path import exists
-from attrdict import AttrDict
 import time
 import sys, traceback
 import _thread
@@ -92,6 +91,16 @@ def add_and_parse_args(parser, is_gooey=False):
         sys.exit()
     return args
 
+
+class AttrObj:
+    """
+    This is a trivial class that just exists to accept attributes,
+    to stand in for the ArgParse args object when we're not using ArgParse.
+    """
+    def __init__(self):
+        pass
+
+
 def __main__():
     if len(sys.argv) == 2 and sys.argv[1] != "-h" \
       and sys.argv[1] != "-v" \
@@ -101,7 +110,7 @@ def __main__():
         # so try to treat it as a json file, and fail if it's not.
         # This option makes it possible to drag-and-drop on Windows.
         if exists(sys.argv[1]):
-            args = AttrDict()
+            args = AttrObj()
             args.jsonfile = open(sys.argv[1])
             args.debug = False
             args.scoreboardserver = None
