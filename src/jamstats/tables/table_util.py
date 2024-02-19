@@ -68,7 +68,7 @@ class DerbyTable(DerbyHTMLElement):
         Returns:
             Styler: styler
         """
-        return pdf_table.style.hide_index()
+        return pdf_table.style.hide(axis="index")
 
     def build_html(self, derby_game: DerbyGame) -> str: 
         """Build the table HTML: prepare the data, then style it.

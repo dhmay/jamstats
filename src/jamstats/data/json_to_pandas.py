@@ -378,9 +378,9 @@ def extract_nonteam_jam_data(pdf_jam_data: pd.DataFrame) -> pd.DataFrame:
     # There are some jam fields with one entry per jam.
     # Grab those into a dataframe
     pdf_jam_fieldcounts = pd.DataFrame(
-        pdf_jam_data.keychunk_3.value_counts())
+            pdf_jam_data.keychunk_3.value_counts()).reset_index()
     jam_simple_fields = pdf_jam_fieldcounts[
-        pdf_jam_fieldcounts.keychunk_3 == n_jams].index
+            pdf_jam_fieldcounts["count"] == n_jams]["keychunk_3"]
     pdf_jam_simpledata = pdf_jam_data[
         pdf_jam_data.keychunk_3.isin(jam_simple_fields)]
     logger.debug(f"Jam simple fields: {jam_simple_fields}")
@@ -437,11 +437,11 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     logger.debug("extract_roster begin")
     json_major_version = get_json_major_version_from_pdf(pdf_game_state)
     if json_major_version == 4:
-        team_string_1 = f"PreparedTeam\({team_name_1}\)"
-        team_string_2 = f"PreparedTeam\({team_name_2}\)"
+        team_string_1 = f"PreparedTeam\\({team_name_1}\\)"
+        team_string_2 = f"PreparedTeam\\({team_name_2}\\)"
     else:
-        team_string_1 = f"Team\(1\)"
-        team_string_2 = f"Team\(2\)"
+        team_string_1 = f"Team\\(1\\)"
+        team_string_2 = f"Team\\(2\\)"
     
     team_string_1 = cleanup_team_name(team_string_1)
     team_string_2 = cleanup_team_name(team_string_2)
@@ -509,18 +509,19 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
         pd.DataFrame: pdf with info for one team's jams
     """
     pdf_ateamjams_data = pdf_game_state[
-        pdf_game_state.keychunk_3.str.contains(f"TeamJam\({team_number}")].copy()
+        pdf_game_state.keychunk_3.str.contains(f"TeamJam\\({team_number}")].copy()
     pdf_ateamjams_data["keychunk_4"] = [chunks[4] for chunks in pdf_ateamjams_data.key_chunks]
 
     logger.debug(f"teamjam rows, team {team_number}: {len(pdf_ateamjams_data)}")
 
-    pdf_ateamjam_fieldcounts = pd.DataFrame(pdf_ateamjams_data["keychunk_4"].value_counts())
+    pdf_ateamjam_fieldcounts = pd.DataFrame(
+        pdf_ateamjams_data["keychunk_4"].value_counts()).reset_index()
 
     # Grab the one-per-jam fields from the teamjam dataframe, identifying by the fact that they
     # occur n_jams times. Exception: ScoringTrip can occur that many times, so get rid of it.
     teamjam_simple_fields = pdf_ateamjam_fieldcounts[
-        (pdf_ateamjam_fieldcounts.keychunk_4 == n_jams)
-        & ~pdf_ateamjam_fieldcounts.keychunk_4.index.str.contains("ScoringTrip")].index
+        (pdf_ateamjam_fieldcounts["count"] == n_jams)
+        & ~pdf_ateamjam_fieldcounts.keychunk_4.str.contains("ScoringTrip")]["keychunk_4"]
 
     logger.debug(f"teamjam simple fields: {teamjam_simple_fields}")
     
@@ -839,8 +840,8 @@ def extract_team_colors(pdf_game_data:pd.DataFrame) -> pd.DataFrame:
     # try to load in v5.0 format
     succeeded = False
     try:
-        pdf_team_colors = pdf_game_data[pdf_game_data.key.str.endswith("Color(scoreboard_bg)")].copy()
-        pdf_team_colors["team"] = [x[len("ScoreBoard.Team("):-len(").Color(scoreboard_bg)")]
+        pdf_team_colors = pdf_game_data[pdf_game_data.key.str.endswith("Color(scoreboard_fg)")].copy()
+        pdf_team_colors["team"] = [x[len("ScoreBoard.Team("):-len(").Color(scoreboard_fg)")]
                                    for x in pdf_team_colors.key]
         succeeded = len(pdf_team_colors) > 0
     except Exception as e:
@@ -849,8 +850,8 @@ def extract_team_colors(pdf_game_data:pd.DataFrame) -> pd.DataFrame:
         # no colors discovered in the v5 format. Try v4.0 format
         try:
             pdf_team_colors = pdf_game_data[pdf_game_data.key.str.startswith("ScoreBoard.PreparedTeam") &
-                                            pdf_game_data.key.str.endswith("Color(scoreboard_bg)")].copy()
-            pdf_team_colors["team"] = [x[len("ScoreBoard.PreparedTeam("):-len(").Color(scoreboard_bg)")]
+                                            pdf_game_data.key.str.endswith("Color(scoreboard_fg)")].copy()
+            pdf_team_colors["team"] = [x[len("ScoreBoard.PreparedTeam("):-len(").Color(scoreboard_fg)")]
                                     for x in pdf_team_colors.key]
             succeeded = len(pdf_team_colors) > 0
         except Exception as e:
@@ -858,7 +859,7 @@ def extract_team_colors(pdf_game_data:pd.DataFrame) -> pd.DataFrame:
 
     pdf_team_colors = pdf_team_colors[["team", "value"]].rename(columns={"value": "color"})
     if succeeded:
-        logger.debug(f"Team colors: {pdf_team_colors}")
+        logger.debug(f"Team colors:\n{pdf_team_colors}")
     else:
         logger.debug("Could not load team colors. Team colors will be missing from plots.")
     return pdf_team_colors
@@ -872,7 +873,7 @@ def extract_officials_roster(pdf_game_state: pd.DataFrame,
     try:
         pdf_game_state_officials_roster = pdf_game_state.loc[
             pdf_game_state.key.str.contains(
-                f".{Ref_or_Nso}\(")
+                f".{Ref_or_Nso}\\(")
         ].copy()
 
         pdf_game_state_officials_roster["roster_key"] = [

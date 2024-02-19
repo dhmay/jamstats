@@ -50,39 +50,43 @@ class JammerStatsPlotOneTeam(DerbyPlot):
             name_dict = build_anonymizer_map(set(pdf_jammer_data.Jammer))
             pdf_jammer_data["Jammer"] = [name_dict[jammer] for jammer in pdf_jammer_data.Jammer]
 
-        pdf_jammer_data = pdf_jammer_data.sort_values(["Jams", "Total Score"], ascending=False)
+        pdf_jammer_data = pdf_jammer_data.sort_values(["Jams", "Total Score"],
+                                                      ascending=False)
 
         f, (ax0, ax1, ax2, ax3, ax4) = plt.subplots(1, 5)
 
-        # build a palette that'll be the same for both teams
-        max_n_jammers = max([len(set(derby_game.pdf_jams_data.jammer_name_1)),
-                            len(set(derby_game.pdf_jams_data.jammer_name_2))])
-        mypalette = sns.color_palette("rainbow", n_colors=max_n_jammers)
+        # build a palette
+        n_jammers = len(set(pdf_jammer_data.Jammer))
+        mypalette = sns.color_palette("rainbow", n_colors=n_jammers)
 
         ax = ax0
-        sns.barplot(y="Jammer", x="Jams", data=pdf_jammer_data, ax=ax, palette=mypalette)
+        sns.barplot(y="Jammer", x="Jams", hue="Jammer", legend=False,
+                    data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_ylabel("")
 
         ax = ax1
-        sns.barplot(y="Jammer", x="Total Score", data=pdf_jammer_data, ax=ax, palette=mypalette)
+        sns.barplot(y="Jammer", x="Total Score", hue="Jammer", legend=False,
+                    data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_yticks([])
         ax.set_ylabel("")
 
         ax = ax2
-        sns.barplot(y="Jammer", x="Mean Net Points",
+        sns.barplot(y="Jammer", x="Mean Net Points", hue="Jammer", legend=False,
                 data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_xlabel("Mean Net Points/Jam\n(own - opposing)")
         ax.set_yticks([])
         ax.set_ylabel("")
 
         ax = ax3
-        sns.barplot(y="Jammer", x="Proportion Lead", data=pdf_jammer_data, ax=ax, palette=mypalette)
+        sns.barplot(y="Jammer", x="Proportion Lead", hue="Jammer", legend=False,
+                    data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_xlim(0,1)
         ax.set_yticks([])
         ax.set_ylabel("")
 
         ax = ax4
-        sns.barplot(y="Jammer", x="Mean Time to Initial", data=pdf_jammer_data, ax=ax, palette=mypalette)
+        sns.barplot(y="Jammer", x="Mean Time to Initial", hue="Jammer", legend=False,
+                    data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_yticks([])
         ax.set_ylabel("")
 
@@ -183,7 +187,6 @@ class SimpleLeadSummaryPlot(DerbyPlot):
         f, ax = plt.subplots()
 
         pdf_jams_with_lead["Lost"] = pdf_jams_with_lead.Lost_1 | pdf_jams_with_lead.Lost_2
-
         pdf_for_plot_all = pdf_jams_with_lead[
             ["Team with Lead", "prd_jam"]].groupby(
                 ["Team with Lead"]).agg("count").reset_index()
@@ -199,11 +202,12 @@ class SimpleLeadSummaryPlot(DerbyPlot):
             sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax,
                         color="gray")
         if len(pdf_for_plot_called_or_lost) > 0:
-            sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_called_or_lost, ax=ax,
+            sns.barplot(y="prd_jam", x="Team with Lead", hue="Team with Lead", legend=False,
+                        data=pdf_for_plot_called_or_lost, ax=ax,
                         palette=team_color_palette)
         if len(pdf_for_plot_lost) > 0:
-            sns.barplot(y="prd_jam", x="Team with Lead",
-                        data=pdf_for_plot_lost, ax=ax, color="black")
+            sns.barplot(y="prd_jam", x="Team with Lead", hue="Team with Lead", legend=False,
+                        data=pdf_for_plot_lost, ax=ax, palette='dark:black')
 
         ax.set_ylabel("Jams")
         ax.set_title("Jams with Lead\n(black=lost, gray=not called)")
@@ -237,7 +241,7 @@ class PenaltyCountsPlotByTeam(DerbyPlot):
             ]
             pdf_team_penalty_counts = (pdf_team_penalties
                 .penalty_name.value_counts().reset_index().rename(
-                    columns={"index": "Penalty", "penalty_name": "Count"}))
+                    columns={"penalty_name": "Penalty", "count": "Count"}))
             pdf_team_penalty_counts["team"] = team
             pdf_team_penalty_counts.sort_values("Penalty", inplace=True)
             pdf_team_penalty_counts["team_number"] = 1 if team == derby_game.team_1_name else 2
@@ -326,6 +330,7 @@ class SkaterStatsPlotOneTeam(DerbyPlot):
             "Skater": list(skater_jamcount_map.keys()),
             "Jams": list(skater_jamcount_map.values()),
         }).sort_values("Skater")
+        pdf_skater_data = pdf_skater_data[pdf_skater_data.Skater.notnull()]
 
         if self.anonymize_names:
             logger.debug("Anonymizing skater names.")
