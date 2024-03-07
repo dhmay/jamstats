@@ -25,6 +25,6 @@ setup(
         'Source': 'https://github.com/dhmay/jamstats',
     },
     # Next two lines are to make resources available through pip
-    package_data = {"": ["./src/jamstats/templates/*", "**/jamstats_version.txt"]},
+    package_data = {"": ["src/jamstats/templates/*", "**/jamstats_version.txt"]},
 )
 
