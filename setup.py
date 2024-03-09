@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='jamstats',
-    version='1.4.9',
+    version='1.4.11',
     description='Data processing, stats and plots on roller derby scoreboard JSON files',
     author='Damon May',
     package_dir={"":"src"},
@@ -24,7 +24,5 @@ setup(
     project_urls={
         'Source': 'https://github.com/dhmay/jamstats',
     },
-    # Next two lines are to make resources available through pip
-    package_data = {"": ["src/jamstats/templates/*", "**/jamstats_version.txt"]},
 )
 

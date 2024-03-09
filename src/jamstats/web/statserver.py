@@ -47,6 +47,7 @@ import logging
 import socket
 import sys, os
 from flask_socketio import SocketIO
+import jamstats
 
 #attempt to fix windows async issue. This did not work
 #from gevent import monkey
@@ -59,7 +60,7 @@ logger = logging.Logger(__name__)
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("src"), "jamstats", relative_path)
+    return os.path.join(jamstats.__path__[0], relative_path)
 
 # This is necessary for pyinstaller to find the templates folder
 static_folder = resource_path('static')
