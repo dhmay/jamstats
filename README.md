@@ -63,7 +63,8 @@ Want to do your own analytics? Save down a spreadsheet and do your own thing wit
 * Windows: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-<version>.exe`
 * Mac: go to the [latest release](https://github.com/dhmay/jamstats/releases) and download `jamstats-mac-<version>.zip`, then unzip that file into your Applications directory (or wherever you want to run Jamstats from)
     * Note that the Mac app is particularly slow to start up
-* Any platform: install Python 3.9 or higher, then run `pip install jamstats`. That will put `jamstats` on your path so you can run it from the command line.
+* Linux (also an alternative for Windows or Mac): install Python 3.9 or higher, then run `pip install jamstats`. That will put `jamstats` on your path so you can run it from the command line.
+    * Depending on distribution, the `pip` installation may end up being more compicated than that. [Detailed Python installation instructions below](#python-installation-details)
 
 ## Usage
 
@@ -147,3 +148,30 @@ where:
 
 
 \* *I am not a web security expert, and I make no guarantees whatsoever about webserver security. If you're concerned and want to help make it more secure, please open an issue!*
+
+# Python Installation Details
+
+If `pip install jamstats` (or `pipx install jamstats` if you're using pipx) doesn't work for you, don't give up yet! There are a few quirks that may make installation more complicated, particularly on Linux distributions.
+
+As described in [Issue 175](https://github.com/dhmay/jamstats/issues/175#issuecomment-1989407253), at least one user successfully installed JamStats with pipx in both Debian Linux 12 (Bookworm) and Ubuntu 22.04.1 LTS. They noted that Debian and Ubuntu don't install the following packages by default, which you will need to build jamstats:
+
+* libgtk-3-dev - this package is needed for compiling the gui during install.
+* python3-pip - if you install Python from the official repositories, you'll also need the corresponding package for pip
+* python3-venv - is needed if you want to run Jamstats in a virtual environment. You will need this if you want to use pipx.
+
+Use
+
+    sudo apt install libgtk-3-dev python3-pip python3-venv
+
+to install all those things at once.
+
+Also, note that you can use `pip upgrade jamstats` to upgrade to the latest version.
+
+Finally, you may notice that the installation bogs down while trying to install `wxpython`. That package is only needed for the GUI interface. If you don't need the GUI interface and installing wxpython is giving you trouble, you can:
+
+1. Install all of jamstats' dependencies *except* wxpython
+    * you can find them in [requirements.txt](https://github.com/dhmay/jamstats/blob/main/requirements.txt))
+    * If you want a semi-automated way to do that, you could download that file and then `pip install $(grep -ivE "wxpython" requirements.txt)`
+3. `pip install jamstats --no-deps`
+
+And if none of that works, please log a bug!
