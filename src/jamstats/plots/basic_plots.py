@@ -362,7 +362,7 @@ class SkaterStatsPlotOneTeam(DerbyPlot):
             a_penalty = list(pdf_team_penalties.Penalty)[0]
             
             # add rows for skaters with no penalties.
-            # There's probably some more-pandas-y way to do this. I trie and failed.
+            # There's probably some more-pandas-y way to do this. I tried and failed.
             skaters_no_penalties = set(pdf_skater_data.Skater).difference(
                 set(set(pdf_team_penalties.Skater)))
             # add rows in the skaters table for skaters with penalties who didn't appear there.
@@ -394,13 +394,17 @@ class SkaterStatsPlotOneTeam(DerbyPlot):
                                             for skater in pdf_penalty_plot.index]
             pdf_penalty_plot = pdf_penalty_plot.sort_values("skater_order", ascending=False)
             pdf_penalty_plot = pdf_penalty_plot.drop(columns=["skater_order"])
+            pdf_skaters_inorder = pd.DataFrame({
+                "Skater": pdf_penalty_plot.index})
 
             # add penalties per jam
             pdf_skater_data["penalty_count"] = [skater_penaltycount_map[skater]
                                                 if skater in skater_penaltycount_map else 0
                                                 for skater in pdf_skater_data.Skater]
             # sort skater data, too
-            pdf_skater_data = pdf_skater_data.sort_values("penalty_count", ascending=False)
+            # Fix Issue #177: before, I had been sorting by skater penalty count,
+            # but this led to mistakes in the specific penalties assigned to each skater.
+            pdf_skater_data = pdf_skaters_inorder.merge(pdf_skater_data)
             pdf_skater_data["penalties_per_jam"] = (
                 pdf_skater_data["penalty_count"] / pdf_skater_data["Jams"])
 
@@ -426,6 +430,7 @@ class SkaterStatsPlotOneTeam(DerbyPlot):
             penalty_color_map = dict(zip(*[pdf_team_penalties.Penalty,
                                         pdf_team_penalties.penalty_color]))
 
+            print(pdf_penalty_plot)
             ax = f.add_subplot(spec[1])
             pdf_penalty_plot.plot(kind="barh", stacked=True, ax=ax,
                 color=penalty_color_map)
