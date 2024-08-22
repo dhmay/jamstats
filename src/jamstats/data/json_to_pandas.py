@@ -70,7 +70,7 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
 
     json_major_version = get_json_major_version(game_dict)
     logger.debug(f"Found CRG version {json_major_version}")
-    if json_major_version != 4:
+    if json_major_version != "4":
         # v5.0+ adds a "Game(<game_id>)" chunk to almost every key. Get rid of that.
 
         # In-process games have both "CurrentGame" fields and fields
@@ -117,7 +117,7 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
     return pdf_game_state
 
 
-def get_json_major_version(game_dict: Dict[str, Any]) -> int:
+def get_json_major_version(game_dict: Dict[str, Any]) -> str:
     """Get the major version of CRG used to generate the file
 
     Args:
@@ -130,7 +130,7 @@ def get_json_major_version(game_dict: Dict[str, Any]) -> int:
     major_version = version_str.split(".")[0]
     assert(major_version.startswith("v"))
     logger.debug(f"JSON major version string: {major_version}")
-    return int(major_version[1:])
+    return major_version[1:]
 
 
 def get_json_version(game_dict: Dict[str, Any]) -> str:
@@ -145,7 +145,7 @@ def get_json_version(game_dict: Dict[str, Any]) -> str:
     return game_dict["ScoreBoard.Version(release)"]
 
 
-def get_json_major_version_from_pdf(pdf_game_data: pd.DataFrame) -> int:
+def get_json_major_version_from_pdf(pdf_game_data: pd.DataFrame) -> str:
     """Get the major version of CRG used to generate the file
 
     Args:
@@ -158,7 +158,7 @@ def get_json_major_version_from_pdf(pdf_game_data: pd.DataFrame) -> int:
         pdf_game_data[pdf_game_data.key == "ScoreBoard.Version(release)"].value)[0]
     major_version = version_str.split(".")[0]
     assert(major_version.startswith("v"))
-    return int(major_version[1:])
+    return major_version[1:]
 
 
 def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
@@ -436,7 +436,7 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     """
     logger.debug("extract_roster begin")
     json_major_version = get_json_major_version_from_pdf(pdf_game_state)
-    if json_major_version == 4:
+    if json_major_version == "4":
         team_string_1 = f"PreparedTeam\\({team_name_1}\\)"
         team_string_2 = f"PreparedTeam\\({team_name_2}\\)"
     else:
@@ -459,7 +459,7 @@ def extract_roster(pdf_game_state: pd.DataFrame,
         for chunks in pdf_game_state_roster.key_chunks]
     logger.debug("Roster rows by team:")
     logger.debug(pdf_game_state_roster.team.value_counts())
-    if json_major_version != 4:
+    if json_major_version != "4":
         # Version 4 stored the team name. Version 5+ stores the number,
         # so translate.
         pdf_game_state_roster["team"] = [team_name_1 if team == "1"
@@ -698,7 +698,7 @@ def parse_scoringtrip_data(pdf_ateamjams_data: pd.DataFrame) -> pd.DataFrame:
 
 def extract_penalties(pdf_game_state: pd.DataFrame,
                       pdf_roster: pd.DataFrame,
-                      json_major_version: int) -> pd.DataFrame:
+                      json_major_version: str) -> pd.DataFrame:
     """Extract a dataframe with one row per penalty
 
     Args:
@@ -779,7 +779,7 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
 
 
 def build_penalty_code_name_map(pdf_game_state: pd.DataFrame,
-                                json_major_version: int) -> Dict[str, str]:
+                                json_major_version: str) -> Dict[str, str]:
     """Pull out the map from penalty codes to names that's repeated in every game file.
 
     Args:
@@ -790,7 +790,7 @@ def build_penalty_code_name_map(pdf_game_state: pd.DataFrame,
     """
     # this code is very inefficient -- will do string matching on the whole game dictionary
     logger.debug(f"build_penalty_code_name_map begin, version=={json_major_version}")
-    if json_major_version == 4:
+    if json_major_version == "4":
         pdf_penalty_codes = pdf_game_state[pdf_game_state["key"].str.startswith(
             "ScoreBoard.PenaltyCodes.Code")].copy()
     else:
