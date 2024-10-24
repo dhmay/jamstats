@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='jamstats-nogui',
-    version='1.4.12',
+    version='1.4.13',
     description='Data processing, stats and plots on roller derby scoreboard JSON files. No-GUI version.',
     author='Damon May',
     package_dir={"":"src"},
