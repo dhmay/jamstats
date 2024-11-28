@@ -115,7 +115,7 @@ td {
                                     <p><iframe src="/fig/{{element_name}}" width="1000px", height="1000px" style="border:0"></p>
                                 {% endif %}
                             {% else %}
-                                <p><H2>Can't display {{plotname_displayname_map[element_name]}} right now</H2></p>
+                                <p><H2>{{cant_display_message}}</H2></p>
                             {% endif %}
                         </td>
                     </tr>

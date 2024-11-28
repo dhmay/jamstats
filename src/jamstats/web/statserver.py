@@ -281,18 +281,23 @@ def index():
             for element_name in ELEMENT_NAME_CLASS_MAP.keys()
         }
 
+        # define the message to show if we can't display the plot
+        cant_display_message = f"Can't display {plotname_displayname_map[element_name]} right now"
         # determine which plots we're allowed to show
         elements_allowed = list(ELEMENT_NAME_CLASS_MAP.keys())
         if app.derby_game.game_status == "Prepared":
             # game hasn't started yet. Only show the plots we're supposed to show
             # before the game starts
             elements_allowed = ELEMENT_NAMES_TO_SHOW_BEFORE_GAME_START
+            cant_display_message = "Game hasn't started yet."
 
         element_class = ELEMENT_NAME_CLASS_MAP[element_name]
         logger.debug(f"About to render class {element_class}")
         element = element_class(anonymize_names=app.anonymize_names)
 
         can_dl_game_json = app.scoreboard_client is not None and app.scoreboard_client.game_json_dict is not None
+
+
         try:
             return render_template("jamstats_gameplots.html",
                             jamstats_version=get_jamstats_version(),
@@ -307,6 +312,7 @@ def index():
                             min_refresh_secs=app.min_refresh_secs,
                             anonymize_names=app.anonymize_names,
                             plots_allowed=elements_allowed,
+                            cant_display_message=cant_display_message,
                             can_dl_game_json=can_dl_game_json)
         except Exception as e:
             logger.error(f"Exception while rendering template: {e}")

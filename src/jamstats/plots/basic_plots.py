@@ -430,7 +430,6 @@ class SkaterStatsPlotOneTeam(DerbyPlot):
             penalty_color_map = dict(zip(*[pdf_team_penalties.Penalty,
                                         pdf_team_penalties.penalty_color]))
 
-            print(pdf_penalty_plot)
             ax = f.add_subplot(spec[1])
             pdf_penalty_plot.plot(kind="barh", stacked=True, ax=ax,
                 color=penalty_color_map)
