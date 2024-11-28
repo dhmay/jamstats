@@ -21,6 +21,7 @@ import logging
 import sys
 from os.path import exists
 from gooey import Gooey, GooeyParser
+from gooey.gui.lang import i18n  # Import Gooey's localization module
 import time
 import sys, traceback
 import _thread
@@ -36,9 +37,30 @@ logger = logging.Logger(__name__)
 logging.basicConfig(level=logging.WARNING,
                     format='%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
 
+
+# override Gooey messages
+gooey_message_override_dict = {
+  "sure_you_want_to_stop": "Are you sure you want to stop?"
+}
+# Monkey-patch the translate() function
+original_translate = i18n.translate  # Save original function
+
+def gooey_custom_translate(key):
+    # Check for the key you want to override
+    if key in gooey_message_override_dict:
+        return gooey_message_override_dict[key]
+    # Fall back to the original translate function for other keys
+    return original_translate(key)
+
+# Replace the translate function with your custom one
+i18n.translate = gooey_custom_translate
+
+
 print(f"jamstats version {get_jamstats_version()}, by Damon May")
 
-@Gooey(program_name="jamstats", program_description="Plot stats from a CRG scoreboard json file or server (v4 or higher)")
+@Gooey(program_name="jamstats",
+       program_description="Plot stats from a CRG scoreboard json file or server (v4 or higher)",
+       language='english')
 def gui_args():
     print("Starting GUI...")
     parser = GooeyParser()
