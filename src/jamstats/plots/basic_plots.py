@@ -239,9 +239,8 @@ class PenaltyCountsPlotByTeam(DerbyPlot):
             pdf_team_penalties = derby_game.pdf_penalties[
                 derby_game.pdf_penalties.team == team
             ]
-            pdf_team_penalty_counts = (pdf_team_penalties
-                .penalty_name.value_counts().reset_index().rename(
-                    columns={"penalty_name": "Penalty", "count": "Count"}))
+            pdf_team_penalty_counts = pdf_team_penalties.penalty_name.value_counts().reset_index()
+            pdf_team_penalty_counts.columns = ["Penalty", "Count"]
             pdf_team_penalty_counts["team"] = team
             pdf_team_penalty_counts.sort_values("Penalty", inplace=True)
             pdf_team_penalty_counts["team_number"] = 1 if team == derby_game.team_1_name else 2
