@@ -379,6 +379,7 @@ def extract_nonteam_jam_data(pdf_jam_data: pd.DataFrame) -> pd.DataFrame:
     # Grab those into a dataframe
     pdf_jam_fieldcounts = pd.DataFrame(
             pdf_jam_data.keychunk_3.value_counts()).reset_index()
+    pdf_jam_fieldcounts.columns = ["keychunk_3", "count"]
     jam_simple_fields = pdf_jam_fieldcounts[
             pdf_jam_fieldcounts["count"] == n_jams]["keychunk_3"]
     pdf_jam_simpledata = pdf_jam_data[
@@ -528,6 +529,7 @@ def process_team_jam_info(pdf_game_state: pd.DataFrame, team_number: int,
 
     pdf_ateamjam_fieldcounts = pd.DataFrame(
         pdf_ateamjams_data["keychunk_4"].value_counts()).reset_index()
+    pdf_ateamjam_fieldcounts.columns = ["keychunk_4", "count"]
 
     # Grab the one-per-jam fields from the teamjam dataframe, identifying by the fact that they
     # occur n_jams times. Exception: ScoringTrip can occur that many times, so get rid of it.
