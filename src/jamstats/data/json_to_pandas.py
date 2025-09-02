@@ -77,7 +77,7 @@ def json_to_game_dataframe(game_json: Dict[Any, Any]) -> pd.DataFrame:
         # annotated with a game identifier. Complete games don't have
         # "CurrentGame" fields. So, if we find a "CurrentGame" field,
         # use those and strip out all the fields with a game identifier.
-        logger.debug(f"Found version 5. Checking for in-progress game...")
+        logger.debug(f"Found version 5 or later. Checking for in-progress game...")
         is_in_progress_game = False
         for key in game_dict:
             if ".CurrentGame." in key:
@@ -127,10 +127,12 @@ def get_json_major_version(game_dict: Dict[str, Any]) -> str:
         int: major version
     """
     version_str = get_json_version(game_dict)
+    logger.debug(f"JSON version string: {version_str}")
     major_version = version_str.split(".")[0]
-    assert(major_version.startswith("v"))
+    if major_version.startswith("v"):
+        major_version = major_version[1:]
     logger.debug(f"JSON major version string: {major_version}")
-    return major_version[1:]
+    return major_version
 
 
 def get_json_version(game_dict: Dict[str, Any]) -> str:
@@ -157,8 +159,9 @@ def get_json_major_version_from_pdf(pdf_game_data: pd.DataFrame) -> str:
     version_str = list(
         pdf_game_data[pdf_game_data.key == "ScoreBoard.Version(release)"].value)[0]
     major_version = version_str.split(".")[0]
-    assert(major_version.startswith("v"))
-    return major_version[1:]
+    if major_version.startswith("v"):
+        major_version = major_version[1:]
+    return major_version
 
 
 def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
@@ -443,7 +446,6 @@ def extract_roster(pdf_game_state: pd.DataFrame,
     else:
         team_string_1 = f"Team\\(1\\)"
         team_string_2 = f"Team\\(2\\)"
-    
     team_string_1 = cleanup_team_name(team_string_1)
     team_string_2 = cleanup_team_name(team_string_2)
 
