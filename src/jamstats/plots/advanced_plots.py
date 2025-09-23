@@ -54,16 +54,18 @@ class JammersByTeamPlot(DerbyPlot):
                         "team": [derby_game.team_1_name, derby_game.team_2_name],
                         "jammers": [sum(pdf_jammer_jamcounts.team == derby_game.team_1_name),
                                     sum(pdf_jammer_jamcounts.team == derby_game.team_2_name)]
-                    }), hue="team", legend=False,
+                    }), hue="team", 
                     ax=ax, palette=team_color_palette)
+        ax.get_legend().remove()
         # word-wrap too-long team names
         wordwrap_x_labels(ax)
         ax.set_title("Jammers per team")
 
         ax = axes[1]
         sns.violinplot(x="team", y="jam_count", data=pdf_jammer_jamcounts, cut=0, ax=ax,
-                       hue="team", legend=False,
+                       hue="team", 
                     palette=team_color_palette, inner="stick")
+        ax.get_legend().remove()
         ax.set_title("Jams per jammer")
         ax.set_ylabel("Jams per jammer")
         # word-wrap too-long team names
@@ -289,10 +291,11 @@ class TimeToInitialPassPlot(DerbyPlot):
         })
         if len(pdf_plot) > 0:
             sns.violinplot(y="first_scoring_pass_durations", x="Team",
-                        data=pdf_plot, cut=0, ax=ax, hue="Team", legend=False,
+                        data=pdf_plot, cut=0, ax=ax, hue="Team",
                         inner="stick", palette=team_color_palette)
         ax.set_ylabel("Time to Initial (s)")
         ax.set_title("Time to Initial per jam")
+        ax.get_legend().remove()
         # word-wrap too-long team names
         wordwrap_x_labels(ax)
 

@@ -60,35 +60,40 @@ class JammerStatsPlotOneTeam(DerbyPlot):
         mypalette = sns.color_palette("rainbow", n_colors=n_jammers)
 
         ax = ax0
-        sns.barplot(y="Jammer", x="Jams", hue="Jammer", legend=False,
+        sns.barplot(y="Jammer", x="Jams", hue="Jammer",
                     data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_ylabel("")
+        ax.get_legend().remove()
 
         ax = ax1
-        sns.barplot(y="Jammer", x="Total Score", hue="Jammer", legend=False,
+        sns.barplot(y="Jammer", x="Total Score", hue="Jammer",
                     data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_yticks([])
         ax.set_ylabel("")
+        ax.get_legend().remove()
 
         ax = ax2
-        sns.barplot(y="Jammer", x="Mean Net Points", hue="Jammer", legend=False,
+        sns.barplot(y="Jammer", x="Mean Net Points", hue="Jammer",
                 data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_xlabel("Mean Net Points/Jam\n(own - opposing)")
         ax.set_yticks([])
         ax.set_ylabel("")
+        ax.get_legend().remove()
 
         ax = ax3
-        sns.barplot(y="Jammer", x="Proportion Lead", hue="Jammer", legend=False,
+        sns.barplot(y="Jammer", x="Proportion Lead", hue="Jammer",
                     data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_xlim(0,1)
         ax.set_yticks([])
         ax.set_ylabel("")
+        ax.get_legend().remove()
 
         ax = ax4
-        sns.barplot(y="Jammer", x="Mean Time to Initial", hue="Jammer", legend=False,
+        sns.barplot(y="Jammer", x="Mean Time to Initial", hue="Jammer",
                     data=pdf_jammer_data, ax=ax, palette=mypalette)
         ax.set_yticks([])
         ax.set_ylabel("")
+        ax.get_legend().remove()
 
         f.set_size_inches(16, min(2 + len(pdf_jammer_data), 11))
         f.suptitle(f"Jammer Stats: {team_name}")
@@ -202,12 +207,14 @@ class SimpleLeadSummaryPlot(DerbyPlot):
             sns.barplot(y="prd_jam", x="Team with Lead", data=pdf_for_plot_all, ax=ax,
                         color="gray")
         if len(pdf_for_plot_called_or_lost) > 0:
-            sns.barplot(y="prd_jam", x="Team with Lead", hue="Team with Lead", legend=False,
+            sns.barplot(y="prd_jam", x="Team with Lead", hue="Team with Lead",
                         data=pdf_for_plot_called_or_lost, ax=ax,
                         palette=team_color_palette)
         if len(pdf_for_plot_lost) > 0:
-            sns.barplot(y="prd_jam", x="Team with Lead", hue="Team with Lead", legend=False,
+            sns.barplot(y="prd_jam", x="Team with Lead", hue="Team with Lead",
                         data=pdf_for_plot_lost, ax=ax, palette='dark:black')
+        if ax.get_legend() is not None:
+            ax.get_legend().remove()
 
         ax.set_ylabel("Jams")
         ax.set_title("Jams with Lead\n(black=lost, gray=not called)")
