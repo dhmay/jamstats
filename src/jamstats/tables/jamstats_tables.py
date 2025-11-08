@@ -28,10 +28,10 @@ class BothTeamsJammersTable(DerbyHTMLElement):
         """
         pdf_team1 = get_oneteam_jammer_pdf(derby_game, 1, anonymize_names=self.anonymize_names)
         pdf_team2 = get_oneteam_jammer_pdf(derby_game, 2, anonymize_names=self.anonymize_names)
-        styler_1 = pdf_team1.style
-        styler_2 = pdf_team2.style
-        table_html_1 = styler_1.hide(axis="index").to_html()
-        table_html_2 = styler_2.hide(axis="index").to_html()
+        styler_1 = _hide_index(pdf_team1.style)
+        styler_2 = _hide_index(pdf_team2.style)
+        table_html_1 = styler_1.to_html()
+        table_html_2 = styler_2.to_html()
         team1_tablecell_html = f"<H2>{derby_game.team_1_name} ({len(pdf_team1)})</H2>" + table_html_1
         team2_tablecell_html = f"<H2>{derby_game.team_2_name} ({len(pdf_team2)})</H2>" + table_html_2
         return "<table><tr valign='top'><td>" + team1_tablecell_html + "</td><td>" + team2_tablecell_html + "</td></tr></table>"
@@ -104,7 +104,7 @@ class BothTeamsSkaterPenaltiesTable(DerbyHTMLElement):
             styler = styler.apply(lambda _: yellow_rows)
             # gray background
             styler = styler.set_properties(**{'background-color': '#999999'})
-            styler = styler.set_table_attributes("style='display:inline'").hide(axis="index")
+            styler = _hide_index(styler.set_table_attributes("style='display:inline'"))
             table_htmls.append(styler.to_html())
 
         table_html_1, table_html_2 = table_htmls
@@ -208,8 +208,8 @@ class CallerDashboard(DerbyHTMLElement):
             for column in pdf_game_teams_summary.columns
         })
         pdf_game_teams_summary.index = range(len(pdf_game_teams_summary))
-        styler = pdf_game_teams_summary.style.set_table_attributes(
-            "style='display:inline'").hide(axis="index")
+        styler = _hide_index(pdf_game_teams_summary.style.set_table_attributes(
+            "style='display:inline'"))
         html_game_summary = styler.to_html()
 
         # if we're *not* in a jam, show the jammers for the next jam
@@ -314,9 +314,9 @@ def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
         styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
         styler = styler.applymap(map_penalty_to_color,
             subset=["Penalty"])
-        styler = styler.applymap(map_penaltycount_to_color,
-            subset=["Pen. Count"]).hide(axis="index")
-        styler = styler.set_table_attributes("style='display:inline'").hide(axis="index")
+        styler = _hide_index(styler.applymap(map_penaltycount_to_color,
+            subset=["Pen. Count"]))
+        styler = _hide_index(styler.set_table_attributes("style='display:inline'"))
         table_htmls.append(styler.to_html())
 
     _, latest_jam_row_dict = next(pdf_one_jam.iterrows())
@@ -410,6 +410,8 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_skater_penaltycount["Name"] = pdf_skater_penaltycount.index
     pdf_skater_penaltycount.index = range(len(pdf_skater_penaltycount))
     pdf_team_current_skaters = pdf_team_current_skaters.merge(pdf_skater_penaltycount, on="Name", how="left")
+    if "Pen. Count" not in pdf_team_current_skaters.columns:
+        pdf_team_current_skaters["Pen. Count"] = 0
     pdf_team_current_skaters["Pen. Count"] = pdf_team_current_skaters["Pen. Count"].fillna(0)
     pdf_team_current_skaters["Pen. Count"] = pdf_team_current_skaters["Pen. Count"].astype(int)
 
@@ -549,13 +551,14 @@ class RecentPenaltiesTable(DerbyTable):
         map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
             else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \
             else ''
-        styler = pdf_recent_penalties.style.applymap(map_team_to_color, subset=["Team"]).hide(axis="index")
+        styler = pdf_recent_penalties.style.applymap(map_team_to_color, subset=["Team"])
+        styler = _hide_index(styler) 
 
         # if either team is white, don't use white background.
         # This will break if white plays gray
         #if derby_game.team_color_1.lower() == "#ffffff" or derby_game.team_color_2.lower() == "#ffffff":
         #    styler = styler.set_properties(**{'background-color': 'gray'})
-        return styler.to_html(index=False)
+        return styler.to_html()
 
 
 def make_recent_penalties_dataframe(derby_game: DerbyGame,
@@ -685,3 +688,12 @@ def format_team_roster_fordisplay(derby_game: DerbyGame, team_name: str,
 
 
     return pdf_team_roster
+
+def _hide_index(styler: Styler) -> Styler:
+    # defensive coding around different pandas versions
+    try:
+        styler = styler.hide(axis="index")
+    except Exception:
+        logger.info(f"Error hiding table index, pandas version {pd.__version__}. Trying alternate method.")
+        styler = styler.hide_index()
+    return styler
