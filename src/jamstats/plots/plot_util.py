@@ -10,6 +10,7 @@ from textwrap import wrap
 import random
 from matplotlib.pyplot import Figure
 from pandas.api.types import CategoricalDtype
+from PIL import ImageColor
 
 from abc import ABC, abstractmethod
 
@@ -99,17 +100,31 @@ def prepare_to_plot(theme:str = DEFAULT_THEME) -> None:
     logger.info(f"Using theme {theme}")
     sns.set_style(theme)
 
-def _color_is_white(color):
-    if color == "white":
-        return True
+def _color_is_near_white(color) -> bool:
+    """Determine whether a color is close to white
+
+    Args:
+        color: color or string
+
+    Returns:
+        bool: whether color is close to white
+    """
+    if type(color) == str:
+        color = ImageColor.getrgb(color)
+    try:
+        if min(color) > 250:
+            return True
+    except Exception:
+        logger.info("Can't determine whether team color is white")
+        pass
     return False
 
 def make_team_color_palette(derby_game: DerbyGame):
     # Addressing issue 197: if either team is close to white,
     # force dark theme
     if (
-        _color_is_white(derby_game.team_color_1) or
-        _color_is_white(derby_game.team_color_2)
+        _color_is_near_white(derby_game.team_color_1) or
+        _color_is_near_white(derby_game.team_color_2)
     ):
         logger.warning("A team is white, so forcing dark theme.")
         sns.set_style("dark")
