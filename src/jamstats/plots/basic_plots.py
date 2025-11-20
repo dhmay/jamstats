@@ -134,11 +134,13 @@ class CumScoreByJamPlot(DerbyPlot):
         sns.lineplot(x="prd_jam", y="TotalScore",
                     data=pdf_jam_data_long[pdf_jam_data_long.team == derby_game.team_1_name],
                                             label=derby_game.team_1_name,
-                    estimator=None, color=team_color_palette[0])
+                    estimator=None, color=team_color_palette[0],
+                    linewidth=5)
         sns.lineplot(x="prd_jam", y="TotalScore",
                     data=pdf_jam_data_long[pdf_jam_data_long.team == derby_game.team_2_name],
                                             label=derby_game.team_2_name,
-                    estimator=None, color=team_color_palette[1])
+                    estimator=None, color=team_color_palette[1],
+                    linewidth=5)
 
         # determine break betwen periods, if any. Draw a line there.
         n_periods = len(set(derby_game.pdf_jams_data.PeriodNumber))
