@@ -15,7 +15,7 @@ import matplotlib.patches as mpatches
 from matplotlib.pyplot import Figure
 from matplotlib import gridspec
 
-from jamstats.plots.plot_util import build_anonymizer_map, DerbyPlot
+from jamstats.plots.plot_util import build_anonymizer_map, DerbyPlot, _color_is_near_black
 import traceback
 
 
@@ -279,11 +279,19 @@ class PenaltyCountsPlotByTeam(DerbyPlot):
             sns.barplot(y="Penalty", x="Count", data=pdf_penalty_counts,
                         hue="team", ax=ax, palette=team_color_palette)
             for i, row in pdf_penalty_counts.iterrows():
-                offset = -.2 if row["team_number"] == 1 else .2
+                team_number = row["team_number"]
+                offset = -.2 if team_number == 1 else .2
+                #team_color = team_color_palette[row["team_number"] - 1]
+                team_color = derby_game.team_color_1 if team_number == 1 else derby_game.team_color_2
+                font_color = "black"
+                if _color_is_near_black(team_color):
+                    font_color = "white"
                 ax.text(.5, penalties_inorder.index(row["Penalty"]) + offset,
                         row["Count"], size="small",
                         horizontalalignment="center",
-                        verticalalignment="center")
+                        verticalalignment="center",
+                        color=font_color
+                )
         ax.set_title(f"Penalty counts") 
         ax.set_ylabel("")
 

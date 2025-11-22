@@ -119,6 +119,25 @@ def _color_is_near_white(color) -> bool:
         pass
     return False
 
+def _color_is_near_black(color) -> bool:
+    """Determine whether a color is close to black
+
+    Args:
+        color: color or string
+
+    Returns:
+        bool: whether color is close to white
+    """
+    if type(color) == str:
+        color = ImageColor.getrgb(color)
+    try:
+        if max(color) < 5:
+            return True
+    except Exception:
+        logger.info("Can't determine whether team color is black")
+        pass
+    return False
+
 def make_team_color_palette(derby_game: DerbyGame):
     # Addressing issue 197: if either team is close to white,
     # force dark theme
