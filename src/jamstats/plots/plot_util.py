@@ -11,6 +11,7 @@ import random
 from matplotlib.pyplot import Figure
 from pandas.api.types import CategoricalDtype
 from PIL import ImageColor
+import pandas as pd
 
 from abc import ABC, abstractmethod
 
@@ -208,6 +209,46 @@ def build_anonymizer_map(names: Iterable[str]) -> Dict[str, str]:
         names_set_list[i]: anonymized_names[i]
         for i in range(len(names_set_list))
     }
+
+def remove_ax_legend(ax):
+    """Utility method to remove a legend from an ax, and fail silently.
+
+    Args:
+        ax: _description_
+    """
+    try:
+        ax.get_legend().remove()
+    except Exception:
+        pass
+
+def add_number_to_barplot(ax, pdf: pd.DataFrame, column: str):
+    """Utility method to add a number to a barplot, derived
+    from a column in a pdf
+
+    Args:
+        ax: ax containing a barplot
+        pdf (pd.DataFrame): dataframe
+        column (str): column name
+    """
+    numbers = list(pdf[column])
+    max_val = max(numbers)
+    text_x_pos = max_val / 10
+
+    vals_are_ints = True
+    for number in numbers:
+        if int(number) != number:
+            vals_are_ints = False
+            break
+    if vals_are_ints:
+        number_strs = [str(x) for x in numbers]
+    else:
+        number_strs = [f"{x:.1f}" for x in numbers]
+    for i in range(len(numbers)):
+        if number_strs[i] == "nan":
+            number_strs[i] = ""
+        ax.text(text_x_pos, i, number_strs[i], size="small",
+            horizontalalignment="left",
+            verticalalignment="center")
 
 
 ANONYMIZED_SKATER_NAMES = [

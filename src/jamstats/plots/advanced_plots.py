@@ -9,7 +9,8 @@ from matplotlib import pyplot as plt
 import pandas as pd
 from jamstats.plots.plot_util import (
     make_team_color_palette,
-    wordwrap_x_labels
+    wordwrap_x_labels,
+    remove_ax_legend
 )
 from jamstats.plots.plot_util import DerbyPlot
 import matplotlib.patches as mpatches
@@ -56,7 +57,7 @@ class JammersByTeamPlot(DerbyPlot):
                                     sum(pdf_jammer_jamcounts.team == derby_game.team_2_name)]
                     }), hue="team", 
                     ax=ax, palette=team_color_palette)
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
         # word-wrap too-long team names
         wordwrap_x_labels(ax)
         ax.set_title("Jammers per team")
@@ -65,7 +66,7 @@ class JammersByTeamPlot(DerbyPlot):
         sns.violinplot(x="team", y="jam_count", data=pdf_jammer_jamcounts, cut=0, ax=ax,
                        hue="team", 
                     palette=team_color_palette, inner="stick")
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
         ax.set_title("Jams per jammer")
         ax.set_ylabel("Jams per jammer")
         # word-wrap too-long team names
@@ -90,7 +91,7 @@ class JammersByTeamPlot(DerbyPlot):
         ax.set_xlabel("# jams")
         # word-wrap too-long team names
         wordwrap_x_labels(ax)
-        ax.legend().remove()
+        remove_ax_legend(ax)
 
         f.set_size_inches(14,6)
         f.tight_layout()
@@ -181,7 +182,7 @@ class PerJamDataOnePeriodPlot(DerbyPlot):
         for i in range(len(pdf_jambools.columns)):
             ax.text(i + 0.25, -.5, pdf_jambools.columns[i], rotation=90, size="large")
 
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
         ax.set_xlabel("")
         ax.set_ylabel("")
         ax.set_xticks([x+.5 for x in range(len(pdf_jambool_heatmap.columns))])
@@ -295,7 +296,7 @@ class TimeToInitialPassPlot(DerbyPlot):
                         inner="stick", palette=team_color_palette)
         ax.set_ylabel("Time to Initial (s)")
         ax.set_title("Time to Initial per jam")
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
         # word-wrap too-long team names
         wordwrap_x_labels(ax)
 
