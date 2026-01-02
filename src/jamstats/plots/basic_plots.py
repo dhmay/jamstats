@@ -9,7 +9,9 @@ from jamstats.data.game_data import DerbyGame
 import logging
 from jamstats.plots.plot_util import (
     make_team_color_palette,
-    wordwrap_x_labels
+    wordwrap_x_labels,
+    remove_ax_legend,
+    add_number_to_barplot
 )
 import matplotlib.patches as mpatches
 from matplotlib.pyplot import Figure
@@ -62,38 +64,43 @@ class JammerStatsPlotOneTeam(DerbyPlot):
         ax = ax0
         sns.barplot(y="Jammer", x="Jams", hue="Jammer",
                     data=pdf_jammer_data, ax=ax, palette=mypalette)
+        add_number_to_barplot(ax, pdf_jammer_data, "Jams")
         ax.set_ylabel("")
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
 
         ax = ax1
         sns.barplot(y="Jammer", x="Total Score", hue="Jammer",
                     data=pdf_jammer_data, ax=ax, palette=mypalette)
+        add_number_to_barplot(ax, pdf_jammer_data, "Total Score")
         ax.set_yticks([])
         ax.set_ylabel("")
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
 
         ax = ax2
         sns.barplot(y="Jammer", x="Mean Net Points", hue="Jammer",
                 data=pdf_jammer_data, ax=ax, palette=mypalette)
+        add_number_to_barplot(ax, pdf_jammer_data, "Mean Net Points")
         ax.set_xlabel("Mean Net Points/Jam\n(own - opposing)")
         ax.set_yticks([])
         ax.set_ylabel("")
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
 
         ax = ax3
         sns.barplot(y="Jammer", x="Proportion Lead", hue="Jammer",
                     data=pdf_jammer_data, ax=ax, palette=mypalette)
+        add_number_to_barplot(ax, pdf_jammer_data, "Proportion Lead")
         ax.set_xlim(0,1)
         ax.set_yticks([])
         ax.set_ylabel("")
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
 
         ax = ax4
         sns.barplot(y="Jammer", x="Mean Time to Initial", hue="Jammer",
                     data=pdf_jammer_data, ax=ax, palette=mypalette)
+        add_number_to_barplot(ax, pdf_jammer_data, "Mean Time to Initial")
         ax.set_yticks([])
         ax.set_ylabel("")
-        ax.get_legend().remove()
+        remove_ax_legend(ax)
 
         f.set_size_inches(16, min(2 + len(pdf_jammer_data), 11))
         f.suptitle(f"Jammer Stats: {team_name}")
@@ -216,7 +223,7 @@ class SimpleLeadSummaryPlot(DerbyPlot):
             sns.barplot(y="prd_jam", x="Team with Lead", hue="Team with Lead",
                         data=pdf_for_plot_lost, ax=ax, palette='dark:black')
         if ax.get_legend() is not None:
-            ax.get_legend().remove()
+            remove_ax_legend(ax)
 
         ax.set_ylabel("Jams")
         ax.set_title("Jams with Lead\n(black=lost, gray=not called)")
@@ -426,8 +433,8 @@ class SkaterStatsPlotOneTeam(DerbyPlot):
 
             penalty_plot_is_go = True
         except Exception as e:
-            logger.warn(f"Failed to make skater penalty subplot:")
-            logger.warn(traceback.format_exc())
+            logger.warning(f"Failed to make skater penalty subplot:")
+            logger.warning(traceback.format_exc())
 
         f, dummy_axis = plt.subplots()
         dummy_axis.set_xticks([])
