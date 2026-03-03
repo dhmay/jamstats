@@ -11,6 +11,16 @@ DEFAULT_N_RECENT_PENALTIES = 10
 
 logger = logging.Logger(__name__)
 
+"""
+Holds events that occur when jam is in progress.
+Stored as list of (text, uuid) tuples.
+Cleared when a new jam starts.
+"""
+_current_jam_events = []
+
+def update_jam_events(events):
+    global _current_jam_events
+    _current_jam_events = list(events)
 
 class BothTeamsJammersTable(DerbyHTMLElement):
     name: str = "Jammers"
@@ -212,8 +222,18 @@ class CallerDashboard(DerbyHTMLElement):
             "style='display:inline'"))
         html_game_summary = styler.to_html()
 
-        # if we're *not* in a jam, show the jammers for the next jam
         if not derby_game.game_data_dict["jam_is_running"]:
+            # Between jams, show upcoming jammers and additional notes.
+            game_situation_descriptors = (
+                get_timeout_items(derby_game) +
+                get_lead_change_items(derby_game) +
+                get_jammer_matchup_items(derby_game) +
+                get_first_time_jammer_items(derby_game) +
+                get_pack_advantage_items(derby_game) +
+                get_power_start_items(derby_game)
+            )
+            if game_situation_descriptors:
+                html_game_summary += "<ul>" + "".join(f"<li>{item}</li>" for item in game_situation_descriptors) + "</ul>\n"
             next_jam_section = "\n<p><b>Next jam's jammers:</b><br>\n"
             next_jam_section = next_jam_section + f"<table width=100% style='padding: 5px'><tr><th>{derby_game.team_1_name}</th><th>{derby_game.team_2_name}</th></tr>\n"
             next_jam_section += f"<tr><td>{derby_game.game_data_dict['team_1_jammer_number']} {derby_game.game_data_dict['team_1_jammer_name']}</td>\n"
@@ -225,8 +245,13 @@ class CallerDashboard(DerbyHTMLElement):
         pdf_jams_sorted_desc = derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"],
                                                                     ascending=False)
         pdf_jams_sorted_desc.index = range(len(pdf_jams_sorted_desc))
+        events_html = '<ul id="jam-events">'
+        for text, event_id in _current_jam_events:
+            events_html += f'<li data-id="{event_id}">{text}</li>'
+        events_html += '</ul>'
         html_current_jam = get_singlejam_skaters_html(derby_game, pdf_jams_sorted_desc.head(1),
-                                                    anonymize_names=self.anonymize_names)
+                                                    anonymize_names=self.anonymize_names,
+                                                    events_html=events_html)
         
         result =  "<p>" + html_game_summary + "</p><p>" + html_current_jam
 
@@ -279,8 +304,172 @@ def get_current_skaters_html(derby_game: DerbyGame, anonymize_names: bool = Fals
     return result
 
 
+def get_jammer_matchup_items(derby_game: DerbyGame) -> list:
+    # Check if the two upcoming jammers have faced each other earlier this game.
+
+    jammer_1 = derby_game.game_data_dict.get("team_1_jammer_name", "")
+    jammer_2 = derby_game.game_data_dict.get("team_2_jammer_name", "")
+    if not jammer_1 or not jammer_2:
+        return []
+
+    pdf = derby_game.pdf_jams_data
+    matchups = pdf[
+        (pdf["jammer_name_1"] == jammer_1) & (pdf["jammer_name_2"] == jammer_2)
+    ]
+    count = len(matchups)
+    if count == 0:
+        return []
+    n = count + 1
+
+    # Put in ordinal terms, e.g. "2nd matchup this game".
+    suffix = "th" if 11 <= n <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return [f"{jammer_1} vs. {jammer_2}: {n}{suffix} matchup this game"]
+
+
+def get_timeout_items(derby_game: DerbyGame) -> list:
+    """ Check for the following timeout situations:
+      - team timeout
+      - official timeout
+      - official review
+    """
+    gdd = derby_game.game_data_dict
+
+    or_owner = gdd.get("official_review_owner")
+    is_official_review = gdd.get("timeout_running") and (
+        gdd.get("in_official_review") or (or_owner and or_owner not in ("None", ""))
+    )
+    if is_official_review:
+        owner = or_owner or ""
+        if owner.endswith("_1"):
+            return [f"Official Review: {derby_game.team_1_name}"]
+        elif owner.endswith("_2"):
+            return [f"Official Review: {derby_game.team_2_name}"]
+        return ["Official Review"]
+
+    if gdd.get("timeout_running"):
+        owner = gdd.get("timeout_owner") or ""
+        if owner.endswith("_1"):
+            return [f"Team Timeout: {derby_game.team_1_name}"]
+        elif owner.endswith("_2"):
+            return [f"Team Timeout: {derby_game.team_2_name}"]
+        else:
+            return ["Official Timeout"]
+
+    return []
+
+
+def get_first_time_jammer_items(derby_game: DerbyGame) -> list:
+    # Check if either jammer is jamming for their first time this game.
+
+    past_jammers_1 = set(derby_game.pdf_jams_data["jammer_name_1"].dropna().tolist())
+    past_jammers_2 = set(derby_game.pdf_jams_data["jammer_name_2"].dropna().tolist())
+
+    result = []
+    jammer_1 = derby_game.game_data_dict.get("team_1_jammer_name", "")
+    jammer_2 = derby_game.game_data_dict.get("team_2_jammer_name", "")
+
+    if jammer_1 and jammer_1 not in past_jammers_1:
+        result.append(f"{jammer_1} first time jamming")
+    if jammer_2 and jammer_2 not in past_jammers_2:
+        result.append(f"{jammer_2} first time jamming")
+    return result
+
+
+def get_lead_change_items(derby_game: DerbyGame) -> list:
+    # Check if most recent jame resulted in a lead change.
+
+    pdf_jams = derby_game.pdf_jams_data.sort_values(
+        ["PeriodNumber", "Number"], ascending=False)
+    pdf_jams.index = range(len(pdf_jams))
+    if len(pdf_jams) < 2:
+        return []
+
+    prev_jam = pdf_jams.iloc[1]
+    cur_jam = pdf_jams.iloc[0]
+
+    def leader(row):
+        s1, s2 = row["TotalScore_1"], row["TotalScore_2"]
+        if s1 > s2:
+            return 1
+        elif s2 > s1:
+            return 2
+        return 0  # tied
+
+    prev_leader = leader(prev_jam)
+    cur_leader = leader(cur_jam)
+
+    if prev_leader == 0 or cur_leader == 0 or prev_leader == cur_leader:
+        return []
+
+    new_leader_name = derby_game.team_1_name if cur_leader == 1 else derby_game.team_2_name
+    return [f"Lead change: {new_leader_name} now ahead"]
+
+
+def get_pack_advantage_items(derby_game: DerbyGame) -> list:
+    # Check if one team has a pack advantage (i.e. more blockers) at the start of a jam.
+    team1_blockers = max(4 - derby_game.game_data_dict.get("team1_blockers_in_box", 0), 0)
+    team2_blockers = max(4 - derby_game.game_data_dict.get("team2_blockers_in_box", 0), 0)
+
+    if team1_blockers == team2_blockers:
+        return []
+    elif team1_blockers > team2_blockers:
+        return [f"{derby_game.team_1_name} {team1_blockers}-{team2_blockers} Pack Advantage"]
+    else:
+        return [f"{derby_game.team_2_name} {team2_blockers}-{team1_blockers} Pack Advantage"]
+
+
+def get_power_start_items(derby_game: DerbyGame) -> list:
+    # Check if there is a power start, i.e. one team has a jammer in the penalty box.
+
+    result = []
+    if derby_game.game_data_dict.get("team1_jammer_in_box", False):
+        result.append(f"Power Start for {derby_game.team_2_name}")
+    if derby_game.game_data_dict.get("team2_jammer_in_box", False):
+        result.append(f"Power Start for {derby_game.team_1_name}")
+    return result
+
+
+def get_active_jam_status_html(derby_game: DerbyGame) -> str:
+    """
+    Check for the any of the following during an active jam:
+      - got lead
+      - got initial (only for team that did NOT get lead)
+      - lost lead
+
+    In the CRG scorebaord, "No Initial" starts as True (NI highlighted by default). It becomes
+    False when the scoreboard operator clicks "NI" to confirm the jammer passed their initial.
+    So NoInitial=False means "got initial", and NoInitial=True means "not yet / NI".
+    """
+    result = ""
+    pdf_jams = derby_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"], ascending=False)
+    if len(pdf_jams) == 0:
+        return result
+    jam = pdf_jams.iloc[0]
+
+    if jam.get("Lead_1", False):
+        jammer = jam.get("jammer_name_1") or f"{derby_game.team_1_name} jammer"
+        result += f"<li>{derby_game.team_1_name} {jammer} got lead</li>\n"
+    if jam.get("Lead_2", False):
+        jammer = jam.get("jammer_name_2") or f"{derby_game.team_2_name} jammer"
+        result += f"<li>{derby_game.team_2_name} {jammer} got lead</li>\n"
+    if jam.get("Lost_1", False):
+        jammer = jam.get("jammer_name_1") or f"{derby_game.team_1_name} jammer"
+        result += f"<li>{derby_game.team_1_name} {jammer} lost lead</li>\n"
+    if jam.get("Lost_2", False):
+        jammer = jam.get("jammer_name_2") or f"{derby_game.team_2_name} jammer"
+        result += f"<li>{derby_game.team_2_name} {jammer} lost lead</li>\n"
+    if jam.get("NoInitial_1") is False and not jam.get("Lead_1", False):
+        jammer = jam.get("jammer_name_1") or f"{derby_game.team_1_name} jammer"
+        result += f"<li>{derby_game.team_1_name} {jammer} got initial</li>\n"
+    if jam.get("NoInitial_2") is False and not jam.get("Lead_2", False):
+        jammer = jam.get("jammer_name_2") or f"{derby_game.team_2_name} jammer"
+        result += f"<li>{derby_game.team_2_name} {jammer} got initial</li>\n"
+    return result
+
+
 def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
-                               anonymize_names: bool = False) -> str:
+                               anonymize_names: bool = False,
+                               events_html: str = "") -> str:
     """Get per-team tables of the skaters for a *single jam* as html
 
     Args:
@@ -307,14 +496,14 @@ def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
     table_htmls = []
     for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
         styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
-        styler = styler.applymap(map_penalty_to_color,
+        styler = styler.map(map_penalty_to_color,
             subset=["Penalty"])
     table_htmls = []
     for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
         styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
-        styler = styler.applymap(map_penalty_to_color,
+        styler = styler.map(map_penalty_to_color,
             subset=["Penalty"])
-        styler = _hide_index(styler.applymap(map_penaltycount_to_color,
+        styler = _hide_index(styler.map(map_penaltycount_to_color,
             subset=["Pen. Count"]))
         styler = _hide_index(styler.set_table_attributes("style='display:inline'"))
         table_htmls.append(styler.to_html())
@@ -323,6 +512,8 @@ def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
     period = latest_jam_row_dict["PeriodNumber"]
     number = latest_jam_row_dict["Number"]
     result = f"Period {period}, Jam {number}<br>"
+    if events_html:
+        result += events_html
 
     # extract current jam score per team
     _, latest_jam_row_dict = next(pdf_one_jam.iterrows())
@@ -361,6 +552,17 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     lost = latest_jam_row_dict[f"Lost_{field_suffix}"]
     starpass = latest_jam_row_dict[f"StarPass_{field_suffix}"]
     noinitial = latest_jam_row_dict[f"NoInitial_{field_suffix}"]
+   
+    """
+    When there is a star pass, there could be points scored by the original jammer
+      AND the pivot / new jammer.
+    """
+    try:
+        jammer_jam_pts = int(latest_jam_row_dict.get(f"jammer_points_{field_suffix}", 0) or 0)
+        pivot_jam_pts = int(latest_jam_row_dict.get(f"pivot_points_{field_suffix}", 0) or 0)
+    except (ValueError, TypeError):
+        jammer_jam_pts = 0
+        pivot_jam_pts = 0
 
     position_list = []
     for s in skaters:
@@ -415,6 +617,17 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_team_current_skaters["Pen. Count"] = pdf_team_current_skaters["Pen. Count"].fillna(0)
     pdf_team_current_skaters["Pen. Count"] = pdf_team_current_skaters["Pen. Count"].astype(int)
 
+    # add jam points column: points could be scored by original jammer AND/OR pivot on a star pass
+    def jam_pts_for(name):
+        if name == jammer:
+            return jammer_jam_pts
+        if starpass and name == pivot:
+            return pivot_jam_pts
+        return ""
+    pdf_team_current_skaters["Jam Pts"] = [
+        jam_pts_for(n) for n in pdf_team_current_skaters["Name"]
+    ]
+
     # add penalties from this jam.
 
     # get all the recent penalties for this team
@@ -447,7 +660,7 @@ def get_team_jam_skaters_pdf(derby_game: DerbyGame, team_name: str,
     pdf_recent_penalties = pdf_recent_penalties.rename(columns={"PenaltyAndStatus": "Penalty"})
     pdf_team_current_skaters = pd.merge(pdf_team_current_skaters, pdf_recent_penalties,
                                         on="Name", how="left")
-    pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Pen. Count", "Penalty"]]
+    pdf_team_current_skaters = pdf_team_current_skaters[["Position", "Number", "Name", "Jam Pts", "Pen. Count", "Penalty"]]
     pdf_team_current_skaters = pdf_team_current_skaters.fillna("")
 
     pdf_team_current_skaters = pdf_team_current_skaters.rename(columns={
@@ -551,7 +764,7 @@ class RecentPenaltiesTable(DerbyTable):
         map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
             else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \
             else ''
-        styler = pdf_recent_penalties.style.applymap(map_team_to_color, subset=["Team"])
+        styler = pdf_recent_penalties.style.map(map_team_to_color, subset=["Team"])
         styler = _hide_index(styler) 
 
         # if either team is white, don't use white background.

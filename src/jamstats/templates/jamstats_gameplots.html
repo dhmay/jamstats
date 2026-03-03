@@ -20,6 +20,25 @@
         console.log("refresh");
         location.reload();
     });
+
+    // Check for jam-in-progress game updates.
+    const displayedJamEventIds = new Set();
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.jam-event[data-id]').forEach(el => {
+            displayedJamEventIds.add(el.getAttribute('data-id'));
+        });
+    });
+    socket.on('jam_event', (msg) => {
+        if (displayedJamEventIds.has(msg.id)) return;
+        displayedJamEventIds.add(msg.id);
+        const eventsList = document.getElementById('jam-events');
+        if (!eventsList) return;
+        const item = document.createElement('li');
+        item.setAttribute('data-id', msg.id);
+        item.textContent = msg.text;
+        eventsList.appendChild(item);
+    });
+
     function showHideLeft() {
         var x = document.getElementById("left");
         if (x.style.display === "none") {

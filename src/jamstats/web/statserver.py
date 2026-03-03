@@ -22,6 +22,7 @@ from jamstats.tables.jamstats_tables import (
     GameTeamsSummaryTable,
     RecentPenaltiesTable,
     BothTeamsRosterTable,
+    update_jam_events,
 )
 from jamstats.plots.basic_plots import (
     CumScoreByJamPlot,
@@ -46,6 +47,7 @@ import io
 import logging
 import socket
 import sys, os
+import uuid
 from flask_socketio import SocketIO
 import jamstats
 
@@ -122,6 +124,170 @@ for element_name, element_class in ELEMENT_NAME_CLASS_MAP.items():
 # all element names
 ALL_ELEMENT_NAMES = list(ELEMENT_NAME_CLASS_MAP.keys())
 
+
+def _current_jam_id(derby_game):
+    # Return (period, jam_number) for the most recent jam, or None.
+    jams = derby_game.pdf_jams_data
+    if len(jams) == 0:
+        return None
+    latest = jams.sort_values(["PeriodNumber", "Number"], ascending=False).iloc[0]
+    return (latest["PeriodNumber"], latest["Number"])
+
+
+def _detect_lead_events(prev_jam, new_jam, new_game):
+    """
+    Check for the following events:
+    - got lead
+    - lost lead
+    """
+    events = []
+    if not prev_jam.get("Lead_1", False) and new_jam.get("Lead_1", False):
+        jammer = (new_game.game_data_dict.get("team_1_jammer_name")
+                  or new_jam.get("jammer_name_1") or "Team 1 jammer")
+        events.append(f"{jammer} ({new_game.team_1_name}) got lead")
+    if not prev_jam.get("Lead_2", False) and new_jam.get("Lead_2", False):
+        jammer = (new_game.game_data_dict.get("team_2_jammer_name")
+                  or new_jam.get("jammer_name_2") or "Team 2 jammer")
+        events.append(f"{jammer} ({new_game.team_2_name}) got lead")
+    if not prev_jam.get("Lost_1", False) and new_jam.get("Lost_1", False):
+        jammer = (new_game.game_data_dict.get("team_1_jammer_name")
+                  or new_jam.get("jammer_name_1") or "Team 1 jammer")
+        events.append(f"{jammer} lost lead")
+    if not prev_jam.get("Lost_2", False) and new_jam.get("Lost_2", False):
+        jammer = (new_game.game_data_dict.get("team_2_jammer_name")
+                  or new_jam.get("jammer_name_2") or "Team 2 jammer")
+        events.append(f"{jammer} lost lead")
+    return events
+
+
+def _detect_initial_events(prev_jam, new_jam, new_game):
+    # NoInitial starts True, goes False when jammer clears the pack.
+    # Don't also report initial if jammer already has lead.
+    # Use Position(Jammer).Name from game_data_dict as it updates after a star pass,
+    #   unlike jammer_name from pdf_jams_data (Fielding record, original jammer only).
+    events = []
+    if prev_jam.get("NoInitial_1", True) and new_jam.get("NoInitial_1") is False:
+        if not new_jam.get("Lead_1", False):
+            jammer = (new_game.game_data_dict.get("team_1_jammer_name")
+                      or new_jam.get("jammer_name_1") or "Team 1 jammer")
+            events.append(f"{jammer} ({new_game.team_1_name}) got initial")
+    if prev_jam.get("NoInitial_2", True) and new_jam.get("NoInitial_2") is False:
+        if not new_jam.get("Lead_2", False):
+            jammer = (new_game.game_data_dict.get("team_2_jammer_name")
+                      or new_jam.get("jammer_name_2") or "Team 2 jammer")
+            events.append(f"{jammer} ({new_game.team_2_name}) got initial")
+    return events
+
+
+def _detect_star_pass_events(prev_jam, new_jam, new_game):
+    # Check for star passes.
+    # jammer_name in pdf_jams_data is updated by CRG to the pivot (new jammer) on star pass
+    events = []
+    if not prev_jam.get("StarPass_1", False) and new_jam.get("StarPass_1", False):
+        new_jammer = new_jam.get("jammer_name_1") or new_jam.get("pivot_name_1") or "new jammer"
+        events.append(f"{new_game.team_1_name} Star Pass to {new_jammer}")
+    if not prev_jam.get("StarPass_2", False) and new_jam.get("StarPass_2", False):
+        new_jammer = new_jam.get("jammer_name_2") or new_jam.get("pivot_name_2") or "new jammer"
+        events.append(f"{new_game.team_2_name} Star Pass to {new_jammer}")
+    return events
+
+
+def _detect_power_jam_events(prev_game, new_game, new_jam):
+    # Checks when a jammer penalty is called while the jam is running.
+    if not new_game.game_data_dict.get("jam_is_running"):
+        return []
+    events = []
+    try:
+        prev_keys = set(
+            tuple(row[["Name", "prd_jam", "penalty_code", "Time"]])
+            for _, row in prev_game.pdf_penalties.iterrows()
+        ) if len(prev_game.pdf_penalties) > 0 else set()
+        jammer_1 = new_jam.get("jammer_name_1")
+        jammer_2 = new_jam.get("jammer_name_2")
+        for _, row in new_game.pdf_penalties.iterrows():
+            key = tuple(row[["Name", "prd_jam", "penalty_code", "Time"]])
+            if key not in prev_keys:
+                if jammer_1 and row["Name"] == jammer_1:
+                    events.append(f"Power Jam for {new_game.team_2_name}")
+                elif jammer_2 and row["Name"] == jammer_2:
+                    events.append(f"Power Jam for {new_game.team_1_name}")
+    except Exception as e:
+        logger.warning(f"Error detecting power jam events: {e}")
+    return events
+
+
+def _detect_period_clock_events(prev_game, new_game):
+    # Check when the period clock expires during a jam.
+    events = []
+    prev_clock = prev_game.game_data_dict.get("period_clock_running", True)
+    new_clock = new_game.game_data_dict.get("period_clock_running", True)
+    if prev_clock and not new_clock:
+        if new_game.game_data_dict.get("jam_is_running"):
+            events.append("Period Clock expired")
+    return events
+
+
+def detect_jam_events(prev_game, new_game):
+    # Compare previous and new game states, return list of event text strings.
+    if prev_game is None:
+        return []
+
+    prev_jams = prev_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"], ascending=False)
+    new_jams = new_game.pdf_jams_data.sort_values(["PeriodNumber", "Number"], ascending=False)
+    if len(prev_jams) == 0 or len(new_jams) == 0:
+        return []
+
+    prev_jam = prev_jams.iloc[0]
+    new_jam = new_jams.iloc[0]
+    same_jam = (prev_jam["PeriodNumber"] == new_jam["PeriodNumber"] and
+                prev_jam["Number"] == new_jam["Number"])
+
+    events = []
+    if same_jam:
+        events += _detect_lead_events(prev_jam, new_jam, new_game)
+        events += _detect_initial_events(prev_jam, new_jam, new_game)
+        events += _detect_star_pass_events(prev_jam, new_jam, new_game)
+        events += _detect_power_jam_events(prev_game, new_game, new_jam)
+    events += _detect_period_clock_events(prev_game, new_game)
+    return events
+
+
+class DetectEventsGameStateListener(GameStateListener):
+    # Detects jam events in real-time as the scoreboard pushes state changes.
+
+    def __init__(self, app):
+        self.app = app
+        self.prev_game = None
+        self.prev_jam_id = None
+
+    def on_game_state_changed(self) -> None:
+        try:
+            _app = self.app
+            if _app.scoreboard_client is None or _app.scoreboard_client.game_json_dict is None:
+                return
+            if "ScoreBoard.Version(release)" not in _app.scoreboard_client.game_json_dict.get("state", {}):
+                return
+            new_game = load_json_derby_game(_app.scoreboard_client.game_json_dict)
+            new_jam_id = _current_jam_id(new_game)
+
+            # Clear events when a new jam starts
+            if self.prev_jam_id is not None and new_jam_id != self.prev_jam_id:
+                _app.jam_events = []
+
+            new_event_texts = detect_jam_events(self.prev_game, new_game)
+            self.prev_game = new_game
+            self.prev_jam_id = new_jam_id
+
+            for event_text in new_event_texts:
+                event_id = str(uuid.uuid4())
+                _app.jam_events.append((event_text, event_id))
+                if _app.socketio:
+                    _app.socketio.emit("jam_event", {"text": event_text, "id": event_id})
+            update_jam_events(_app.jam_events)
+        except Exception as e:
+            logger.warning(f"Error detecting events in game state listener: {e}")
+
+
 class UpdateWebclientGameStateListener(GameStateListener):
     def __init__(self, min_refresh_secs, socketio):
         logger.debug("UpdateWebclientGameStateListener init")
@@ -173,6 +339,7 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     matplotlib.use('Agg')
     app.plotname_image_map = {}
     app.plotname_time_map = {}
+    app.jam_events = []  # list of (text, uuid) tuples; cleared when jam changes
     prepare_to_plot(theme=theme)
     app.scoreboard_client = scoreboard_client
     app.scoreboard_server = scoreboard_server
@@ -197,10 +364,13 @@ def start(port: int, scoreboard_client: ScoreboardClient = None,
     # weren't getting to the client. I don't know why.
     app.socketio = SocketIO(app, async_mode="gevent") # , logger=True, engineio_logger=True)
 
-    # add listener to update webclient when game state changes
+    app.detect_events_listener = DetectEventsGameStateListener(app)
+
+    # add listeners to update webclient and detect events when game state changes
     if scoreboard_client is not None:
-        logger.debug("Adding game state listener to scoreboard client")
+        logger.debug("Adding game state listeners to scoreboard client")
         scoreboard_client.add_game_state_listener(UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
+        scoreboard_client.add_game_state_listener(app.detect_events_listener)
 
     logger.debug("Flask app started")
     app.socketio.run(app, host=app.ip, port=port, debug=debug, use_reloader=False)
@@ -226,6 +396,7 @@ def index():
                 logger.debug("Adding game state listener to scoreboard client")
                 app.scoreboard_client.add_game_state_listener(
                     UpdateWebclientGameStateListener(app.min_refresh_secs, app.socketio))
+                app.scoreboard_client.add_game_state_listener(app.detect_events_listener)
                 logger.debug("Starting scoreboard client thread...")
                 mythread = threading.Thread(target=app.scoreboard_client.start)
                 #mythread.daemon = True

@@ -250,6 +250,75 @@ def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
     except Exception:
         pass
 
+    # Extract live penalty box state from Position keys, to determine the total number of blockers in penalty box.
+    blocker_positions = ["Blocker1", "Blocker2", "Blocker3", "Pivot"]
+    team1_blockers_in_box = 0
+    team2_blockers_in_box = 0
+    team1_jammer_in_box = False
+    team2_jammer_in_box = False
+    for pos in blocker_positions:
+        try:
+            val = pdf_game_state[pdf_game_state.key == f"ScoreBoard.Team(1).Position({pos}).PenaltyBox"].value.iloc[0]
+            if val is True or val == "true":
+                team1_blockers_in_box += 1
+        except Exception:
+            pass
+        try:
+            val = pdf_game_state[pdf_game_state.key == f"ScoreBoard.Team(2).Position({pos}).PenaltyBox"].value.iloc[0]
+            if val is True or val == "true":
+                team2_blockers_in_box += 1
+        except Exception:
+            pass
+    try:
+        val = pdf_game_state[pdf_game_state.key == "ScoreBoard.Team(1).Position(Jammer).PenaltyBox"].value.iloc[0]
+        team1_jammer_in_box = val is True or val == "true"
+    except Exception:
+        pass
+    try:
+        val = pdf_game_state[pdf_game_state.key == "ScoreBoard.Team(2).Position(Jammer).PenaltyBox"].value.iloc[0]
+        team2_jammer_in_box = val is True or val == "true"
+    except Exception:
+        pass
+
+    # Extract period clock state
+    period_clock_running = False
+    try:
+        val = pdf_game_state[pdf_game_state.key == "ScoreBoard.Clock(Period).Running"].value.iloc[0]
+        period_clock_running = val is True or val == "true"
+    except Exception:
+        pass
+
+    # Extract timeout state
+    timeout_running = False
+    timeout_owner = None  # "1", "2", or None for official
+    in_official_review = False
+    official_review_owner = None  # "1" or "2"
+    try:
+        val = pdf_game_state[pdf_game_state.key == "ScoreBoard.Clock(Timeout).Running"].value.iloc[0]
+        timeout_running = val is True or val == "true"
+    except Exception:
+        pass
+    try:
+        timeout_owner = str(pdf_game_state[pdf_game_state.key == "ScoreBoard.TimeoutOwner"].value.iloc[0])
+    except Exception:
+        pass
+    # Scan ALL keys containing "OfficialReview" for a True value.
+    # CRG v5 uses different key names (e.g. with UUID-based team IDs) so we can't
+    # rely on specific key names — any True OfficialReview flag means we're in an OR.
+    or_keys_df = pdf_game_state[pdf_game_state.key.str.contains("OfficialReview", na=False)]
+    for _, _or_row in or_keys_df.iterrows():
+        _val = _or_row["value"]
+        if _val is True or str(_val).lower() == "true":
+            in_official_review = True
+            break
+    """
+    To determine "team that called the official review", use timeout_owner as fallback,
+      since it already has the correct team suffix.
+      e.g. "<uuid>_1" or "<uuid>_2") and is set for both team timeouts and official reviews.
+    """
+    if in_official_review and official_review_owner is None:
+        official_review_owner = timeout_owner
+
     return {
         "game_status": game_status,
         "team_1": team_name_1,
@@ -261,6 +330,15 @@ def extract_game_data_dict(pdf_game_state: pd.DataFrame) -> Dict[str, Any]:
         "jam_is_running": jam_is_running,
         "date_string": game_datestring,
         "start_time_string": game_starttimestring,
+        "team1_blockers_in_box": team1_blockers_in_box,
+        "team2_blockers_in_box": team2_blockers_in_box,
+        "team1_jammer_in_box": team1_jammer_in_box,
+        "team2_jammer_in_box": team2_jammer_in_box,
+        "period_clock_running": period_clock_running,
+        "timeout_running": timeout_running,
+        "timeout_owner": timeout_owner,
+        "in_official_review": in_official_review,
+        "official_review_owner": official_review_owner,
     }
 
 def extract_jam_data(pdf_game_state: pd.DataFrame,
@@ -772,10 +850,12 @@ def extract_penalties(pdf_game_state: pd.DataFrame,
         if col not in pdf_penalties:
             pdf_penalties[col] = None
 
-    # "Served" and "Serving" are a bit silly to separate. Combine them
+    # "Served" and "Serving" are a bit silly to separate. Combine them.
+    # Served=False, Serving=True means skater is actively in the box (live game).
+    # Served=True, Serving=True also means skater is in the box (CRG v4 style).
     pdf_penalties["Status"] = [
         "Not Yet" if not served and not serving
-        else "Serving" if served and serving
+        else "Serving" if serving
         else "Served" if served and not serving
         else "Unknown"
         for served, serving in zip(*[pdf_penalties.Served, pdf_penalties.Serving])
