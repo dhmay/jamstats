@@ -307,14 +307,14 @@ def get_singlejam_skaters_html(derby_game: DerbyGame, pdf_one_jam: pd.DataFrame,
     table_htmls = []
     for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
         styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
-        styler = styler.applymap(map_penalty_to_color,
+        styler = styler.map(map_penalty_to_color,
             subset=["Penalty"])
     table_htmls = []
     for pdf in [pdf_team1_jam_skaters, pdf_team2_jam_skaters]:
         styler = pdf.style.set_properties(**{'background-color': 'lightgray'})
-        styler = styler.applymap(map_penalty_to_color,
+        styler = styler.map(map_penalty_to_color,
             subset=["Penalty"])
-        styler = _hide_index(styler.applymap(map_penaltycount_to_color,
+        styler = _hide_index(styler.map(map_penaltycount_to_color,
             subset=["Pen. Count"]))
         styler = _hide_index(styler.set_table_attributes("style='display:inline'"))
         table_htmls.append(styler.to_html())
@@ -551,7 +551,7 @@ class RecentPenaltiesTable(DerbyTable):
         map_team_to_color = lambda team: f"color: {derby_game.team_color_1}" if team == derby_game.team_1_name \
             else f"color: {derby_game.team_color_2}" if team == derby_game.team_2_name \
             else ''
-        styler = pdf_recent_penalties.style.applymap(map_team_to_color, subset=["Team"])
+        styler = pdf_recent_penalties.style.map(map_team_to_color, subset=["Team"])
         styler = _hide_index(styler) 
 
         # if either team is white, don't use white background.
