@@ -273,7 +273,7 @@ class DerbyGame:
                 "Jams", "mean_jam_score"
             ]:
                 pdf_onlypivot_data[column] = 0
-            pdf_onlypivot_data["Mean Time to Initial"] = None
+            pdf_onlypivot_data["Mean Time to Initial"] = float("nan")
             pdf_jammer_data = pd.concat([pdf_jammer_data, pdf_onlypivot_data])
         
         # now, add score and jam counts for all the pivots who took star passes
