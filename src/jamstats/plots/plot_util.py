@@ -231,21 +231,24 @@ def add_number_to_barplot(ax, pdf: pd.DataFrame, column: str):
         column (str): column name
     """
     numbers = list(pdf[column])
-    max_val = max(numbers)
+    present_numbers = [number for number in numbers if pd.notna(number)]
+    max_val = max(present_numbers) if present_numbers else 0
     text_x_pos = max_val / 10
 
     vals_are_ints = True
-    for number in numbers:
+    for number in present_numbers:
         if int(number) != number:
             vals_are_ints = False
             break
-    if vals_are_ints:
-        number_strs = [str(x) for x in numbers]
-    else:
-        number_strs = [f"{x:.1f}" for x in numbers]
+    number_strs = []
+    for number in numbers:
+        if pd.isna(number):
+            number_strs.append("")
+        elif vals_are_ints:
+            number_strs.append(str(number))
+        else:
+            number_strs.append(f"{number:.1f}")
     for i in range(len(numbers)):
-        if number_strs[i] == "nan":
-            number_strs[i] = ""
         ax.text(text_x_pos, i, number_strs[i], size="small",
             horizontalalignment="left",
             verticalalignment="center")
