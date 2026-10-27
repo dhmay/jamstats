@@ -167,11 +167,12 @@ to install all those things at once.
 
 Also, note that you can use `pip upgrade jamstats` to upgrade to the latest version.
 
-Finally, you may notice that the installation bogs down while trying to install `wxpython`. That package is only needed for the GUI interface. If you don't need the GUI interface and installing wxpython is giving you trouble, you can:
+Finally, you may notice that the installation bogs down while trying to install `wxpython`. That package, and `gooey` (which depends on it), are only needed for the GUI interface. If you don't need the GUI interface and installing wxpython is giving you trouble, you can:
 
-1. Install all of jamstats' dependencies *except* wxpython
-    * you can find them in [requirements.txt](https://github.com/dhmay/jamstats/blob/main/requirements.txt))
-    * If you want a semi-automated way to do that, you could download that file and then `pip install $(grep -ivE "wxpython" requirements.txt)`
-3. `pip install jamstats --no-deps`
+1. Install all of jamstats' dependencies *except* wxpython and gooey
+    * you can find them in [requirements.txt](https://github.com/dhmay/jamstats/blob/main/requirements.txt)
+    * If you want a semi-automated way to do that, you could download that file and then `pip install $(grep -ivE "wxpython|gooey" requirements.txt)`
+2. `pip install jamstats --no-deps`
+3. Run `jamstats` with command-line arguments (e.g., `jamstats --scoreboardserver localhost:8000`). Running it with no arguments launches the GUI, which won't work without wxpython and gooey.
 
 And if none of that works, please log a bug!
