@@ -20,8 +20,6 @@ from jamstats.data.json_to_pandas import load_json_derby_game
 import logging
 import sys
 from os.path import exists
-from gooey import Gooey, GooeyParser
-from gooey.gui.lang import i18n  # Import Gooey's localization module
 import time
 import sys, traceback
 import _thread
@@ -38,36 +36,47 @@ logging.basicConfig(level=logging.WARNING,
                     format='%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
 
 
-# override Gooey messages
-gooey_message_override_dict = {
-  "sure_you_want_to_stop": "Are you sure you want to stop?"
-}
-# Monkey-patch the translate() function
-original_translate = i18n.translate  # Save original function
-
-def gooey_custom_translate(key):
-    # Check for the key you want to override
-    if key in gooey_message_override_dict:
-        return gooey_message_override_dict[key]
-    # Fall back to the original translate function for other keys
-    return original_translate(key)
-
-# Replace the translate function with your custom one
-i18n.translate = gooey_custom_translate
-
-
 print(f"jamstats version {get_jamstats_version()}, by Damon May")
 
-@Gooey(program_name="jamstats",
-       program_description="Plot stats from a CRG scoreboard json file or server (v4 or higher)",
-       language='english')
 def gui_args():
-    print("Starting GUI...")
-    parser = GooeyParser()
-    print("Created parser. Adding args...")
-    result = add_and_parse_args(parser, is_gooey=True)
-    print(f"Parsed: {result}")
-    return result
+    # Gooey (and wxpython) are only needed for the GUI, so import them here
+    # rather than at module level. That way command-line use works without them.
+    try:
+        from gooey import Gooey, GooeyParser
+        from gooey.gui.lang import i18n  # Import Gooey's localization module
+    except ImportError as e:
+        sys.exit(f"Could not load the GUI ({e}). To run without the GUI, "
+                 "provide command-line arguments; run 'jamstats -h' for help.")
+
+    # override Gooey messages
+    gooey_message_override_dict = {
+      "sure_you_want_to_stop": "Are you sure you want to stop?"
+    }
+    # Monkey-patch the translate() function
+    original_translate = i18n.translate  # Save original function
+
+    def gooey_custom_translate(key):
+        # Check for the key you want to override
+        if key in gooey_message_override_dict:
+            return gooey_message_override_dict[key]
+        # Fall back to the original translate function for other keys
+        return original_translate(key)
+
+    # Replace the translate function with your custom one
+    i18n.translate = gooey_custom_translate
+
+    @Gooey(program_name="jamstats",
+           program_description="Plot stats from a CRG scoreboard json file or server (v4 or higher)",
+           language='english')
+    def run_gui():
+        print("Starting GUI...")
+        parser = GooeyParser()
+        print("Created parser. Adding args...")
+        result = add_and_parse_args(parser, is_gooey=True)
+        print(f"Parsed: {result}")
+        return result
+
+    return run_gui()
 
 def cmdline_args():
     parser = argparse.ArgumentParser()
